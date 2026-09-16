@@ -107,5 +107,11 @@
     "emptyText": "Add times — tenants will choose from them.",
     "booked": "Booked",
     "delete": "Delete slot"
+  },
+  "summary": {
+    "active": "Active listings",
+    "views": "Views, 30 days",
+    "reveals": "Calls, 30 days",
+    "saves": "Saves, 30 days"
   }
 }

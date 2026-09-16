@@ -4,13 +4,13 @@ import dynamic from 'next/dynamic';
 import Link from '@/i18n/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { ArrowRight, FileText } from 'lucide-react';
-import { Button, Card, Drawer, Field, Select, Skeleton, SpecRow, Table, type Column } from '@lokacia/ui';
+import { ArrowRight, Building2, Coins, DoorOpen, FileText, MapPin, MousePointerClick, Ruler } from 'lucide-react';
+import { Button, Drawer, Field, Select, Skeleton, Table, type Column } from '@lokacia/ui';
 import { apiFetch } from '@/lib/api-client';
 import { useLocalizedPath } from '@/i18n/link';
 import { useFormat } from '@/i18n/use-format';
 
-const MapView = dynamic(() => import('@lokacia/ui/map').then((m) => m.MapView), { ssr: false, loading: () => <Skeleton className="size-full min-h-64 rounded-card" /> });
+const MapView = dynamic(() => import('@lokacia/ui/map').then((m) => m.MapView), { ssr: false, loading: () => <Skeleton className="size-full min-h-64 rounded-none" /> });
 
 export type DistrictStat = { id: string; slug: string; name: string; center: [number, number]; avgPriceM2Minor: number | null; activeCount: number; vacancyCount: number; medianAreaM2: number | null; avgDailyTraffic?: number | null };
 type FC = { type: 'FeatureCollection'; features: { type: 'Feature'; id?: string; properties: Record<string, unknown>; geometry: unknown }[] };
@@ -128,7 +128,7 @@ export function MapExplorer({ initial, initialStats, initialGeojson, businessTyp
       key: 'name',
       header: t('col.name'),
       cell: (s) => (
-        <button type="button" className="text-left font-medium text-link hover:underline" onClick={() => setSelected(s.id)}>
+        <button type="button" className="text-left font-semibold text-link hover:underline" onClick={() => setSelected(s.id)}>
           {s.name}
         </button>
       ),
@@ -140,51 +140,68 @@ export function MapExplorer({ initial, initialStats, initialGeojson, businessTyp
     { key: 'median', header: t('col.median'), cell: (s) => (s.medianAreaM2 != null ? fmt.area(s.medianAreaM2) : '—'), sortValue: (s) => s.medianAreaM2, align: 'right' },
   ];
 
+  const panelStats = sel
+    ? [
+        { icon: Coins, label: t('panel.avg'), value: sel.avgPriceM2Minor != null ? formatNumber(sel.avgPriceM2Minor / 100, 1) : '—', unit: sel.avgPriceM2Minor != null ? (state.dealType === 'rent' ? t('perM2Month') : t('perM2')) : undefined },
+        { icon: Building2, label: t('panel.active'), value: String(sel.activeCount) },
+        { icon: DoorOpen, label: t('panel.vacancy'), value: String(sel.vacancyCount) },
+        { icon: Ruler, label: t('panel.median'), value: sel.medianAreaM2 != null ? formatNumber(sel.medianAreaM2) : '—', unit: sel.medianAreaM2 != null ? fmt.areaUnit : undefined },
+      ]
+    : [];
+
   const panel = sel ? (
     <div className="flex flex-col gap-4">
-      <div>
-        <SpecRow label={t('panel.avg')} value={sel.avgPriceM2Minor != null ? formatNumber(sel.avgPriceM2Minor / 100, 1) : '—'} unit={sel.avgPriceM2Minor != null ? (state.dealType === 'rent' ? t('perM2Month') : t('perM2')) : undefined} />
-        <SpecRow label={t('panel.active')} value={sel.activeCount} />
-        <SpecRow label={t('panel.vacancy')} value={sel.vacancyCount} />
-        <SpecRow label={t('panel.median')} value={sel.medianAreaM2 != null ? formatNumber(sel.medianAreaM2) : '—'} unit={sel.medianAreaM2 != null ? fmt.areaUnit : undefined} />
-      </div>
+      <dl className="grid grid-cols-2 gap-2">
+        {panelStats.map((x) => (
+          <div key={x.label} className="flex flex-col gap-1 rounded-2xl bg-surface-2 p-3">
+            <dt className="flex items-center gap-1.5 text-[12.5px] leading-tight text-muted">
+              <x.icon className="size-3.5 shrink-0" strokeWidth={2} aria-hidden />
+              {x.label}
+            </dt>
+            <dd className="text-[20px] font-bold leading-tight tracking-tight tabular">
+              {x.value}
+              {x.unit && <span className="ml-1 text-[12px] font-medium text-muted">{x.unit}</span>}
+            </dd>
+          </div>
+        ))}
+      </dl>
       <div className="flex flex-col gap-2">
         <Button asChild>
           <Link href={`/search?${new URLSearchParams({ districts: sel.slug, ...(state.businessType ? { businessType: state.businessType } : {}), dealType: state.dealType })}`}>
             {t('panel.listings')}
-            <ArrowRight className="size-4" strokeWidth={1.5} aria-hidden />
+            <ArrowRight className="size-4" strokeWidth={2} aria-hidden />
           </Link>
         </Button>
         <Button asChild variant="secondary">
           <Link href={`/districts/${sel.slug}`}>{t('panel.district')}</Link>
         </Button>
       </div>
-      <Card className="flex flex-col gap-2 p-4">
-        <p className="flex items-center gap-2 font-medium">
-          <FileText className="size-4 text-link" strokeWidth={1.5} aria-hidden />
+      <div className="flex flex-col gap-2 rounded-2xl border border-border bg-accent-soft/60 p-4">
+        <p className="flex items-center gap-2 font-semibold">
+          <FileText className="size-4 text-link" strokeWidth={2} aria-hidden />
           {t('panel.reportTitle')}
         </p>
         <p className="text-small text-muted">{t('panel.reportText')}</p>
         <Button asChild variant="link" className="self-start">
           <Link href={`/reports?${new URLSearchParams({ district: sel.slug, ...(state.businessType ? { businessType: state.businessType } : {}) })}`}>{t('panel.reportCta')}</Link>
         </Button>
-      </Card>
+      </div>
     </div>
   ) : null;
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid gap-3 rounded-card border border-border bg-surface p-4 sm:grid-cols-2 lg:grid-cols-4">
-        <fieldset>
+      <div className="card grid gap-4 p-4 sm:grid-cols-2 md:p-5 lg:grid-cols-[minmax(380px,1.7fr)_1fr_1fr_1fr]">
+        <fieldset className="min-w-0">
           <legend className="mb-1.5 text-small font-medium">{t('metric')}</legend>
-          <div className="inline-flex w-full rounded-button border border-border-strong p-0.5">
+          <div className="flex h-12 w-full rounded-full bg-surface-2 p-1">
             {(['price', 'vacancy', 'traffic'] as const).map((m) => (
               <button
                 key={m}
                 type="button"
                 aria-pressed={state.metric === m}
                 onClick={() => update({ metric: m })}
-                className={`h-8 flex-1 whitespace-nowrap rounded-[5px] px-3 text-small ${state.metric === m ? 'bg-primary text-primary-contrast' : 'text-muted hover:text-text'}`}
+                className={`min-w-0 flex-1 truncate rounded-full px-2 text-[14px] font-semibold transition-all duration-200 focus-visible:shadow-ring focus-visible:outline-none ${state.metric === m ? 'bg-surface text-text shadow-sm' : 'text-muted hover:text-text'}`}
               >
                 {m === 'price' ? t('metricPrice') : m === 'traffic' ? t('metricTraffic') : t('metricVacancy')}
               </button>
@@ -213,8 +230,8 @@ export function MapExplorer({ initial, initialStats, initialGeojson, businessTyp
         {loading ? t('loading') : t('updated')}
       </p>
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
-        <div className="relative h-[60dvh] min-h-80 lg:h-[560px]">
+      <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
+        <div className="relative h-[60dvh] min-h-80 overflow-hidden rounded-card border border-border shadow-md lg:h-[600px]">
           <MapView
             key={`${state.metric}|${state.businessType}|${state.dealType}|${state.city}|${stats.length}`}
             center={center}
@@ -225,15 +242,15 @@ export function MapExplorer({ initial, initialStats, initialGeojson, businessTyp
             ariaLabel={t('title')}
             onPolygonClick={(p) => setSelected(String(p.id))}
           />
-          {loading && <div className="pointer-events-none absolute inset-0 rounded-card bg-bg/40" aria-hidden />}
-          <div className="absolute bottom-3 left-3 rounded-card border border-border bg-surface/95 p-3 text-small">
-            <p className="mb-1.5 font-medium">
-              {state.metric === 'price' ? t('metricPrice') : state.metric === 'traffic' ? t('metricTraffic') : t('metricVacancy')} <span className="text-muted">({unit})</span>
+          {loading && <div className="pointer-events-none absolute inset-0 animate-pulse bg-bg/40" aria-hidden />}
+          <div className="glass absolute bottom-3 left-3 max-w-[calc(100%-24px)] rounded-2xl border border-border p-3 text-small shadow-md">
+            <p className="mb-2 font-semibold">
+              {state.metric === 'price' ? t('metricPrice') : state.metric === 'traffic' ? t('metricTraffic') : t('metricVacancy')} <span className="font-normal text-muted">({unit})</span>
             </p>
-            <ul className="flex items-end gap-0.5" aria-label={t('legend')}>
-              {legend.map((l) => (
-                <li key={l.color} className="flex flex-col items-start">
-                  <span className="block h-3 w-9 border border-border" style={{ background: l.color }} aria-hidden />
+            <ul className="flex items-end gap-1" aria-label={t('legend')}>
+              {legend.map((l, i) => (
+                <li key={l.color} className="flex flex-col items-start gap-0.5">
+                  <span className={`block h-2.5 w-9 ${i === 0 ? 'rounded-l-full' : ''} ${i === legend.length - 1 ? 'rounded-r-full' : ''}`} style={{ background: l.color }} aria-hidden />
                   <span className="tabular text-[11px] text-muted">{formatNumber(l.from)}</span>
                 </li>
               ))}
@@ -242,16 +259,25 @@ export function MapExplorer({ initial, initialStats, initialGeojson, businessTyp
           </div>
         </div>
         <aside className="hidden lg:block" aria-live="polite">
-          <Card className="sticky top-20 p-4">
+          <div className="card sticky top-24 p-5">
             {sel ? (
               <>
-                <h2 className="mb-3 text-h3 font-semibold">{sel.name}</h2>
+                <p className="eyebrow mb-2">
+                  <MapPin className="size-3.5" strokeWidth={2} aria-hidden />
+                  {t('city')}: {t(`cities.${state.city}` as 'cities.tbilisi')}
+                </p>
+                <h2 className="mb-4 text-[24px] font-bold leading-tight tracking-tight">{sel.name}</h2>
                 {panel}
               </>
             ) : (
-              <p className="text-muted">{t('hint')}</p>
+              <div className="flex flex-col items-center gap-3 py-10 text-center">
+                <span className="grid size-14 place-items-center rounded-2xl bg-primary-soft text-primary-soft-text">
+                  <MousePointerClick className="size-6" strokeWidth={2} aria-hidden />
+                </span>
+                <p className="max-w-60 text-muted">{t('hint')}</p>
+              </div>
             )}
-          </Card>
+          </div>
         </aside>
       </div>
 
@@ -261,8 +287,8 @@ export function MapExplorer({ initial, initialStats, initialGeojson, businessTyp
         </Drawer>
       )}
 
-      <section aria-labelledby="districts-table">
-        <h2 id="districts-table" className="mb-3 text-h3 font-semibold">
+      <section aria-labelledby="districts-table" className="mt-6">
+        <h2 id="districts-table" className="mb-4 text-[24px] font-bold leading-tight tracking-tight md:text-[30px]">
           {t('table')}
         </h2>
         <Table columns={columns} rows={stats} rowKey={(s) => s.id} initialSort={{ key: state.metric === 'price' ? 'avg' : 'vacancy', dir: 'desc' }} empty={t('noData')} />

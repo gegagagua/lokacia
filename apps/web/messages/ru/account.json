@@ -17,7 +17,8 @@
     "billing": "Платежи",
     "property": "Моя недвижимость",
     "crm": "Перейти в CRM",
-    "countLabel": "Новых: {count}"
+    "countLabel": "Новых: {count}",
+    "noName": "Мой профиль"
   },
   "dashboard": {
     "title": "Личный кабинет",
@@ -59,7 +60,17 @@
     "tenantProfileAction": "Заполнить профиль",
     "statsAction": "Статистика",
     "myListings": "Мои объявления",
-    "error": "Ошибка"
+    "error": "Ошибка",
+    "attention": "Требуют внимания: {count}",
+    "allClear": "Всё в порядке — новых дел нет",
+    "offersAwaitingHint": "Посмотрите условия и ответьте",
+    "unreadHint": "Вас ждут с ответом",
+    "rejectedHint": "Исправьте и отправьте на модерацию снова",
+    "draftsHint": "Черновики не видны в поиске",
+    "reply": "Ответить",
+    "continue": "Продолжить",
+    "portfolioTitle": "Объявления по статусам",
+    "manageListings": "Управлять"
   },
   "profile": {
     "title": "Профиль",

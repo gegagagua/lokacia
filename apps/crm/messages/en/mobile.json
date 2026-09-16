@@ -1,15 +1,59 @@
 {
   "title": "Add a space on site",
   "subtitle": "Photos, GPS and a voice note, even offline. The space will be saved as a draft.",
-  "photos": { "title": "Photos", "take": "Take a photo", "count": "{n} photos", "remove": "Remove photo" },
-  "gps": { "title": "Location", "detect": "Detect with GPS", "detecting": "Detecting location…", "accuracy": "Accuracy ±{m} m", "denied": "Couldn't detect location. Set it on the map", "mapHint": "Tap the map to move the pin" },
-  "voice": { "title": "Voice note", "record": "Start recording", "stop": "Stop recording", "remove": "Delete recording", "unsupported": "This browser doesn't support voice recording", "denied": "Microphone access was denied" },
-  "fields": { "title": "Title", "titlePlaceholder": "e.g. Corner space with a shopfront", "businessType": "Business type", "dealType": "Deal type", "price": "Price, ₾", "area": "Area, m²", "address": "Address", "note": "Note" },
+  "photos": {
+    "title": "Photos",
+    "take": "Take a photo",
+    "count": "{n} photos",
+    "remove": "Remove photo"
+  },
+  "gps": {
+    "title": "Location",
+    "detect": "Detect with GPS",
+    "detecting": "Detecting location…",
+    "accuracy": "Accuracy ±{m} m",
+    "denied": "Couldn't detect location. Set it on the map",
+    "mapHint": "Tap the map to move the pin"
+  },
+  "voice": {
+    "title": "Voice note",
+    "record": "Start recording",
+    "stop": "Stop recording",
+    "remove": "Delete recording",
+    "unsupported": "This browser doesn't support voice recording",
+    "denied": "Microphone access was denied"
+  },
+  "fields": {
+    "title": "Title",
+    "titlePlaceholder": "e.g. Corner space with a shopfront",
+    "businessType": "Business type",
+    "dealType": "Deal type",
+    "price": "Price, ₾",
+    "area": "Area, m²",
+    "address": "Address",
+    "note": "Note"
+  },
   "save": "Save space",
   "saving": "Saving…",
   "savedOnline": "Space saved as a draft",
   "savedOffline": "No internet connection. The space is saved on this device and will be sent automatically",
   "openListing": "Open space",
-  "queue": { "title": "Upload queue", "pending": "Waiting", "syncing": "Sending", "error": "Error", "retry": "Retry", "remove": "Remove from queue", "sync": "Send now", "empty": "The queue is empty" },
-  "validation": { "title": "Title must be at least 5 characters", "area": "Enter the area", "price": "Enter the price", "location": "Set the location", "address": "Enter the address" }
+  "queue": {
+    "title": "Upload queue",
+    "pending": "Waiting",
+    "syncing": "Sending",
+    "error": "Error",
+    "retry": "Retry",
+    "remove": "Remove from queue",
+    "sync": "Send now",
+    "empty": "The queue is empty"
+  },
+  "validation": {
+    "title": "Title must be at least 5 characters",
+    "area": "Enter the area",
+    "price": "Enter the price",
+    "location": "Set the location",
+    "address": "Enter the address"
+  },
+  "detailsTitle": "Space details"
 }

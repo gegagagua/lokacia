@@ -2,9 +2,11 @@
 import * as React from 'react';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { MessageSquare } from 'lucide-react';
-import { Button, Dialog, Field, RadioGroup, Textarea, useToast } from '@lokacia/ui';
+import { Angry, Frown, Laugh, Meh, MessageSquareHeart, Smile } from 'lucide-react';
+import { Button, cn, Dialog, Field, Textarea, useToast } from '@lokacia/ui';
 import { apiFetch, ClientApiError } from '@/lib/api-client';
+
+const FACES = [Angry, Frown, Meh, Smile, Laugh] as const;
 
 /** Phase 15: floating feedback button → POST /v1/feedback. */
 export function FeedbackWidget() {
@@ -45,24 +47,46 @@ export function FeedbackWidget() {
       trigger={
         <button
           type="button"
-          className="fixed right-4 z-30 inline-flex h-10 items-center gap-2 rounded-full border border-border-strong bg-surface px-4 text-small font-medium text-text transition-colors hover:bg-surface-2"
+          aria-label={t('button')}
+          className="glass group fixed right-4 z-30 inline-flex h-11 items-center gap-2 rounded-full border border-border px-3 text-small font-semibold text-text shadow-md transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg focus-visible:shadow-ring focus-visible:outline-none sm:px-4"
           style={{ bottom: 'calc(16px + env(safe-area-inset-bottom))' }}
         >
-          <MessageSquare className="size-4" strokeWidth={1.5} aria-hidden />
-          <span className="hidden sm:inline">{t('button')}</span>
-          <span className="sr-only sm:hidden">{t('button')}</span>
+          <span className="grid size-7 place-items-center rounded-full bg-primary text-primary-contrast transition-transform group-hover:scale-105">
+            <MessageSquareHeart className="size-4" strokeWidth={2} aria-hidden />
+          </span>
+          <span className="hidden pr-1 sm:inline" aria-hidden>
+            {t('button')}
+          </span>
         </button>
       }
     >
-      <form id="feedback-form" onSubmit={submit} className="flex flex-col gap-4">
+      <form id="feedback-form" onSubmit={submit} className="flex flex-col gap-5">
         <fieldset>
-          <legend className="mb-2 text-[15px] font-medium">{t('rating')}</legend>
-          <RadioGroup value={rating} onValueChange={setRating} className="flex-row flex-wrap gap-4" options={[1, 2, 3, 4, 5].map((n) => ({ value: String(n), label: String(n) }))} />
+          <legend className="mb-3 text-[15px] font-semibold">{t('rating')}</legend>
+          <div className="grid grid-cols-5 gap-2">
+            {FACES.map((Face, i) => {
+              const v = String(i + 1);
+              const on = rating === v;
+              return (
+                <label
+                  key={v}
+                  className={cn(
+                    'flex cursor-pointer flex-col items-center gap-1 rounded-2xl border py-2.5 transition-all duration-200 has-[:focus-visible]:shadow-ring',
+                    on ? 'border-primary bg-primary-soft shadow-sm' : 'border-border bg-surface hover:border-border-strong hover:bg-surface-2',
+                  )}
+                >
+                  <input type="radio" name="feedback-rating" aria-label={v} value={v} checked={on} onChange={() => setRating(v)} className="sr-only" />
+                  <Face aria-hidden strokeWidth={2} className={cn('size-6 transition-transform', on ? 'scale-110 text-primary-soft-text' : 'text-muted')} />
+                  <span className={cn('text-small font-semibold tabular', on ? 'text-primary-soft-text' : 'text-muted')}>{v}</span>
+                </label>
+              );
+            })}
+          </div>
         </fieldset>
         <Field label={t('message')} error={error} required>
           <Textarea rows={5} value={message} onChange={(e) => setMessage(e.target.value)} maxLength={4000} required />
         </Field>
-        <Button type="submit" loading={busy} disabled={message.trim().length < 3}>
+        <Button type="submit" size="lg" loading={busy} disabled={message.trim().length < 3}>
           {t('send')}
         </Button>
       </form>

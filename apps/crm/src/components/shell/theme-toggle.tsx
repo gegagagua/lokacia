@@ -2,18 +2,14 @@
 import * as React from 'react';
 import { Moon, Sun } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { IconButton } from '@lokacia/ui';
+import { IconButton, persistTheme } from '@lokacia/ui';
 
 export function toggleTheme() {
   const el = document.documentElement;
   const dark = el.dataset.theme ? el.dataset.theme === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
   const next = dark ? 'light' : 'dark';
   el.dataset.theme = next;
-  try {
-    localStorage.setItem('lk-theme', next);
-  } catch {
-    /* private mode */
-  }
+  persistTheme(next);
   window.dispatchEvent(new CustomEvent('lk:theme', { detail: next }));
   return next;
 }
@@ -29,8 +25,8 @@ export function ThemeToggle() {
     return () => window.removeEventListener('lk:theme', read);
   }, []);
   return (
-    <IconButton label={t('theme')} size="sm" onClick={() => setDark(toggleTheme() === 'dark')}>
-      {dark ? <Sun className="size-4" strokeWidth={1.5} /> : <Moon className="size-4" strokeWidth={1.5} />}
+    <IconButton label={t('theme')} size="sm" className="rounded-full text-muted hover:text-text" onClick={() => setDark(toggleTheme() === 'dark')}>
+      {dark ? <Sun className="size-4" strokeWidth={2} /> : <Moon className="size-4" strokeWidth={2} />}
     </IconButton>
   );
 }

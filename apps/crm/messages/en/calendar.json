@@ -75,7 +75,8 @@
     "empty": "No viewings scheduled for this day",
     "unlocated": "No coordinates (not included in the route)",
     "schema": "Route diagram",
-    "map": "Route map"
+    "map": "Route map",
+    "stops": "Stops"
   },
   "sync": {
     "title": "Calendar sync",
@@ -87,5 +88,11 @@
     "googleConnected": "Google Calendar connected",
     "googleDisconnect": "Disconnect",
     "googleSynced": "Viewings synced: {count}"
+  },
+  "legend": "Period summary",
+  "countViewings": "{count} viewings",
+  "agenda": {
+    "title": "Upcoming viewings",
+    "empty": "No upcoming viewings in this period"
   }
 }

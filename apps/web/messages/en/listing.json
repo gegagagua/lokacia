@@ -12,7 +12,8 @@
     "confirmed": "Confirmed {when}",
     "perM2": "{price} / m²",
     "status": "Status: {status}",
-    "notPublic": "This listing isn't public — only you can see it."
+    "notPublic": "This listing isn't public — only you can see it.",
+    "score": "Location score"
   },
   "gallery": {
     "label": "Photos and floor plans",
@@ -29,7 +30,8 @@
     "tour": "Virtual tour",
     "openTour": "Open tour",
     "openVideo": "Open video",
-    "videoTitle": "Space video"
+    "videoTitle": "Space video",
+    "showAll": "Show all photos ({total})"
   },
   "specs": {
     "title": "Technical passport",
@@ -44,7 +46,9 @@
     "serviceFee": "Service fee",
     "utilities": "Utilities included",
     "completion": "Construction completion",
-    "empty": "The technical passport hasn't been filled in"
+    "empty": "The technical passport hasn't been filled in",
+    "subtitle": "Dimensions, utilities and terms in one place.",
+    "keyFacts": "Key facts"
   },
   "description": {
     "title": "Description",
@@ -140,7 +144,9 @@
       "business_center": "Business centers",
       "parking": "Parking",
       "bank": "Banks"
-    }
+    },
+    "thisSpace": "This space",
+    "districtAvg": "{district} average"
   },
   "permits": {
     "title": "Permits and registrations",
@@ -163,7 +169,8 @@
   },
   "similar": {
     "title": "Similar spaces",
-    "all": "View all"
+    "all": "View all",
+    "eyebrow": "You may also like"
   },
   "notFound": {
     "title": "Listing not found",

@@ -15,7 +15,12 @@
   "delete": "Delete sequence",
   "deleted": "Sequence deleted",
   "saved": "Sequence saved",
-  "trigger": { "label": "When it starts", "after_viewing": "After a viewing", "new_lead": "New lead", "manual": "Manual enrollment" },
+  "trigger": {
+    "label": "When it starts",
+    "after_viewing": "After a viewing",
+    "new_lead": "New lead",
+    "manual": "Manual enrollment"
+  },
   "editor": {
     "createTitle": "New sequence",
     "editTitle": "Edit sequence",
@@ -26,7 +31,11 @@
     "channel": "Channel",
     "template": "Text",
     "variables": "Variables",
-    "vars": { "name": "Client name", "agent": "Agent", "org": "Agency" },
+    "vars": {
+      "name": "Client name",
+      "agent": "Agent",
+      "org": "Agency"
+    },
     "addStep": "Add step",
     "removeStep": "Remove step",
     "moveUp": "Move up",
@@ -35,7 +44,11 @@
     "hint": "Days are counted from enrollment: 0 means immediately, 3 means on the third day. The sequence stops if the client replies or the deal is closed.",
     "preview": "Preview"
   },
-  "channels": { "sms": "SMS", "email": "Email", "telegram": "Telegram" },
+  "channels": {
+    "sms": "SMS",
+    "email": "Email",
+    "telegram": "Telegram"
+  },
   "enroll": {
     "button": "Enroll contact",
     "title": "Enroll a contact in the sequence",
@@ -54,5 +67,9 @@
     "stoppedToast": "Enrollment stopped",
     "empty": "No enrollments yet"
   },
-  "noManage": "Only managers can edit sequences"
+  "noManage": "Only managers can edit sequences",
+  "flow": {
+    "now": "Immediately",
+    "plusDays": "+{days} days"
+  }
 }

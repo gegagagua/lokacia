@@ -18,5 +18,22 @@
   "listingsByStatus": "Объявления по статусам",
   "signups": "Регистрации, 30 дней",
   "events": "События аналитики, 7 дней",
-  "noEvents": "Событий пока нет"
+  "noEvents": "Событий пока нет",
+  "live": "Обновляется каждую минуту",
+  "revenueHint": "Все платежи за последние 30 дней",
+  "mrrHint": "Сумма активных подписок",
+  "signupsHint": "За 30 дней — {count} новых пользователей",
+  "queuesHint": "Всего ожидает: {count}",
+  "queueWaiting": "Ожидает проверки",
+  "queueClear": "Пусто",
+  "totalListings": "Всего объявлений: {count}",
+  "eventsHint": "Самые частые события",
+  "greeting": "Здравствуйте, {name}!",
+  "heroPending": "В очередях ждут проверки: {count}.",
+  "heroClear": "Все очереди пусты — отличная работа.",
+  "openModeration": "Очередь модерации",
+  "openVerifications": "Верификации",
+  "heroModeration": "Модерация",
+  "heroVerifications": "Верификация",
+  "heroDisputes": "Споры"
 }

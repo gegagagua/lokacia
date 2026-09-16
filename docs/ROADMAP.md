@@ -188,16 +188,16 @@ Feature references: `P#` = portal feature, `C#` = CRM feature, `V#` = v2.0 featu
 - [x] Generated PDF market reports; developer portal with docs
 
 ## Phase 21 — Mobile apps (`apps/mobile`, Expo)
-- [ ] Expo Router app sharing `packages/contracts`; auth by OTP (V7)
-- [ ] Map search, listing page, favorites, alerts via push (Expo Notifications)
-- [ ] Chat, viewings, offers
+- [x] Expo Router app sharing `packages/contracts`; auth by OTP (V7)
+- [x] Map search, listing page, favorites, alerts via push (Expo Notifications)
+- [x] Chat, viewings, offers
 - [ ] Broker mode: add listing on-site, camera, GPS, voice note; LiDAR capture on supported iPhones (native module) → Phase 19 pipeline
-- [ ] EAS build profiles; store metadata listed in HUMAN_TODO
+- [x] EAS build profiles; store metadata listed in HUMAN_TODO
 
 ## Phase 22 — Regions & languages
-- [ ] Batumi, Kutaisi, Rustavi districts + POI import (V8)
-- [ ] Full `en` and `ru` translations, localized slugs, hreflang, language-specific sitemaps
-- [ ] Currency display USD/EUR (rates job), listing text per locale
+- [x] Batumi, Kutaisi, Rustavi districts + POI import (V8)
+- [x] Full `en` and `ru` translations, localized slugs, hreflang, language-specific sitemaps
+- [x] Currency display USD/EUR (rates job), listing text per locale
 
 ## Phase 23 — Property management
 - [x] Owner portfolio view, tenants, leases (V9)
@@ -210,6 +210,6 @@ Feature references: `P#` = portal feature, `C#` = CRM feature, `V#` = v2.0 featu
 - [x] Commission tracking per approved application
 
 ## Phase 25 — v2.0 hardening & release
-- [ ] Regression + load tests for new modules; security review of payments/escrow
+- [x] Regression + load tests for new modules; security review of payments/escrow
 - [ ] Docs updated; v2.0 tagged
 **Done when:** all boxes in this file are ticked. 🎯 100%

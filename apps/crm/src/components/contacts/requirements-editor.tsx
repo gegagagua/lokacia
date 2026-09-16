@@ -1,6 +1,7 @@
 'use client';
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
+import { Check, ClipboardList } from 'lucide-react';
 import { BUSINESS_TYPES, DEAL_TYPE_LABELS_KA, DEAL_TYPES } from '@lokacia/contracts';
 import { Button, cn, Field, Input, Select, Textarea, useToast } from '@lokacia/ui';
 import { errorMessage } from '@/lib/api-client';
@@ -57,15 +58,20 @@ export function RequirementsEditor({ contactId, value, onSaved }: { contactId: s
 
   return (
     <form
-      className="flex flex-col gap-4 rounded-card border border-border bg-surface p-4"
+      className="card flex flex-col gap-5 p-4 md:p-6"
       onSubmit={(e) => {
         e.preventDefault();
         void save();
       }}
     >
-      <div>
-        <h2 className="text-h3 font-semibold">{t('title')}</h2>
-        <p className="text-small text-muted">{t('hint')}</p>
+      <div className="flex items-start gap-3">
+        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-tone-soft text-tone-ink tone-3" aria-hidden>
+          <ClipboardList className="size-5" strokeWidth={2} />
+        </span>
+        <div>
+          <h2 className="text-[18px] font-semibold leading-6">{t('title')}</h2>
+          <p className="text-[13.5px] text-muted">{t('hint')}</p>
+        </div>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Field label={t('businessType')}>
@@ -85,7 +91,7 @@ export function RequirementsEditor({ contactId, value, onSaved }: { contactId: s
         </Field>
       </div>
       <fieldset>
-        <legend className="mb-2 text-small font-medium">{t('districts')}</legend>
+        <legend className="mb-2.5 text-[14px] font-semibold">{t('districts')}</legend>
         <div className="flex flex-wrap gap-1.5">
           {districts.map((d) => {
             const on = form.districtIds.includes(d.id);
@@ -95,8 +101,9 @@ export function RequirementsEditor({ contactId, value, onSaved }: { contactId: s
                 type="button"
                 aria-pressed={on}
                 onClick={() => set('districtIds', on ? form.districtIds.filter((x) => x !== d.id) : [...form.districtIds, d.id])}
-                className={cn('h-8 rounded-button border px-2.5 text-small transition-colors duration-150', on ? 'border-primary bg-primary text-primary-contrast' : 'border-border-strong bg-surface hover:bg-surface-2')}
+                className={cn('inline-flex h-8 items-center gap-1 rounded-full border px-3 text-[13.5px] font-medium transition-all duration-200', on ? 'border-transparent bg-primary text-primary-contrast shadow-sm' : 'border-border bg-surface text-muted hover:border-border-strong hover:text-text')}
               >
+                {on && <Check className="size-3.5" strokeWidth={2.4} aria-hidden />}
                 {d.nameKa}
               </button>
             );
@@ -106,7 +113,7 @@ export function RequirementsEditor({ contactId, value, onSaved }: { contactId: s
       <Field label={t('notes')}>
         <Textarea value={form.notes} onChange={(e) => set('notes', e.target.value)} className="min-h-16" />
       </Field>
-      <div className="flex flex-wrap justify-end gap-2">
+      <div className="-mx-4 -mb-4 flex flex-wrap justify-end gap-2 rounded-b-card border-t border-border bg-surface-2/50 px-4 py-3 md:-mx-6 md:-mb-6 md:px-6">
         {value && (
           <Button variant="ghost" onClick={() => save(true)} disabled={busy}>
             {t('clear')}

@@ -18,5 +18,22 @@
   "listingsByStatus": "Listings by status",
   "signups": "Sign-ups, 30 days",
   "events": "Analytics events, 7 days",
-  "noEvents": "No events yet"
+  "noEvents": "No events yet",
+  "live": "Refreshes every minute",
+  "revenueHint": "All payments in the last 30 days",
+  "mrrHint": "Sum of active subscriptions",
+  "signupsHint": "Last 30 days — {count} new users",
+  "queuesHint": "{count} items waiting",
+  "queueWaiting": "Waiting for review",
+  "queueClear": "All clear",
+  "totalListings": "{count} listings in total",
+  "eventsHint": "Most frequent events",
+  "greeting": "Hi, {name}!",
+  "heroPending": "{count} items are waiting for your review.",
+  "heroClear": "All queues are clear — great work.",
+  "openModeration": "Moderation queue",
+  "openVerifications": "Verifications",
+  "heroModeration": "Moderation",
+  "heroVerifications": "Verification",
+  "heroDisputes": "Disputes"
 }

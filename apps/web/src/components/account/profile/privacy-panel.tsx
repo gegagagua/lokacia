@@ -1,8 +1,9 @@
 'use client';
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
-import { Download, LogOut, Trash2 } from 'lucide-react';
-import { Button, Card, Dialog, Field, Input, Switch, useToast } from '@lokacia/ui';
+import { Download, LogOut, Trash2, TriangleAlert } from 'lucide-react';
+import { Button, Dialog, Field, Input, Switch, useToast } from '@lokacia/ui';
+import { SettingsRow } from '../ui';
 import { apiFetch, ClientApiError } from '@/lib/api-client';
 import { useLocalizedPath } from '@/i18n/link';
 
@@ -46,47 +47,47 @@ export function PrivacyPanel({ consents }: { consents: { kind: string; granted: 
   };
 
   return (
-    <div className="flex max-w-2xl flex-col gap-4 pt-4">
-      <Card className="p-4">
-        <h2 className="mb-3 text-h3 font-semibold">{t('consentsTitle')}</h2>
-        <div className="flex flex-col gap-3">
-          {KINDS.map((k) => (
-            <Switch key={k} label={t(`consents.${k}`)} checked={state[k]} onCheckedChange={(v) => void setConsent(k, v)} />
-          ))}
-        </div>
-      </Card>
-      <Card className="flex flex-col gap-3 p-4">
-        <h2 className="text-h3 font-semibold">{t('exportTitle')}</h2>
-        <p className="text-muted">{t('exportBody')}</p>
-        <div>
+    <div className="flex flex-col gap-5">
+      <section className="card p-5 sm:p-7">
+        <SettingsRow label={t('consentsTitle')}>
+          <ul className="flex flex-col divide-y divide-border rounded-2xl border border-border">
+            {KINDS.map((k) => (
+              <li key={k} className="px-4 py-3">
+                <Switch label={t(`consents.${k}`)} checked={state[k]} onCheckedChange={(v) => void setConsent(k, v)} />
+              </li>
+            ))}
+          </ul>
+        </SettingsRow>
+        <SettingsRow label={t('exportTitle')} description={t('exportBody')}>
           <Button asChild variant="secondary">
             <a href="/api/v1/users/me/export" download>
-              <Download className="size-4" strokeWidth={1.5} aria-hidden />
+              <Download className="size-4" strokeWidth={2} aria-hidden />
               {t('exportAction')}
             </a>
           </Button>
-        </div>
-      </Card>
-      <Card className="flex flex-col gap-3 p-4">
-        <h2 className="text-h3 font-semibold">{t('sessionsTitle')}</h2>
-        <p className="text-muted">{t('sessionsBody')}</p>
-        <div>
+        </SettingsRow>
+        <SettingsRow label={t('sessionsTitle')} description={t('sessionsBody')}>
           <Button variant="secondary" loading={busy === 'logout'} onClick={() => void logoutAll()}>
-            <LogOut className="size-4" strokeWidth={1.5} aria-hidden />
+            <LogOut className="size-4" strokeWidth={2} aria-hidden />
             {t('logoutAll')}
           </Button>
-        </div>
-      </Card>
-      <Card className="flex flex-col gap-3 border-danger/40 p-4">
-        <h2 className="text-h3 font-semibold text-danger">{t('deleteTitle')}</h2>
-        <p className="text-muted">{t('deleteBody')}</p>
-        <div>
-          <Button variant="danger" onClick={() => setConfirmOpen(true)}>
-            <Trash2 className="size-4" strokeWidth={1.5} aria-hidden />
+        </SettingsRow>
+      </section>
+      <section className="rounded-card border border-danger/30 bg-danger/[0.05] p-5 sm:p-7">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center">
+          <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-danger/12 text-danger" aria-hidden>
+            <TriangleAlert className="size-5" strokeWidth={2} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-[17px] font-bold text-danger">{t('deleteTitle')}</h2>
+            <p className="text-small text-muted">{t('deleteBody')}</p>
+          </div>
+          <Button variant="danger" onClick={() => setConfirmOpen(true)} className="self-start md:self-auto">
+            <Trash2 className="size-4" strokeWidth={2} aria-hidden />
             {t('deleteAction')}
           </Button>
         </div>
-      </Card>
+      </section>
       <Dialog
         open={confirmOpen}
         onOpenChange={setConfirmOpen}

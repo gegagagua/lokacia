@@ -57,8 +57,8 @@ export function OfferTermsFields({ value, onChange, errors = {}, dealType, equip
           <Input type="number" inputMode="numeric" min={0} max={30} suffix="%" value={value.indexationPct} onChange={(e) => set({ indexationPct: e.target.value })} />
         </Field>
       )}
-      <fieldset className="sm:col-span-2">
-        <legend className="mb-2 text-small font-medium">{t('fitoutPaidBy')}</legend>
+      <fieldset className="min-w-0 rounded-2xl bg-surface-2/60 px-4 pb-4 pt-1 sm:col-span-2">
+        <legend className="mb-3 text-[14px] font-semibold">{t('fitoutPaidBy')}</legend>
         <RadioGroup
           value={value.fitoutPaidBy}
           onValueChange={(v) => set({ fitoutPaidBy: v as OfferTerms['fitoutPaidBy'] })}
@@ -71,7 +71,7 @@ export function OfferTermsFields({ value, onChange, errors = {}, dealType, equip
         />
       </fieldset>
       {dealType === 'transfer' && (
-        <div className="rounded-card border border-border bg-surface-2 p-4 sm:col-span-2">
+        <div className="rounded-2xl bg-surface-2/70 p-4 sm:col-span-2">
           <Checkbox checked={value.equipmentIncluded} onCheckedChange={(c) => set({ equipmentIncluded: c === true })} label={t('equipmentIncluded')} />
           {equipment.length > 0 ? (
             <ul className="mt-3 divide-y divide-border text-[15px]">

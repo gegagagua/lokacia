@@ -37,5 +37,7 @@
   "activeMember": "Активен",
   "inactiveMember": "Отключён",
   "subscriptions": "Подписки",
-  "noSubscriptions": "Подписок нет"
+  "noSubscriptions": "Подписок нет",
+  "open": "Открыть",
+  "membersCount": "Участников: {count}"
 }

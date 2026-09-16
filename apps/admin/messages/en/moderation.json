@@ -44,7 +44,11 @@
   "priceM2": "Price per m²",
   "districtAvg": "District average per m²",
   "delta": "Difference",
-  "verdict": { "above": "Above average", "below": "Below average", "fair": "Within average" },
+  "verdict": {
+    "above": "Above average",
+    "below": "Below average",
+    "fair": "Within average"
+  },
   "owner": "Author",
   "ownerSince": "Registered",
   "ownerListings": "Listings",
@@ -62,5 +66,16 @@
   "address": "Address",
   "commission": "Broker commission",
   "status": "Status",
-  "notPending": "This listing is not currently in moderation."
+  "notPending": "This listing is not currently in moderation.",
+  "review": "Full review",
+  "perM2": "{price} / m²",
+  "noDelta": "District average unknown",
+  "lead": "New and edited listings",
+  "selectedShort": "selected",
+  "decision": "Decision",
+  "decisionHint": "Check the photos, price and author, then publish or reject.",
+  "prevPhoto": "Previous photo",
+  "nextPhoto": "Next photo",
+  "updatedAt": "Last changed: {date}",
+  "org": "Organization"
 }

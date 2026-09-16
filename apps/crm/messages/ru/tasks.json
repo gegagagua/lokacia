@@ -60,5 +60,16 @@
   "linked": {
     "deal": "Сделка",
     "contact": "Контакт"
+  },
+  "scopeLabel": "Чьи задачи",
+  "groups": {
+    "today": "Сегодня",
+    "tomorrow": "Завтра",
+    "yesterday": "Вчера",
+    "noDue": "Без срока"
+  },
+  "progress": {
+    "title": "Прогресс",
+    "hint": "Выполнено {done} · открыто {open}"
   }
 }

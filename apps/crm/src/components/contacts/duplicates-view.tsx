@@ -2,9 +2,10 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, CopyCheck, GitMerge } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Crown, GitMerge, Phone, ShieldCheck, UserRound } from 'lucide-react';
 import { normalizePhone, formatDateKa, type DuplicateCluster } from '@lokacia/contracts';
-import { Badge, Button, Checkbox, cn, Dialog, EmptyState, Skeleton, useToast } from '@lokacia/ui';
+import { Button, Checkbox, cn, Dialog, EmptyState, Skeleton, useToast } from '@lokacia/ui';
+import { Pill, PersonAvatar, Progress } from '@/components/common/ui';
 import { PageHeader } from '@/components/common/page-header';
 import { errorMessage } from '@/lib/api-client';
 import { useApi, useApiMutation } from '@/lib/swr';
@@ -18,16 +19,16 @@ export function DuplicatesView() {
       <PageHeader
         back={
           <Link href="/contacts" className="inline-flex items-center gap-1 text-muted hover:text-text">
-            <ArrowLeft className="size-3.5" strokeWidth={1.5} aria-hidden />
+            <ArrowLeft className="size-4" strokeWidth={2} aria-hidden />
             {t('detail.back')}
           </Link>
         }
         title={t('duplicates.title')}
         subtitle={t('duplicates.subtitle')}
       />
-      {isLoading && <Skeleton className="h-48" />}
-      {data?.length === 0 && <EmptyState icon={<CopyCheck className="size-5" strokeWidth={1.5} aria-hidden />} title={t('duplicates.empty')} description={t('duplicates.emptyHint')} />}
-      <div className="flex flex-col gap-4">
+      {isLoading && <Skeleton className="h-64 rounded-card" />}
+      {data?.length === 0 && <EmptyState icon={<ShieldCheck className="size-5" strokeWidth={2} aria-hidden />} title={t('duplicates.empty')} description={t('duplicates.emptyHint')} />}
+      <div className="flex flex-col gap-5">
         {data?.map((cluster) => (
           <ClusterCard key={cluster.contacts.map((c) => c.id).join(':')} cluster={cluster} onMerged={() => mutate()} />
         ))}
@@ -69,35 +70,73 @@ function ClusterCard({ cluster, onMerged }: { cluster: DuplicateCluster; onMerge
   };
 
   return (
-    <section className="rounded-card border border-border bg-surface">
-      <header className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
+    <section className="card overflow-hidden" aria-label={t('duplicates.groupLabel')}>
+      <header className="flex flex-wrap items-center gap-2 border-b border-border bg-surface-2/50 px-4 py-3 md:px-5">
+        <span className="grid size-8 place-items-center rounded-[10px] bg-tone-soft text-tone-ink tone-3" aria-hidden>
+          <GitMerge className="size-4" strokeWidth={2} />
+        </span>
         {cluster.reasons.map((r) => (
-          <Badge key={r} tone={r === 'phone' ? 'link' : 'neutral'}>
+          <Pill key={r} tone={r === 'phone' ? 2 : 4} icon={r === 'phone' ? Phone : UserRound}>
             {r === 'phone' ? t('duplicates.reasonPhone') : t('duplicates.reasonName')}
-          </Badge>
+          </Pill>
         ))}
-        <span className="text-small text-muted tabular">{cluster.contacts.length}</span>
+        <span className="ml-auto text-[13px] font-medium text-muted tabular">{t('duplicates.contactsCount', { count: cluster.contacts.length })}</span>
       </header>
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-left text-[14px] tabular">
-          <thead>
-            <tr className="border-b border-border text-small text-muted">
-              <th scope="col" className="px-3 py-2 font-medium">{t('duplicates.keep')}</th>
-              <th scope="col" className="px-3 py-2 font-medium">{t('duplicates.mergeInto')}</th>
-              <th scope="col" className="px-3 py-2 font-medium">{t('columns.name')}</th>
-              <th scope="col" className="px-3 py-2 font-medium">{t('columns.phone')}</th>
-              <th scope="col" className="hidden px-3 py-2 font-medium md:table-cell">{t('columns.agent')}</th>
-              <th scope="col" className="hidden px-3 py-2 font-medium md:table-cell">{t('columns.created')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {cluster.contacts.map((c) => (
-              <tr key={c.id} className={cn('border-b border-border last:border-b-0', c.id === target && 'bg-primary/5')}>
-                <td className="px-3 py-2">
+      <div className="grid gap-3 p-3 sm:grid-cols-2 md:p-4 xl:grid-cols-3">
+        {cluster.contacts.map((c) => {
+          const isTarget = c.id === target;
+          const isSource = !isTarget && sources.includes(c.id);
+          return (
+            <div
+              key={c.id}
+              className={cn(
+                'relative flex flex-col gap-3 rounded-2xl border-2 p-4 transition-all duration-200',
+                isTarget ? 'border-primary bg-primary-soft/40 shadow-sm' : isSource ? 'border-tone-soft bg-tone-faint tone-3' : 'border-border bg-surface opacity-80',
+              )}
+            >
+              <div className="flex items-start gap-3">
+                <PersonAvatar name={c.name} size={44} />
+                <div className="min-w-0 flex-1">
+                  <Link href={`/contacts/${c.id}`} className="block truncate font-semibold hover:underline">
+                    {c.name}
+                  </Link>
+                  <div className="truncate text-[13px] text-muted">{c.company ?? '\u00a0'}</div>
+                </div>
+                {isTarget && (
+                  <Pill tone="primary" icon={Crown} size="sm">
+                    {t('duplicates.keepThis')}
+                  </Pill>
+                )}
+              </div>
+              <dl className="flex flex-col gap-1.5 text-[13.5px]">
+                <div className="flex items-center gap-2">
+                  <dt className="sr-only">{t('columns.phone')}</dt>
+                  <Phone className="size-3.5 shrink-0 text-muted" strokeWidth={2} aria-hidden />
+                  <dd className="truncate tabular">{c.phones.join(', ') || '—'}</dd>
+                </div>
+                <div className="flex items-center gap-2">
+                  <dt className="sr-only">{t('columns.agent')}</dt>
+                  <UserRound className="size-3.5 shrink-0 text-muted" strokeWidth={2} aria-hidden />
+                  <dd className="truncate">{c.ownerAgentName ?? '—'}</dd>
+                </div>
+                <div className="flex items-center gap-2">
+                  <dt className="sr-only">{t('columns.created')}</dt>
+                  <CalendarDays className="size-3.5 shrink-0 text-muted" strokeWidth={2} aria-hidden />
+                  <dd className="truncate text-muted">{formatDateKa(c.createdAt)}</dd>
+                </div>
+              </dl>
+              {cluster.reasons.includes('name') && c.similarity < 1 && (
+                <div>
+                  <div className="mb-1 text-[12.5px] text-muted tabular">{t('duplicates.similarity', { pct: Math.round(c.similarity * 100) })}</div>
+                  <Progress value={c.similarity * 100} tone={3} label={t('duplicates.similarity', { pct: Math.round(c.similarity * 100) })} />
+                </div>
+              )}
+              <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border pt-3 text-[13.5px]">
+                <label className="inline-flex cursor-pointer items-center gap-2 font-medium">
                   <input
                     type="radio"
                     name={`target-${cluster.key}`}
-                    checked={c.id === target}
+                    checked={isTarget}
                     onChange={() => {
                       setTarget(c.id);
                       setSources(cluster.contacts.filter((x) => x.id !== c.id).map((x) => x.id));
@@ -105,36 +144,40 @@ function ClusterCard({ cluster, onMerged }: { cluster: DuplicateCluster; onMerge
                     aria-label={`${t('duplicates.keep')}: ${c.name}`}
                     className="size-4 accent-[var(--primary)]"
                   />
-                </td>
-                <td className="px-3 py-2">
-                  {c.id !== target && <Checkbox checked={sources.includes(c.id)} onCheckedChange={(v) => setSources((s) => (v === true ? [...s, c.id] : s.filter((x) => x !== c.id)))} aria-label={`${t('duplicates.mergeInto')}: ${c.name}`} />}
-                </td>
-                <td className="px-3 py-2">
-                  <Link href={`/contacts/${c.id}`} className="font-medium hover:underline">
-                    {c.name}
-                  </Link>
-                  {c.company && <div className="text-small text-muted">{c.company}</div>}
-                  {cluster.reasons.includes('name') && c.similarity < 1 && <div className="text-small text-muted">{t('duplicates.similarity', { pct: Math.round(c.similarity * 100) })}</div>}
-                </td>
-                <td className="px-3 py-2">{c.phones.join(', ') || '—'}</td>
-                <td className="hidden px-3 py-2 md:table-cell">{c.ownerAgentName ?? '—'}</td>
-                <td className="hidden px-3 py-2 text-muted md:table-cell">{formatDateKa(c.createdAt)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  {t('duplicates.keep')}
+                </label>
+                {!isTarget && (
+                  <Checkbox label={t('duplicates.mergeInto')} checked={sources.includes(c.id)} onCheckedChange={(v) => setSources((s) => (v === true ? [...s, c.id] : s.filter((x) => x !== c.id)))} aria-label={`${t('duplicates.mergeInto')}: ${c.name}`} />
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
-      <footer className="flex flex-wrap items-end justify-between gap-3 border-t border-border px-4 py-3">
-        <div className="min-w-0 text-small">
-          <div className="font-medium">{t('duplicates.preview')}</div>
-          <div className="text-muted tabular">
-            {targetContact.name} · {preview.phones.join(', ') || '—'}
-            {preview.emails.length ? ` · ${preview.emails.join(', ')}` : ''}
-            {preview.tags.length ? ` · ${preview.tags.join(', ')}` : ''}
-            {preview.company ? ` · ${preview.company}` : ''}
+      <footer className="flex flex-col gap-3 border-t border-border px-4 py-3.5 md:flex-row md:items-center md:justify-between md:px-5">
+        <div className="min-w-0 text-[13.5px]">
+          <div className="font-semibold">{t('duplicates.preview')}</div>
+          <div className="mt-1 flex flex-wrap items-center gap-1.5 text-muted tabular">
+            <span className="font-medium text-text">{targetContact.name}</span>
+            {preview.phones.map((p) => (
+              <Pill key={p} size="sm">
+                {p}
+              </Pill>
+            ))}
+            {preview.emails.map((e) => (
+              <Pill key={e} size="sm">
+                {e}
+              </Pill>
+            ))}
+            {preview.tags.map((tag) => (
+              <Pill key={tag} size="sm" tone={1} dot>
+                {tag}
+              </Pill>
+            ))}
+            {preview.company && <span>· {preview.company}</span>}
           </div>
         </div>
-        <Button size="sm" disabled={!sources.length} onClick={() => setConfirm(true)} icon={<GitMerge className="size-4" strokeWidth={1.5} aria-hidden />}>
+        <Button size="sm" disabled={!sources.length} onClick={() => setConfirm(true)} icon={<GitMerge className="size-4" strokeWidth={2} aria-hidden />} className="shrink-0 self-start md:self-auto">
           {t('duplicates.merge')}
         </Button>
       </footer>

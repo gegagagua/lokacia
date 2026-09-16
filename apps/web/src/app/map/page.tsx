@@ -3,7 +3,9 @@ import { getTranslations } from 'next-intl/server';
 import { api } from '@/lib/api-server';
 import { getBusinessTypes, getDistrictStats, getNames } from '@/components/portal/data';
 import { MapExplorer, type DistrictStat, type MapState } from '@/components/portal/map/map-explorer';
-import { Breadcrumbs, pageMetadata } from '@/components/portal/seo';
+import { ChartColumn } from 'lucide-react';
+import { pageMetadata } from '@/components/portal/seo';
+import { PageHero } from '@/components/portal/page-hero';
 
 export const revalidate = 600;
 
@@ -37,13 +39,18 @@ export default async function MapPage({ searchParams }: Props) {
     getNames(),
   ]);
   return (
-    <div className="container-page py-8 md:py-12">
-      <Breadcrumbs items={[{ name: ts('home'), href: '/' }, { name: t('title'), href: '/map' }]} className="mb-4" />
-      <header className="mb-6 max-w-2xl">
-        <h1 className="text-h2 font-semibold md:text-h1">{t('title')}</h1>
-        <p className="mt-2 text-muted">{t('subtitle')}</p>
-      </header>
-      <MapExplorer initial={state} initialStats={stats} initialGeojson={geojson} businessTypes={types.map((b) => ({ slug: b.slug, nameKa: b.nameKa }))} districtNames={names.districtNames} />
-    </div>
+    <>
+      <PageHero
+        size="sm"
+        crumbs={[{ name: ts('home'), href: '/' }, { name: t('title'), href: '/map' }]}
+        eyebrow={t('eyebrow')}
+        eyebrowIcon={<ChartColumn className="size-3.5" strokeWidth={2} aria-hidden />}
+        title={t('title')}
+        lead={t('subtitle')}
+      />
+      <div className="container-page py-8 md:py-10">
+        <MapExplorer initial={state} initialStats={stats} initialGeojson={geojson} businessTypes={types.map((b) => ({ slug: b.slug, nameKa: b.nameKa }))} districtNames={names.districtNames} />
+      </div>
+    </>
   );
 }

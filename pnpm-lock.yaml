@@ -671,6 +671,9 @@ importers:
       '@axe-core/playwright':
         specifier: ^4.13.0
         version: 4.13.0(playwright-core@1.63.0)
+      '@fontsource/firago':
+        specifier: ^5.3.0
+        version: 5.3.0
       '@lokacia/config':
         specifier: workspace:*
         version: link:../config

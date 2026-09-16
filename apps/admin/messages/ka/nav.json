@@ -35,5 +35,8 @@
     "developer": "დეველოპერი",
     "guest": "სტუმარი"
   },
-  "language": "ენა"
+  "language": "ენა",
+  "attentionTitle": "ელის განხილვას",
+  "attentionText": "ელემენტი რიგებში — დაიწყეთ მოდერაციიდან",
+  "allClear": "ყველა რიგი ცარიელია"
 }

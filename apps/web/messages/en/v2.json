@@ -27,7 +27,8 @@
     "strong": "Strong",
     "medium": "Medium",
     "weak": "Weak",
-    "weight": "Weight {pct}%"
+    "weight": "Weight {pct}%",
+    "components": "Score breakdown"
   },
   "tour": {
     "title": "3D tour and floor plan",
@@ -51,7 +52,8 @@
       "fitout_loan": "Fit-out loan",
       "leasing": "Leasing",
       "insurance": "Insurance"
-    }
+    },
+    "all": "All products"
   },
   "scanUpload": {
     "label": "Upload 3D scan",
@@ -79,5 +81,7 @@
     "start": "Contract and deposit",
     "created": "Contract created — please sign it",
     "error": "Couldn't create the deposit"
-  }
+  },
+  "eyebrow": "Location intelligence",
+  "lead": "Foot traffic, location score, 3D tour and financing — all in one place."
 }

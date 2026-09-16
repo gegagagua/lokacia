@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { Moon, Sun } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { IconButton } from '@lokacia/ui';
+import { IconButton, persistTheme } from '@lokacia/ui';
 
 export function ThemeToggle() {
   const t = useTranslations('common');
@@ -15,18 +15,15 @@ export function ThemeToggle() {
     <IconButton
       label={t('toggleTheme')}
       size="sm"
+      className="rounded-full"
       onClick={() => {
         const next = !dark;
         setDark(next);
         document.documentElement.dataset.theme = next ? 'dark' : 'light';
-        try {
-          localStorage.setItem('lk-theme', next ? 'dark' : 'light');
-        } catch {
-          /* private mode */
-        }
+        persistTheme(next ? 'dark' : 'light');
       }}
     >
-      {dark ? <Sun className="size-4" strokeWidth={1.5} /> : <Moon className="size-4" strokeWidth={1.5} />}
+      {dark ? <Sun className="size-[18px]" strokeWidth={2} /> : <Moon className="size-[18px]" strokeWidth={2} />}
     </IconButton>
   );
 }

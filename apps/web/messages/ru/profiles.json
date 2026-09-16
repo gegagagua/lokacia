@@ -59,5 +59,6 @@
   "completion": "Сдача: {date}",
   "breadcrumbHome": "Главная",
   "brokerNotFound": "Брокер не найден",
-  "orgNotFound": "Организация не найдена"
+  "orgNotFound": "Организация не найдена",
+  "brokersEyebrow": "Проверенные профессионалы"
 }

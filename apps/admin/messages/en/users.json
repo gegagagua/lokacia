@@ -26,7 +26,11 @@
   "saveRole": "Save role",
   "roleSaved": "Role changed",
   "orgs": "Organizations",
-  "orgRole": { "manager": "Manager", "agent": "Agent", "assistant": "Assistant" },
+  "orgRole": {
+    "manager": "Manager",
+    "agent": "Agent",
+    "assistant": "Assistant"
+  },
   "noOrgs": "Not a member of any organization",
   "subscriptions": "Subscriptions",
   "noSubscriptions": "No subscriptions",
@@ -43,5 +47,6 @@
   "impersonate": "Sign in as user",
   "impersonateTitle": "Sign in as user",
   "impersonateText": "The portal will open with this user's account. All actions will be logged under your name. To finish, click “Exit admin mode” on the portal.",
-  "cancel": "Cancel"
+  "cancel": "Cancel",
+  "open": "Open"
 }

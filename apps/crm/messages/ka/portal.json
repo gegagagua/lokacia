@@ -17,5 +17,17 @@
   "notFound": "ბმული არასწორია ან ვადა გაუვიდა",
   "notFoundHint": "სთხოვეთ ბროკერს ახალი ბმული.",
   "counts": "{liked} მოგწონით · {disliked} არ მოგწონით · {total} სულ",
-  "poweredBy": "პორტალი — lokacia.ge"
+  "poweredBy": "პორტალი — lokacia.ge",
+  "eyebrow": "თქვენთვის შერჩეული ფართები",
+  "statLiked": "მოგწონით",
+  "statDisliked": "არ მოგწონით",
+  "statTotal": "სულ ვარიანტი",
+  "statusLiked": "მოგწონით",
+  "statusDisliked": "არ მოგწონით",
+  "area": "ფართობი",
+  "listTitle": "ვარიანტები",
+  "listHint": "მონიშნეთ თითოეული ფართი — ასე ბროკერი უკეთ შეგირჩევს შემდეგ ვარიანტებს.",
+  "callAgent": "ბროკერისთვის დარეკვა",
+  "contactOrg": "აგენტურის ტელეფონი",
+  "home": "მთავარი"
 }

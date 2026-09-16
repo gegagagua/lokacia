@@ -8,7 +8,9 @@
     "start": "next start -p 3100",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "predev": "node ../../scripts/copy-maplibre-worker.mjs",
+    "prebuild": "node ../../scripts/copy-maplibre-worker.mjs"
   },
   "dependencies": {
     "@fontsource/firago": "^5.3.0",

@@ -59,5 +59,6 @@
   "completion": "Completion: {date}",
   "breadcrumbHome": "Home",
   "brokerNotFound": "Broker not found",
-  "orgNotFound": "Organization not found"
+  "orgNotFound": "Organization not found",
+  "brokersEyebrow": "Verified professionals"
 }

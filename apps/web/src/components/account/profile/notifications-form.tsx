@@ -2,7 +2,8 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Badge, Button, Card, Checkbox, Dialog, useToast } from '@lokacia/ui';
+import { Send } from 'lucide-react';
+import { Badge, Button, Checkbox, Dialog, useToast } from '@lokacia/ui';
 import { apiFetch, ClientApiError } from '@/lib/api-client';
 import type { ProfileSettings } from './profile-tabs';
 
@@ -57,14 +58,17 @@ export function NotificationsForm({ settings, hasEmail, mockMessengers }: { sett
   };
 
   return (
-    <div className="flex flex-col gap-6 pt-4">
-      <section aria-labelledby="messengers">
-        <h2 id="messengers" className="mb-3 text-h3 font-semibold">{t('messengersTitle')}</h2>
+    <div className="flex flex-col gap-5">
+      <section aria-labelledby="messengers" className="card p-5 sm:p-7">
+        <h2 id="messengers" className="mb-4 text-[17px] font-bold">{t('messengersTitle')}</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           {(['telegram', 'viber'] as const).map((ch) => (
-            <Card key={ch} className="flex items-center justify-between gap-3 p-4">
-              <div>
-                <div className="font-medium">{t(ch)}</div>
+            <div key={ch} className="flex items-center gap-3 rounded-2xl border border-border p-4">
+              <span className={`grid size-11 shrink-0 place-items-center rounded-2xl text-white ${ch === 'telegram' ? 'bg-[#2AABEE]' : 'bg-[#7360F2]'}`} aria-hidden>
+                <Send className="size-5" strokeWidth={2} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="font-semibold">{t(ch)}</div>
                 <Badge tone={linked[ch] ? 'success' : 'outline'} className="mt-1">{linked[ch] ? t('linked') : t('notLinked')}</Badge>
               </div>
               {linked[ch] ? (
@@ -72,29 +76,31 @@ export function NotificationsForm({ settings, hasEmail, mockMessengers }: { sett
               ) : (
                 <Button variant="secondary" size="sm" onClick={() => void startLink(ch)}>{t('link')}</Button>
               )}
-            </Card>
+            </div>
           ))}
         </div>
       </section>
 
-      <section aria-labelledby="prefs">
-        <h2 id="prefs" className="text-h3 font-semibold">{t('notificationsIntro')}</h2>
-        <div className="mt-3 overflow-x-auto rounded-card border border-border bg-surface">
-          <table className="w-full min-w-[560px] text-left text-[15px]">
+      <section aria-labelledby="prefs" className="card overflow-hidden">
+        <div className="p-5 pb-4 sm:px-7 sm:pt-7">
+          <h2 id="prefs" className="text-[17px] font-bold">{t('notificationsIntro')}</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[600px] text-left text-[15px]">
             <thead>
-              <tr className="border-b border-border text-small text-muted">
-                <th scope="col" className="px-4 py-2 font-medium">{t('category')}</th>
+              <tr className="border-y border-border bg-surface-2/60 text-[13px] text-muted">
+                <th scope="col" className="px-5 py-3 font-semibold sm:px-7">{t('category')}</th>
                 {CHANNELS.map((ch) => (
-                  <th key={ch} scope="col" className="px-2 py-2 text-center font-medium">{t(`channels.${ch}`)}</th>
+                  <th key={ch} scope="col" className="px-2 py-3 text-center font-semibold">{t(`channels.${ch}`)}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {CATEGORIES.map((cat) => (
-                <tr key={cat} className="border-b border-border last:border-b-0">
-                  <th scope="row" className="px-4 py-3 font-normal">{t(`categories.${cat}`)}</th>
+                <tr key={cat} className="border-b border-border transition-colors last:border-b-0 hover:bg-surface-2/40">
+                  <th scope="row" className="px-5 py-3.5 font-medium sm:px-7">{t(`categories.${cat}`)}</th>
                   {CHANNELS.map((ch) => (
-                    <td key={ch} className="px-2 py-3 text-center">
+                    <td key={ch} className="px-2 py-3.5 text-center">
                       <span className="inline-flex" title={available(ch) ? undefined : ch === 'email' ? t('channelNeedsEmail') : t('channelNeedsLink')}>
                         <Checkbox
                           aria-label={`${t(`categories.${cat}`)} — ${t(`channels.${ch}`)}`}
@@ -110,7 +116,9 @@ export function NotificationsForm({ settings, hasEmail, mockMessengers }: { sett
             </tbody>
           </table>
         </div>
-        <Button className="mt-4" onClick={save} loading={busy}>{t('savePrefs')}</Button>
+        <div className="flex justify-end border-t border-border bg-surface-2/50 px-5 py-4 sm:px-7">
+          <Button onClick={save} loading={busy}>{t('savePrefs')}</Button>
+        </div>
       </section>
 
       <Dialog

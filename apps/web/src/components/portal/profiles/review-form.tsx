@@ -39,16 +39,16 @@ export function ReviewForm({ endpoint }: { endpoint: string }) {
   }
 
   return (
-    <Card as="form" onSubmit={submit} className="flex flex-col gap-4 p-4">
-      <h3 className="text-h3 font-semibold">{t('title')}</h3>
+    <Card as="form" onSubmit={submit} className="flex flex-col gap-4 p-5 md:p-6">
+      <h3 className="text-h3 font-bold">{t('title')}</h3>
       <fieldset>
         <legend className="mb-1.5 text-small font-medium">{t('rating')}</legend>
         <div className="flex gap-1">
           {[1, 2, 3, 4, 5].map((n) => (
-            <label key={n} className="cursor-pointer rounded-button p-1 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-focus">
+            <label key={n} className="cursor-pointer rounded-xl p-1 transition-transform hover:scale-110 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-focus">
               <input type="radio" name={name} value={n} checked={rating === n} onChange={() => setRating(n)} className="sr-only" />
               <span className="sr-only">{t('stars', { n })}</span>
-              <Star className={`size-7 ${rating >= n ? 'fill-accent text-accent' : 'text-border-strong'}`} strokeWidth={1.5} aria-hidden />
+              <Star className={`size-8 ${rating >= n ? 'fill-accent text-accent' : 'text-border-strong'}`} strokeWidth={2} aria-hidden />
             </label>
           ))}
         </div>
@@ -59,7 +59,7 @@ export function ReviewForm({ endpoint }: { endpoint: string }) {
       <p aria-live="polite" className={`text-small ${msg?.tone === 'ok' ? 'text-success' : 'text-danger'}`}>
         {msg?.text}
       </p>
-      <Button type="submit" loading={busy} className="self-start">
+      <Button type="submit" loading={busy} className="w-full">
         {t('submit')}
       </Button>
     </Card>

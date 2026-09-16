@@ -2,12 +2,12 @@
 import * as React from 'react';
 import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
-import { MapPin } from 'lucide-react';
-import { Field, Input, Skeleton } from '@lokacia/ui';
-import { StepSection } from './parts';
+import { Crosshair, Layers, MapPin, MousePointerClick, Navigation, Ruler } from 'lucide-react';
+import { Field, Input, Skeleton, cn } from '@lokacia/ui';
+import { InfoTile, StepSection } from './parts';
 import type { WizardForm } from './types';
 
-const MapView = dynamic(() => import('@lokacia/ui/map').then((m) => m.MapView), { ssr: false, loading: () => <Skeleton className="h-full w-full" /> });
+const MapView = dynamic(() => import('@lokacia/ui/map').then((m) => m.MapView), { ssr: false, loading: () => <Skeleton className="h-full w-full rounded-none" /> });
 
 export function StepLocation({ form, set, errors }: { form: WizardForm; set: (p: Partial<WizardForm>) => void; errors: Record<string, string> }) {
   const t = useTranslations('wizard.location');
@@ -34,32 +34,39 @@ export function StepLocation({ form, set, errors }: { form: WizardForm; set: (p:
   );
 
   return (
-    <StepSection title={t('heading')} hint={t('mapHint')}>
-      <div className="h-72 overflow-hidden rounded-card border border-border sm:h-96" aria-invalid={!!errors.pin || undefined}>
+    <StepSection title={t('heading')} hint={t('mapHint')} icon={MapPin}>
+      <div className={cn('relative h-72 overflow-hidden rounded-card border shadow-sm sm:h-[420px]', errors.pin ? 'border-danger ring-2 ring-danger/30' : 'border-border')} aria-invalid={!!errors.pin || undefined}>
         <MapView className="h-full w-full" zoom={pin ? 15 : 12} draggablePin={pin} onPinMove={move} onMapClick={move} ariaLabel={t('mapLabel')} />
+        {!pin && (
+          <div className="pointer-events-none absolute inset-x-0 top-4 flex justify-center px-4">
+            <span className="glass inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-[14px] font-semibold shadow-md">
+              <MousePointerClick className="size-4 text-primary" strokeWidth={2} aria-hidden />
+              {t('mapHint')}
+            </span>
+          </div>
+        )}
       </div>
       {errors.pin && (
-        <p role="alert" className="-mt-3 text-small text-danger">
+        <p role="alert" className="-mt-3 text-small font-medium text-danger">
           {errors.pin}
         </p>
       )}
-      <div className="grid gap-4 sm:grid-cols-2">
+
+      <div className="grid gap-3 sm:grid-cols-2" aria-live="polite">
+        <InfoTile label={t('district')} icon={Layers}>
+          {lookup ? '…' : form.districtName ?? (pin ? t('districtUnknown') : <span className="font-medium text-muted">{t('districtAuto')}</span>)}
+        </InfoTile>
+        <InfoTile label={t('coords')} icon={Crosshair}>
+          <span className="tabular">{pin ? `${pin.lat.toFixed(5)}, ${pin.lng.toFixed(5)}` : '—'}</span>
+        </InfoTile>
+      </div>
+
+      <div className="grid gap-5 sm:grid-cols-2">
         <Field label={t('address')} required error={errors.address} className="sm:col-span-2">
-          <Input value={form.address} placeholder={t('addressPlaceholder')} maxLength={200} autoComplete="street-address" onChange={(e) => set({ address: e.target.value })} />
+          <Input value={form.address} placeholder={t('addressPlaceholder')} maxLength={200} autoComplete="street-address" prefixIcon={<Navigation className="size-4" strokeWidth={2} aria-hidden />} onChange={(e) => set({ address: e.target.value })} />
         </Field>
-        <div className="flex flex-col gap-1.5">
-          <span className="text-small font-medium">{t('district')}</span>
-          <div className="flex h-10 items-center gap-2 rounded-button border border-border bg-surface-2 px-3 text-[15px]" aria-live="polite">
-            <MapPin className="size-4 text-muted" strokeWidth={1.5} aria-hidden />
-            {lookup ? '…' : form.districtName ?? (pin ? t('districtUnknown') : <span className="text-muted">{t('districtAuto')}</span>)}
-          </div>
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <span className="text-small font-medium">{t('coords')}</span>
-          <div className="flex h-10 items-center rounded-button border border-border bg-surface-2 px-3 text-small text-muted tabular">{pin ? `${pin.lat.toFixed(5)}, ${pin.lng.toFixed(5)}` : '—'}</div>
-        </div>
         <Field label={t('area')} required error={errors.areaM2}>
-          <Input type="number" inputMode="decimal" min={1} step={0.1} value={form.areaM2} onChange={(e) => set({ areaM2: e.target.value })} />
+          <Input type="number" inputMode="decimal" min={1} step={0.1} value={form.areaM2} prefixIcon={<Ruler className="size-4" strokeWidth={2} aria-hidden />} onChange={(e) => set({ areaM2: e.target.value })} />
         </Field>
         <div className="grid grid-cols-2 gap-4">
           <Field label={t('floor')}>

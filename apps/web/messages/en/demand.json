@@ -13,7 +13,10 @@
     "emptyHint": "Change the filters or add your own request — owners will find you.",
     "reset": "Clear filters",
     "loadError": "Couldn't load. Please try again.",
-    "crumb": "Requests"
+    "crumb": "Requests",
+    "eyebrow": "Businesses looking for space",
+    "ctaTitle": "Looking for a space? Let owners find you",
+    "ctaLead": "Describe the space you need — area, budget, districts. Matching offers arrive straight in your messages."
   },
   "filters": {
     "title": "Filters",
@@ -60,7 +63,8 @@
     "matchesEmpty": "No matching spaces right now. You'll be notified when a new space is published.",
     "searchAll": "All results in search",
     "inactive": "This request isn't active — responses are disabled.",
-    "metaFallback": "Space request"
+    "metaFallback": "Space request",
+    "eyebrow": "Request"
   },
   "contact": {
     "title": "Respond",
@@ -96,7 +100,12 @@
     "expires": "Duration",
     "days": "{count} days",
     "submit": "Publish request",
-    "error": "Couldn't save the request. Check the fields."
+    "error": "Couldn't save the request. Check the fields.",
+    "eyebrow": "New request",
+    "tip1": "Give an area range and a budget — offers will be far more precise.",
+    "tip2": "Tick several districts if your location is flexible.",
+    "tip3": "Your number is only shown when you reply yourself.",
+    "tipsTitle": "Tips"
   },
   "account": {
     "title": "My requests",

@@ -10,7 +10,7 @@ const MapView = dynamic(() => import('@lokacia/ui/map').then((m) => m.MapView), 
 export function ProjectMap({ center, points, label }: { center: [number, number]; points: MapPoint[]; label: string }) {
   const router = useRouter();
   return (
-    <div className="h-80 md:h-96">
+    <div className="h-80 overflow-hidden rounded-card border border-border shadow-sm md:h-[420px]">
       <MapView
         center={center}
         zoom={15}

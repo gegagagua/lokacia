@@ -48,15 +48,15 @@ export function DescriptionEditor({ listing, onSaved }: { listing: ListingDetail
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-3 rounded-card border border-dashed border-border-strong p-3 sm:flex-row sm:items-center">
-        <Sparkles className="size-4 text-accent" strokeWidth={1.5} aria-hidden />
-        <p className="min-w-0 flex-1 text-small text-muted">{t('hint')}</p>
+      <div className="flex flex-col gap-3 rounded-card border border-accent/30 bg-accent-soft p-4 sm:flex-row sm:items-center">
+        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent text-accent-contrast shadow-sm" aria-hidden><Sparkles className="size-5" strokeWidth={2} /></span>
+        <p className="min-w-0 flex-1 text-[14px] text-text">{t('hint')}</p>
         {source && <Badge tone={source === 'ai' ? 'success' : 'outline'}>{source === 'ai' ? 'AI' : t('templateShort')}</Badge>}
-        <Button size="sm" variant="secondary" className="self-start sm:self-auto" onClick={generate} loading={busy === 'gen'} icon={<Sparkles className="size-3.5" strokeWidth={1.5} aria-hidden />}>
+        <Button size="sm" variant="secondary" className="self-start sm:self-auto" onClick={generate} loading={busy === 'gen'} icon={<Sparkles className="size-3.5" strokeWidth={2} aria-hidden />}>
           {source ? t('regenerate') : t('generate')}
         </Button>
       </div>
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="card grid gap-4 p-4 md:p-5 lg:grid-cols-3">
         {(['ka', 'en', 'ru'] as const).map((l) => (
           <Field key={l} label={t(l)}>
             <Textarea value={texts[l]} onChange={(e) => setTexts((s) => ({ ...s, [l]: e.target.value }))} className="min-h-72 text-[14px]" lang={l} />

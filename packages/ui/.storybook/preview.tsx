@@ -12,7 +12,7 @@ const withTheme: Decorator = (Story, ctx) => {
   }, [theme]);
   return (
     <ToastProvider>
-      <div className="bg-bg p-4 font-sans text-text" style={{ minHeight: '100%' }}>
+      <div className="min-h-screen bg-bg p-6 font-sans text-body text-text antialiased">
         <Story />
       </div>
     </ToastProvider>
@@ -28,8 +28,8 @@ const preview: Preview = {
         title: 'Theme',
         icon: 'mirror',
         items: [
-          { value: 'light', title: 'Light (plaster)', icon: 'sun' },
-          { value: 'dark', title: 'Dark (basalt)', icon: 'moon' },
+          { value: 'light', title: 'Light', icon: 'sun' },
+          { value: 'dark', title: 'Dark', icon: 'moon' },
         ],
         dynamicTitle: true,
       },

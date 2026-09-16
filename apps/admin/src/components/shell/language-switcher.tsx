@@ -20,13 +20,13 @@ export function LanguageSwitcher() {
       align="end"
       className="w-44 p-1"
       trigger={
-        <IconButton label={t('language')} size="sm">
-          <Languages className="size-4" strokeWidth={1.5} />
+        <IconButton label={t('language')} size="sm" className="rounded-full">
+          <Languages className="size-[18px]" strokeWidth={2} />
         </IconButton>
       }
     >
       {LOCALES.map((l) => (
-        <button key={l} type="button" lang={l} onClick={() => set(l)} aria-current={locale === l ? 'true' : undefined} className="flex w-full items-center rounded-[6px] px-3 py-2 text-left text-[15px] hover:bg-surface-2 aria-[current=true]:font-semibold">
+        <button key={l} type="button" lang={l} onClick={() => set(l)} aria-current={locale === l ? 'true' : undefined} className="flex w-full items-center rounded-xl px-3 py-2.5 text-left text-[15px] font-medium transition-colors hover:bg-surface-2 aria-[current=true]:bg-primary-soft aria-[current=true]:text-primary-soft-text">
           {NATIVE_NAMES[l]}
         </button>
       ))}

@@ -1,7 +1,7 @@
 'use client';
 import * as React from 'react';
 import { Moon, Sun } from 'lucide-react';
-import { IconButton } from '@lokacia/ui';
+import { IconButton, persistTheme } from '@lokacia/ui';
 import { useTranslations } from 'next-intl';
 
 export function ThemeToggle() {
@@ -19,11 +19,7 @@ export function ThemeToggle() {
         const next = !dark;
         setDark(next);
         document.documentElement.dataset.theme = next ? 'dark' : 'light';
-        try {
-          localStorage.setItem('lk-theme', next ? 'dark' : 'light');
-        } catch {
-          /* private mode */
-        }
+        persistTheme(next ? 'dark' : 'light');
       }}
     >
       {dark ? <Sun className="size-4" strokeWidth={1.5} /> : <Moon className="size-4" strokeWidth={1.5} />}

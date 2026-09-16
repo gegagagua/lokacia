@@ -1,9 +1,9 @@
-import Script from 'next/script';
+import { cookies } from 'next/headers';
 import type { Metadata, Viewport } from 'next';
 import localFont from 'next/font/local';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
-import { ToastProvider } from '@lokacia/ui';
+import { ToastProvider, ThemeSync } from '@lokacia/ui';
 import './globals.css';
 
 const font = localFont({
@@ -32,17 +32,15 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-const themeScript = `try{var t=localStorage.getItem('lk-theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t}catch(e){}`;
-
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const themeValue = (await cookies()).get('lk_theme')?.value;
+  const themeCookie = themeValue === 'dark' || themeValue === 'light' ? themeValue : undefined;
   const locale = await getLocale();
   const messages = await getMessages();
   return (
-    <html lang={locale} className={font.variable} suppressHydrationWarning>
-      <head>
-        <Script id="lk-theme" strategy="beforeInteractive">{themeScript}</Script>
-      </head>
+    <html data-theme={themeCookie} lang={locale} className={font.variable} suppressHydrationWarning>
       <body className="min-h-dvh bg-bg text-text" suppressHydrationWarning>
+        <ThemeSync />
         <NextIntlClientProvider locale={locale} messages={messages}>
           <ToastProvider>{children}</ToastProvider>
         </NextIntlClientProvider>

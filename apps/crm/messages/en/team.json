@@ -24,7 +24,8 @@
     "phone": "Phone number",
     "role": "Role",
     "submit": "Send invitation",
-    "sent": "Invitation sent by SMS"
+    "sent": "Invitation sent by SMS",
+    "hint": "The new team member will receive an SMS with an invitation link."
   },
   "distribution": {
     "title": "Lead distribution",
@@ -56,7 +57,8 @@
       "listings_publish": "Publish spaces",
       "documents_sign": "Send documents for signature",
       "analytics_view": "Analytics"
-    }
+    },
+    "hint": "What each role can do in the CRM"
   },
   "settings": {
     "title": "Settings",
@@ -91,7 +93,11 @@
     "remove": "Delete stage",
     "moveTo": "Move deals to stage",
     "save": "Save stages",
-    "saved": "Pipeline saved"
+    "saved": "Pipeline saved",
+    "stagesTitle": "Stages",
+    "stagesHint": "Use the arrows to change the order",
+    "removedTitle": "Deals in removed stages",
+    "removedHint": "Choose the stage these deals will move to."
   },
   "org": {
     "title": "Organization profile",
@@ -106,6 +112,27 @@
     "brandColor": "Brand color",
     "brandHint": "Shown in presentations and the client portal.",
     "save": "Save profile",
-    "saved": "Organization profile saved"
+    "saved": "Organization profile saved",
+    "identity": "Brand and description",
+    "identityHint": "How clients see you",
+    "contacts": "Contacts",
+    "contactsHint": "Shown in presentations and the client portal",
+    "brand": "Brand colour",
+    "preview": "Preview",
+    "previewHint": "This is how the client portal header will look.",
+    "previewGreeting": "Hello, Tamar!",
+    "logoHint": "Square image, transparent background"
+  },
+  "membersCount": "{count} members",
+  "membersHint": "Roles, activity, districts and this month's results",
+  "allRoles": "All",
+  "noMembers": "No members with this role",
+  "you": "You",
+  "inactive": "Inactive",
+  "statsShort": {
+    "contacts": "Contacts",
+    "openDeals": "Open",
+    "wonThisMonth": "Won",
+    "overdueTasks": "Overdue"
   }
 }

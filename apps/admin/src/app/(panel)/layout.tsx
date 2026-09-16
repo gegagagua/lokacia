@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import { getTranslations } from 'next-intl/server';
+import { ShieldOff } from 'lucide-react';
 import { Button, Card, Logo } from '@lokacia/ui';
 import { getSession } from '@/lib/session';
 import { SessionProvider } from '@/lib/session-context';
@@ -18,12 +19,15 @@ export default async function PanelLayout({ children }: { children: React.ReactN
     const t = await getTranslations('auth');
     const portal = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3100';
     return (
-      <main className="drawing-grid flex min-h-dvh flex-col items-center justify-center gap-6 px-4">
-        <Logo size={30} />
-        <Card className="w-full max-w-md p-6 text-center" role="alert">
-          <h1 className="text-h2 font-semibold">{t('forbiddenTitle')}</h1>
+      <main className="drawing-grid flex min-h-dvh flex-col items-center justify-center gap-8 px-4">
+        <Logo size={30} showGeorgian={false} />
+        <Card className="w-full max-w-md p-8 text-center shadow-lg" role="alert">
+          <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-danger/10 text-danger">
+            <ShieldOff className="size-6" strokeWidth={2} aria-hidden />
+          </span>
+          <h1 className="mt-5 text-[26px] font-bold tracking-tight">{t('forbiddenTitle')}</h1>
           <p className="mt-2 text-muted">{t('forbiddenText')}</p>
-          <div className="mt-5 flex justify-center gap-2">
+          <div className="mt-6 flex flex-wrap justify-center gap-2">
             <Button asChild variant="secondary">
               <a href={portal}>{t('toPortal')}</a>
             </Button>

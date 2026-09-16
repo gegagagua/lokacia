@@ -35,5 +35,8 @@
     "developer": "Developer",
     "guest": "Guest"
   },
-  "language": "Language"
+  "language": "Language",
+  "attentionTitle": "Needs attention",
+  "attentionText": "items across queues — start with moderation",
+  "allClear": "All queues are clear"
 }

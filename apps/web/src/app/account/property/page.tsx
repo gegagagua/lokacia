@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
+import { Home } from 'lucide-react';
 import { getAppLocale } from '@/i18n/server';
 import { localizePath } from '@/i18n/locale';
 import { getTranslations } from 'next-intl/server';
 import { getSession } from '@/lib/session';
+import { AccountPageHeader } from '@/components/billing/page-parts';
 import { PropertyOverviewView } from './property-overview';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -17,8 +19,7 @@ export default async function PropertyPage() {
   const t = await getTranslations('property');
   return (
     <div>
-      <h1 className="text-h1 font-semibold">{t('title')}</h1>
-      <p className="mt-1 text-muted">{t('subtitle')}</p>
+      <AccountPageHeader icon={Home} title={t('title')} subtitle={t('subtitle')} />
       <PropertyOverviewView />
     </div>
   );

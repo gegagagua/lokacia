@@ -54,12 +54,12 @@ export function PresentationDialog({ onClose, onCreated, initialContact }: { onC
           <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t('titlePlaceholder')} autoFocus />
         </Field>
         <div className="flex flex-col gap-1.5">
-          <span className="text-small font-medium">{t('contact')}</span>
+          <span className="text-[14px] font-semibold">{t('contact')}</span>
           <ContactPicker value={contactId} onChange={(id) => setContactId(id)} initialLabel={initialContact?.name} />
         </div>
         <div className="flex flex-col gap-1.5">
-          <span className="text-small font-medium">
-            {t('listings')} <span className="tabular text-muted">({picked.length}/20)</span>
+          <span className="text-[14px] font-semibold">
+            {t('listings')} <span className="ml-1 rounded-full bg-surface-2 px-2 py-0.5 text-[12px] tabular text-muted">{picked.length}/20</span>
           </span>
           <ListingPicker
             key={pickerKey}
@@ -71,17 +71,17 @@ export function PresentationDialog({ onClose, onCreated, initialContact }: { onC
             }}
           />
           {picked.length > 0 && (
-            <ol className="mt-1 flex flex-col divide-y divide-border rounded-card border border-border">
+            <ol className="mt-1 flex flex-col gap-1.5">
               {picked.map((l, i) => (
-                <li key={l.id} className="flex items-center gap-2 px-3 py-2">
-                  <span className="w-5 text-small text-muted tabular">{i + 1}</span>
+                <li key={l.id} className="flex items-center gap-3 rounded-2xl border border-border bg-surface-2/60 px-3 py-2.5">
+                  <span className="grid size-7 shrink-0 place-items-center rounded-full bg-primary text-[12.5px] font-bold text-primary-contrast tabular">{i + 1}</span>
                   <span className="min-w-0 flex-1">
                     <span className="line-clamp-1 text-[14px] font-medium">{l.title}</span>
                     <span className="line-clamp-1 text-small text-muted">{l.address}</span>
                   </span>
-                  <span className="whitespace-nowrap text-small tabular">{formatMoney(l.priceMinor, l.currency)}</span>
-                  <button type="button" onClick={() => setPicked((s) => s.filter((x) => x.id !== l.id))} className="grid size-7 place-items-center rounded-button text-muted hover:bg-surface-2" aria-label={t('remove')}>
-                    <X className="size-3.5" strokeWidth={1.5} />
+                  <span className="whitespace-nowrap text-[14px] font-semibold tabular">{formatMoney(l.priceMinor, l.currency)}</span>
+                  <button type="button" onClick={() => setPicked((s) => s.filter((x) => x.id !== l.id))} className="grid size-8 place-items-center rounded-full text-muted hover:bg-danger/10 hover:text-danger" aria-label={t('remove')}>
+                    <X className="size-4" strokeWidth={2} />
                   </button>
                 </li>
               ))}

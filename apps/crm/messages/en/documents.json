@@ -52,6 +52,23 @@
     "declined": "Document declined",
     "notAvailable": "This document is not available for signing.",
     "notFound": "The link is invalid or has expired",
-    "demo": "E-signature demo adapter"
+    "demo": "E-signature demo adapter",
+    "stepRead": "Read",
+    "stepConfirm": "Confirm",
+    "stepSign": "Sign",
+    "document": "Document",
+    "version": "Version {version}",
+    "statusSent": "Awaiting signature",
+    "signatureTitle": "Signature",
+    "signaturePlaceholder": "Type your name — your signature appears here",
+    "secure": "The signing time and details are recorded in the document history.",
+    "steps": "Signing steps"
+  },
+  "kpi": {
+    "total": "All documents",
+    "all": "All",
+    "view": "View format",
+    "cards": "Cards",
+    "table": "Table"
   }
 }

@@ -20,6 +20,7 @@ export function SaveSearchButton({
   variant = 'secondary',
   size = 'md',
   className,
+  compact,
 }: {
   filters: SearchFilters;
   loggedIn: boolean;
@@ -28,6 +29,8 @@ export function SaveSearchButton({
   variant?: 'primary' | 'secondary';
   size?: 'sm' | 'md';
   className?: string;
+  /** Icon-only below `sm` (label stays available to screen readers). */
+  compact?: boolean;
 }) {
   const t = useTranslations('search.save');
   const ts = useTranslations('search');
@@ -75,8 +78,15 @@ export function SaveSearchButton({
 
   return (
     <>
-      <Button variant={variant} size={size} onClick={onOpen} icon={<BellPlus className="size-4" strokeWidth={1.5} aria-hidden />} className={className}>
-        {t('button')}
+      <Button variant={variant} size={size} onClick={onOpen} icon={<BellPlus className="size-4" strokeWidth={2} aria-hidden />} className={className}>
+        {compact ? (
+          <>
+            <span className="hidden sm:inline">{t('button')}</span>
+            <span className="sr-only sm:hidden">{t('button')}</span>
+          </>
+        ) : (
+          t('button')
+        )}
       </Button>
       <Dialog
         open={open}

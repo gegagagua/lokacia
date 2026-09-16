@@ -2,9 +2,10 @@
 import * as React from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { CalendarDays, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { CalendarDays, CalendarRange, ChevronLeft, ChevronRight, Columns3, LayoutGrid, Plus, Route, Square } from 'lucide-react';
 import type { CrmViewing } from '@lokacia/contracts';
-import { Button, cn, EmptyState, IconButton, Skeleton } from '@lokacia/ui';
+import { Button, EmptyState, Skeleton } from '@lokacia/ui';
+import { Segmented } from '@/components/common/ui';
 import { PageHeader } from '@/components/common/page-header';
 import { MemberSelect } from '@/components/common/pickers';
 import { useCrm } from '@/lib/crm-context';
@@ -14,7 +15,7 @@ import { RouteView } from './route-view';
 import { SyncPanel } from './sync-panel';
 import { ViewingDrawer } from './viewing-drawer';
 import { ViewingFormDialog } from './viewing-form-dialog';
-import { DayView, MonthView, WeekView } from './views';
+import { Agenda, DayView, MonthView, WeekView } from './views';
 
 type View = 'month' | 'week' | 'day' | 'route';
 const VIEWS: View[] = ['month', 'week', 'day', 'route'];
@@ -72,44 +73,48 @@ export function CalendarScreen() {
     if (params.get('new')) router.replace(pathname);
   };
 
+  const viewIcons = { month: LayoutGrid, week: Columns3, day: Square, route: Route } as const;
+
   return (
     <div>
       <PageHeader
         title={t('title')}
         subtitle={t('subtitle')}
         actions={
-          <Button icon={<Plus className="size-4" strokeWidth={1.5} aria-hidden />} onClick={() => setCreating(true)}>
+          <Button icon={<Plus className="size-4" strokeWidth={2.2} aria-hidden />} onClick={() => setCreating(true)}>
             {t('new')}
           </Button>
         }
       />
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
-        <div className="flex min-w-0 flex-col gap-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <div role="tablist" aria-label={t('title')} className="flex rounded-button border border-border-strong bg-surface p-0.5">
-              {VIEWS.map((v) => (
-                <button key={v} type="button" role="tab" aria-selected={view === v} onClick={() => setView(v)} className={cn('h-8 rounded-[5px] px-3 text-small', view === v ? 'bg-primary text-primary-contrast' : 'text-muted hover:text-text')}>
-                  {t(`views.${v}`)}
-                </button>
-              ))}
-            </div>
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="flex min-w-0 flex-col gap-4">
+          <div className="card flex flex-wrap items-center gap-x-3 gap-y-2.5 p-2.5">
+            <Segmented
+              label={t('title')}
+              value={view}
+              onChange={setView}
+              className="scrollbar-none max-w-full overflow-x-auto"
+              options={VIEWS.map((v) => ({ value: v, label: t(`views.${v}`), icon: viewIcons[v] }))}
+            />
             {view !== 'route' && (
-              <div className="flex items-center gap-1">
-                <IconButton size="sm" label={t('prev')} onClick={() => step(-1)}>
-                  <ChevronLeft className="size-4" strokeWidth={1.5} />
-                </IconButton>
-                <Button size="sm" variant="ghost" onClick={() => setCursor(startOfDay(new Date()))}>
+              <div className="flex min-w-0 items-center gap-1">
+                <button type="button" aria-label={t('prev')} title={t('prev')} onClick={() => step(-1)} className="grid size-9 place-items-center rounded-full text-muted transition-colors hover:bg-surface-2 hover:text-text">
+                  <ChevronLeft className="size-[18px]" strokeWidth={2.2} aria-hidden />
+                </button>
+                <Button size="sm" variant="secondary" className="rounded-full" onClick={() => setCursor(startOfDay(new Date()))}>
                   {t('today')}
                 </Button>
-                <IconButton size="sm" label={t('next')} onClick={() => step(1)}>
-                  <ChevronRight className="size-4" strokeWidth={1.5} />
-                </IconButton>
-                <span className="compact ml-1 text-h3 font-semibold tabular">{heading}</span>
+                <button type="button" aria-label={t('next')} title={t('next')} onClick={() => step(1)} className="grid size-9 place-items-center rounded-full text-muted transition-colors hover:bg-surface-2 hover:text-text">
+                  <ChevronRight className="size-[18px]" strokeWidth={2.2} aria-hidden />
+                </button>
+                <h2 className="ml-2 truncate text-[18px] font-bold tracking-tight tabular md:text-[20px]" aria-live="polite">
+                  {heading}
+                </h2>
               </div>
             )}
             {can('deals.viewAll') && (
-              <div className="w-full sm:ml-auto sm:w-48">
-                <MemberSelect value={agentId} onChange={setAgentId} placeholder={t('allAgents')} />
+              <div className="w-full sm:ml-auto sm:w-52">
+                <MemberSelect value={agentId} onChange={setAgentId} placeholder={t('allAgents')} className="h-10" />
               </div>
             )}
           </div>
@@ -117,27 +122,29 @@ export function CalendarScreen() {
           {view === 'route' ? (
             <RouteView date={dayKey(cursor)} onDate={(d) => setCursor(new Date(`${d}T12:00:00`))} agentId={agentId} onOpen={(v) => setOpenId(v.id)} />
           ) : isLoading && !data ? (
-            <Skeleton className="h-96" />
+            <Skeleton className="h-[560px] rounded-card" />
           ) : view === 'month' ? (
             <MonthView cursor={cursor} items={data ?? []} onOpen={(v) => setOpenId(v.id)} onDay={(d) => { setCursor(d); setView('day'); }} />
           ) : view === 'week' ? (
             <WeekView cursor={cursor} items={data ?? []} onOpen={(v) => setOpenId(v.id)} onDay={(d) => { setCursor(d); setView('day'); }} />
           ) : data?.length ? (
-            <DayView items={data} onOpen={(v) => setOpenId(v.id)} />
+            <DayView items={data} cursor={cursor} onOpen={(v) => setOpenId(v.id)} />
           ) : (
             <EmptyState
-              icon={<CalendarDays className="size-5" strokeWidth={1.5} aria-hidden />}
+              icon={<CalendarDays className="size-6" strokeWidth={2} aria-hidden />}
               title={t('empty')}
               description={t('emptyHint')}
               action={
-                <Button onClick={() => setCreating(true)} icon={<Plus className="size-4" strokeWidth={1.5} aria-hidden />}>
+                <Button onClick={() => setCreating(true)} icon={<Plus className="size-4" strokeWidth={2.2} aria-hidden />}>
                   {t('new')}
                 </Button>
               }
             />
           )}
         </div>
-        <aside className="flex flex-col gap-3">
+        <aside className="flex flex-col gap-4">
+          {view !== 'route' && data && <Agenda items={data} onOpen={(v) => setOpenId(v.id)} />}
+          {view !== 'route' && data && <StatusLegend items={data} />}
           <SyncPanel onSynced={() => mutate()} />
         </aside>
       </div>
@@ -164,5 +171,33 @@ export function CalendarScreen() {
         }}
       />
     </div>
+  );
+}
+
+function StatusLegend({ items }: { items: CrmViewing[] }) {
+  const t = useTranslations('calendar');
+  const counts = { planned: 0, done: 0, cancelled: 0 };
+  for (const v of items) counts[v.status]++;
+  const tones = { planned: 'tone-2', done: 'tone-success', cancelled: 'tone-8' } as const;
+  return (
+    <section className="card p-4" aria-labelledby="cal-legend">
+      <h2 id="cal-legend" className="mb-3 flex items-center gap-2 text-[15px] font-semibold">
+        <span className="grid size-8 place-items-center rounded-[10px] bg-surface-2 text-muted" aria-hidden>
+          <CalendarRange className="size-4" strokeWidth={2} />
+        </span>
+        {t('legend')}
+      </h2>
+      <ul className="grid grid-cols-3 gap-2">
+        {(Object.keys(counts) as (keyof typeof counts)[]).map((k) => (
+          <li key={k} className={`rounded-xl bg-tone-faint p-2.5 ${tones[k]}`}>
+            <div className="flex items-center gap-1.5 text-[12px] font-medium text-muted">
+              <span aria-hidden className="size-2 rounded-full bg-tone" />
+              <span className="truncate">{t(`status.${k}`)}</span>
+            </div>
+            <div className="mt-0.5 text-[20px] font-bold tabular">{counts[k]}</div>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

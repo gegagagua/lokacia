@@ -1,10 +1,22 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wdth,wght@62.5..100,300..700&display=swap');
+/* FiraGO (self-hosted, same files the Next apps load via next/font/local; covers Georgian + Latin + Cyrillic). */
+@import '@fontsource/firago/400.css';
+@import '@fontsource/firago/500.css';
+@import '@fontsource/firago/600.css';
+@import '@fontsource/firago/700.css';
 @import 'tailwindcss';
 @import '../theme.css';
 
 @source '../src';
 
+:root {
+  --font-brand: 'FiraGO';
+}
+
+html,
 body {
   background: var(--bg);
   color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.65;
 }

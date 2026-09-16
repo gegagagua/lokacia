@@ -3,6 +3,7 @@ import * as React from 'react';
 import Link, { useLocalizedPath } from '@/i18n/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { Handshake, Info, Pencil, Send, UserRound } from 'lucide-react';
 import type { OfferDto, OfferThreadSummary } from '@lokacia/contracts';
 import { Button, useToast } from '@lokacia/ui';
 import { apiFetch, ClientApiError } from '@/lib/api-client';
@@ -51,23 +52,35 @@ export function OfferForm({ listing, profile, userName, businessTypes }: { listi
   };
 
   return (
-    <form onSubmit={submit} className="mt-6 flex flex-col gap-6" noValidate>
-      <section aria-labelledby="terms-h" className="rounded-card border border-border bg-surface p-4 sm:p-6">
-        <h2 id="terms-h" className="mb-4 text-h3 font-semibold">
-          {t('new.terms')}
-        </h2>
+    <form onSubmit={submit} className="flex flex-col gap-6" noValidate>
+      <section aria-labelledby="terms-h" className="card p-5 sm:p-7">
+        <div className="mb-5 flex items-center gap-3">
+          <span className="grid size-11 place-items-center rounded-2xl bg-primary-soft text-primary-soft-text" aria-hidden>
+            <Handshake className="size-5" strokeWidth={2} />
+          </span>
+          <h2 id="terms-h" className="text-[20px] font-bold tracking-tight">
+            {t('new.terms')}
+          </h2>
+        </div>
         <OfferTermsFields value={terms} onChange={setTerms} errors={errors} dealType={listing.dealType} equipment={listing.equipment} />
       </section>
-      <section aria-labelledby="tp-h" className="flex flex-col gap-3">
-        <h2 id="tp-h" className="text-h3 font-semibold">
-          {t('new.profileTitle')}
-        </h2>
-        <p className="text-small text-muted">{t('new.profileHint')}</p>
+      <section aria-labelledby="tp-h" className="card flex flex-col gap-4 p-5 sm:p-7">
+        <div className="flex items-center gap-3">
+          <span className="grid size-11 place-items-center rounded-2xl bg-link/12 text-link" aria-hidden>
+            <UserRound className="size-5" strokeWidth={2} />
+          </span>
+          <div>
+            <h2 id="tp-h" className="text-[20px] font-bold tracking-tight">
+              {t('new.profileTitle')}
+            </h2>
+            <p className="text-small text-muted">{t('new.profileHint')}</p>
+          </div>
+        </div>
         {editing ? (
-          <div className="rounded-card border border-border bg-surface p-4 sm:p-6">
+          <div className="rounded-2xl bg-surface-2/60 p-4 sm:p-5">
             <TenantProfileEditor value={tp} onChange={setTp} businessTypes={businessTypes} />
             {profile && (
-              <Button variant="ghost" size="sm" className="mt-3" onClick={() => setEditing(false)}>
+              <Button variant="secondary" size="sm" className="mt-4" onClick={() => setEditing(false)}>
                 {t('new.profileDone')}
               </Button>
             )}
@@ -77,8 +90,9 @@ export function OfferForm({ listing, profile, userName, businessTypes }: { listi
             profile={tp}
             name={userName}
             businessTypes={businessTypes}
+            className="border-border bg-surface-2/40 shadow-none"
             action={
-              <Button variant="link" size="sm" onClick={() => setEditing(true)}>
+              <Button variant="secondary" size="sm" onClick={() => setEditing(true)} icon={<Pencil className="size-3.5" strokeWidth={2} aria-hidden />}>
                 {t('new.profileEdit')}
               </Button>
             }
@@ -87,16 +101,17 @@ export function OfferForm({ listing, profile, userName, businessTypes }: { listi
       </section>
       <div aria-live="polite">
         {existing && (
-          <p className="rounded-card border border-border bg-surface-2 p-4">
+          <p className="flex flex-wrap items-center gap-2 rounded-2xl bg-accent-soft p-4">
+            <Info className="size-5 shrink-0" strokeWidth={2} aria-hidden />
             {t('new.existing')}{' '}
-            <Link href={`/account/offers/${existing}`} className="text-link underline underline-offset-4">
+            <Link href={`/account/offers/${existing}`} className="font-semibold text-link underline underline-offset-4">
               {t('new.openThread')}
             </Link>
           </p>
         )}
       </div>
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-        <Button type="submit" size="lg" loading={busy}>
+      <div className="sticky bottom-3 z-10 flex flex-col gap-3 rounded-card border border-border bg-surface/95 p-3 shadow-lg backdrop-blur-xl sm:flex-row sm:items-center sm:p-4">
+        <Button type="submit" size="lg" variant="accent" loading={busy} icon={<Send className="size-4" strokeWidth={2} aria-hidden />}>
           {t('new.submit')}
         </Button>
         <p className="text-small text-muted">{t('new.submitHint')}</p>

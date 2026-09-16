@@ -60,5 +60,16 @@
   "linked": {
     "deal": "Deal",
     "contact": "Contact"
+  },
+  "scopeLabel": "Whose tasks",
+  "groups": {
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "yesterday": "Yesterday",
+    "noDue": "No due date"
+  },
+  "progress": {
+    "title": "Progress",
+    "hint": "{done} done · {open} open"
   }
 }

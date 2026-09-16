@@ -16,8 +16,8 @@ export function PhotosPanel({ listing, onChanged }: { listing: ListingDetail; on
   if (!photos.length) return <EmptyState title={t('empty')} />;
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-small text-muted">{t('hint')}</p>
-      <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <p className="flex items-center gap-2 rounded-2xl bg-primary-soft/60 px-4 py-3 text-[13.5px] text-primary-soft-text"><Wand2 className="size-4 shrink-0" strokeWidth={2} aria-hidden />{t('hint')}</p>
+      <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {photos.map((m) => (
           <PhotoTile key={m.id} media={m} onChanged={onChanged} />
         ))}
@@ -54,22 +54,22 @@ function PhotoTile({ media, onChanged }: { media: Media; onChanged: () => void }
   };
 
   return (
-    <li className="flex flex-col overflow-hidden rounded-card border border-border bg-surface">
+    <li className="card card-hover group flex flex-col overflow-hidden">
       {before ? (
         <div className="grid grid-cols-2 gap-px bg-border">
           <figure className="relative bg-surface-2">
             <img src={before} alt="" className="aspect-[4/3] w-full object-cover" />
-            <figcaption className="absolute left-1.5 top-1.5 rounded-[4px] bg-surface/90 px-1.5 text-[11px]">{t('before')}</figcaption>
+            <figcaption className="absolute left-2 top-2 rounded-full bg-surface/95 px-2.5 py-0.5 text-[12px] font-semibold shadow-sm">{t('before')}</figcaption>
           </figure>
           <figure className="relative bg-surface-2">
             <img src={current} alt={media.alt ?? ''} className="aspect-[4/3] w-full object-cover" />
-            <figcaption className="absolute left-1.5 top-1.5 rounded-[4px] bg-primary px-1.5 text-[11px] text-primary-contrast">{t('after')}</figcaption>
+            <figcaption className="absolute left-2 top-2 rounded-full bg-primary px-2.5 py-0.5 text-[12px] font-semibold text-primary-contrast shadow-sm">{t('after')}</figcaption>
           </figure>
         </div>
       ) : (
-        <img src={current} alt={media.alt ?? ''} className="aspect-[4/3] w-full rounded-photo object-cover" loading="lazy" />
+        <div className="overflow-hidden"><img src={current} alt={media.alt ?? ''} className="aspect-[4/3] w-full object-cover transition-transform duration-300 group-hover:scale-[1.04]" loading="lazy" /></div>
       )}
-      <div className="flex items-center gap-2 border-t border-border p-2">
+      <div className="flex items-center gap-2 border-t border-border p-3">
         {placeholder ? (
           <p className="text-small text-muted">{t('placeholder')}</p>
         ) : (
@@ -77,9 +77,9 @@ function PhotoTile({ media, onChanged }: { media: Media; onChanged: () => void }
             <label className="sr-only" htmlFor={`rot-${media.id}`}>
               {t('rotate')}
             </label>
-            <RotateCw className="size-3.5 shrink-0 text-muted" strokeWidth={1.5} aria-hidden />
-            <Select id={`rot-${media.id}`} value={rotate} onChange={(e) => setRotate(e.target.value)} className="h-8 w-24 text-small" options={['-3', '-2', '-1', '0', '1', '2', '3'].map((v) => ({ value: v, label: `${v}°` }))} />
-            <Button size="sm" className="ml-auto" onClick={enhance} loading={busy} icon={<Wand2 className="size-3.5" strokeWidth={1.5} aria-hidden />}>
+            <RotateCw className="size-3.5 shrink-0 text-muted" strokeWidth={2} aria-hidden />
+            <Select id={`rot-${media.id}`} value={rotate} onChange={(e) => setRotate(e.target.value)} className="h-9 w-24 text-small" options={['-3', '-2', '-1', '0', '1', '2', '3'].map((v) => ({ value: v, label: `${v}°` }))} />
+            <Button size="sm" className="ml-auto" onClick={enhance} loading={busy} icon={<Wand2 className="size-3.5" strokeWidth={2} aria-hidden />}>
               {busy ? t('enhancing') : t('enhance')}
             </Button>
           </>

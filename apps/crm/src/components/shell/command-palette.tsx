@@ -101,10 +101,10 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
 
   let lastGroup = '';
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} title={t('palette.open')} size="lg" className="top-[12%] translate-y-0">
+    <Dialog open={open} onOpenChange={onOpenChange} title={t('palette.open')} size="lg" className="top-[12%] translate-y-0 overflow-hidden">
       <div className="-mx-6 -my-5 flex flex-col">
-        <div className="flex items-center gap-2 border-b border-border px-4">
-          <Search className="size-4 text-muted" strokeWidth={1.5} aria-hidden />
+        <div className="flex items-center gap-3 border-b border-border px-5">
+          <Search className="size-5 text-muted" strokeWidth={2} aria-hidden />
           <input
             autoFocus
             value={q}
@@ -116,7 +116,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
             aria-expanded
             aria-controls="lk-palette-list"
             aria-activedescendant={entries[active] ? `lk-pal-${active}` : undefined}
-            className="h-12 w-full bg-transparent text-[15px] outline-none placeholder:text-muted"
+            className="h-14 w-full bg-transparent text-[16px] outline-none placeholder:text-muted"
           />
         </div>
         <ul id="lk-palette-list" ref={listRef} role="listbox" className="max-h-[50dvh] overflow-y-auto py-2">
@@ -128,7 +128,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
             return (
               <React.Fragment key={e.id}>
                 {header && (
-                  <li role="presentation" className="px-4 pb-1 pt-2 text-[11px] font-medium uppercase tracking-wide text-muted">
+                  <li role="presentation" className="px-5 pb-1.5 pt-3 text-[11.5px] font-semibold uppercase tracking-[0.06em] text-muted">
                     {header}
                   </li>
                 )}
@@ -139,17 +139,19 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
                   aria-selected={i === active}
                   onMouseEnter={() => setActive(i)}
                   onClick={e.run}
-                  className={cn('mx-2 flex cursor-pointer items-center gap-3 rounded-button px-3 py-2', i === active && 'bg-surface-2')}
+                  className={cn('mx-2 flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2 transition-colors', i === active && 'bg-primary-soft text-primary-soft-text')}
                 >
-                  <Icon className="size-4 shrink-0 text-muted" strokeWidth={1.5} aria-hidden />
-                  <span className="min-w-0 flex-1 truncate text-[14px]">{e.label}</span>
+                  <span className={cn('grid size-8 shrink-0 place-items-center rounded-[10px]', i === active ? 'bg-surface text-primary-soft-text shadow-xs' : 'bg-surface-2 text-muted')} aria-hidden>
+                    <Icon className="size-4" strokeWidth={2} />
+                  </span>
+                  <span className="min-w-0 flex-1 truncate text-[14.5px] font-medium">{e.label}</span>
                   {e.hint && <span className="max-w-[40%] truncate text-small text-muted tabular">{e.hint}</span>}
                 </li>
               </React.Fragment>
             );
           })}
         </ul>
-        <div className="border-t border-border px-4 py-2 text-[12px] text-muted">{t('palette.hint')}</div>
+        <div className="border-t border-border bg-surface-2/60 px-5 py-2.5 text-[12.5px] text-muted">{t('palette.hint')}</div>
       </div>
     </Dialog>
   );

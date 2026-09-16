@@ -2,6 +2,7 @@
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
 import type { TenantProfile } from '@lokacia/contracts';
+import { Briefcase } from 'lucide-react';
 import { Button, Field, Input, Select, Textarea, useToast } from '@lokacia/ui';
 import { apiFetch, ClientApiError } from '@/lib/api-client';
 
@@ -57,8 +58,15 @@ export function TenantProfileForm({ initial, businessTypes, onSaved, compact }: 
   };
 
   return (
-    <form onSubmit={submit} className={compact ? 'flex flex-col gap-3' : 'flex max-w-2xl flex-col gap-4 pt-4'}>
-      {!compact && <p className="text-muted">{t('tenantIntro')}</p>}
+    <form onSubmit={submit} className={compact ? 'flex flex-col gap-3' : 'card flex flex-col gap-5 p-5 sm:p-7'}>
+      {!compact && (
+        <div className="flex items-start gap-4 rounded-2xl bg-link/[0.07] p-4">
+          <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-link/12 text-link" aria-hidden>
+            <Briefcase className="size-5" strokeWidth={2} />
+          </span>
+          <p className="text-[15px]">{t('tenantIntro')}</p>
+        </div>
+      )}
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label={t('activity')} error={errors.activity}>
           <Input value={f.activity} onChange={set('activity')} placeholder={t('activityPlaceholder')} maxLength={200} />
@@ -85,7 +93,7 @@ export function TenantProfileForm({ initial, businessTypes, onSaved, compact }: 
       <Field label={t('about')} error={errors.about}>
         <Textarea value={f.about} onChange={set('about')} maxLength={2000} rows={compact ? 3 : 4} />
       </Field>
-      <div>
+      <div className={compact ? '' : 'flex justify-end border-t border-border pt-5'}>
         <Button type="submit" loading={busy} variant={compact ? 'secondary' : 'primary'}>
           {t('saveTenant')}
         </Button>

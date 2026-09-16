@@ -73,7 +73,11 @@
     "noUsage": "Запросов пока не было.",
     "byEndpoint": "Запросы по методам",
     "endpoint": "Метод",
-    "requests": "Запросы"
+    "requests": "Запросы",
+    "eyebrow": "Ключи",
+    "lead": "Создайте отдельный ключ для каждой системы и следите за расходом.",
+    "avgPerDay": "В среднем в день",
+    "quotaUsed": "квоты"
   },
   "scopeLabels": {
     "districts:read": "Статистика районов",
@@ -82,5 +86,13 @@
     "traffic:read": "Пешеходный трафик",
     "scores:read": "Оценки локаций",
     "reports:read": "PDF-отчёты о рынке"
-  }
+  },
+  "eyebrow": "Для разработчиков",
+  "heroStatFormat": "формат",
+  "heroStatEndpoints": "методов",
+  "heroStatScopes": "областей доступа",
+  "quickstart": "Быстрый старт",
+  "headerTitle": "Ключ в заголовке",
+  "endpointsLead": "Все методы возвращают JSON, суммы — в тетри.",
+  "plansLead": "Выберите лимит под объём ваших запросов."
 }

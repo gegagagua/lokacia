@@ -1,15 +1,17 @@
 'use client';
 import * as React from 'react';
 import Link from '@/i18n/link';
+import { useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import { useTranslations } from 'next-intl';
-import { FileSignature } from 'lucide-react';
+import { CalendarRange, ChevronRight, FileSignature, Gift, GitCommitVertical } from 'lucide-react';
 import type { OfferThreadSummary } from '@lokacia/contracts';
 import { useFormat } from '@/i18n/use-format';
-import { Avatar, Button, EmptyState, Skeleton, Tabs } from '@lokacia/ui';
+import { Avatar, Button, Skeleton, Tabs, cn } from '@lokacia/ui';
 import { fetcher } from '@/lib/api-client';
 import { OfferStatusBadge } from '../status-badges';
 import { useRealtime } from '../realtime';
+import { AccountEmpty, Thumb } from '../ui';
 
 function ThreadCard({ s }: { s: OfferThreadSummary }) {
   const t = useTranslations('offers.inbox');
@@ -17,39 +19,50 @@ function ThreadCard({ s }: { s: OfferThreadSummary }) {
   const isSale = s.listing.dealType === 'sale' || s.listing.dealType === 'transfer';
   return (
     <li>
-      <Link href={`/account/offers/${s.latest.id}`} className="flex gap-3 rounded-card border border-border bg-surface p-3 transition-colors hover:border-border-strong sm:gap-4 sm:p-4">
-        <div className="hidden aspect-[4/3] w-28 shrink-0 overflow-hidden rounded-photo border border-border bg-surface-2 sm:block">
-          {s.listing.cover ? <img src={s.listing.cover} alt="" className="size-full object-cover" /> : <div className="drawing-grid size-full" aria-hidden />}
-        </div>
-        <div className="min-w-0 flex-1">
+      <Link href={`/account/offers/${s.latest.id}`} className={cn('card card-hover group flex gap-3 p-3 sm:gap-5 sm:p-4', s.actionRequired && 'ring-1 ring-inset ring-accent/60')}>
+        <Thumb src={s.listing.cover} className="size-20 sm:aspect-[4/3] sm:h-auto sm:w-40" />
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
           <div className="flex flex-wrap items-center gap-2">
             <OfferStatusBadge status={s.latest.status} />
             {s.actionRequired && (
-              <span className="inline-flex items-center gap-1.5 text-small font-medium">
-                <span className="size-2 rounded-full bg-accent" aria-hidden />
+              <span className="inline-flex h-7 items-center gap-1.5 rounded-full bg-accent-soft px-2.5 text-[12.5px] font-semibold">
+                <span className="relative flex size-2" aria-hidden>
+                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-accent opacity-60" />
+                  <span className="relative inline-flex size-2 rounded-full bg-accent" />
+                </span>
                 {t('actionRequired')}
               </span>
             )}
-            <span className="ml-auto text-small text-muted">{f.relativeDays(s.latest.createdAt)}</span>
+            <span className="ml-auto text-[13px] text-muted">{f.relativeDays(s.latest.createdAt)}</span>
           </div>
-          <div className="mt-1 line-clamp-1 font-medium">{s.listing.title}</div>
-          <div className="mt-1 text-[15px] tabular">
-            <span className="font-semibold">{f.money(s.latest.priceMinor)}</span>
+          <div className="line-clamp-1 font-semibold group-hover:text-link">{s.listing.title}</div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[20px] font-bold leading-7 tracking-tight tabular">{f.money(s.latest.priceMinor)}</span>
             {!isSale && (
-              <span className="text-muted">
-                {' '}
-                · {t('termShort', { months: s.latest.termMonths })}
-                {s.latest.freeMonths ? ` · ${t('freeShort', { months: s.latest.freeMonths })}` : ''}
-              </span>
+              <>
+                <span className="inline-flex h-7 items-center gap-1 rounded-full bg-surface-2 px-2.5 text-[13px] font-medium tabular">
+                  <CalendarRange className="size-3.5 text-muted" strokeWidth={2} aria-hidden />
+                  {t('termShort', { months: s.latest.termMonths })}
+                </span>
+                {s.latest.freeMonths ? (
+                  <span className="inline-flex h-7 items-center gap-1 rounded-full bg-success/10 px-2.5 text-[13px] font-medium text-success tabular">
+                    <Gift className="size-3.5" strokeWidth={2} aria-hidden />
+                    {t('freeShort', { months: s.latest.freeMonths })}
+                  </span>
+                ) : null}
+              </>
             )}
           </div>
-          <div className="mt-2 flex items-center gap-2 text-small text-muted">
-            <Avatar src={s.counterpart.avatarUrl} name={s.counterpart.name} size={22} />
+          <div className="mt-auto flex items-center gap-2 text-[13px] text-muted">
+            <Avatar src={s.counterpart.avatarUrl} name={s.counterpart.name} size={24} />
             <span className="truncate">
-              {s.direction === 'received' ? t('from') : t('to')}: {s.counterpart.name ?? '—'}
+              {s.direction === 'received' ? t('from') : t('to')}: <span className="font-medium text-text">{s.counterpart.name ?? '—'}</span>
             </span>
-            <span aria-hidden>·</span>
-            <span>{t('steps', { count: s.count })}</span>
+            <span className="ml-auto inline-flex shrink-0 items-center gap-1">
+              <GitCommitVertical className="size-3.5" strokeWidth={2} aria-hidden />
+              {t('steps', { count: s.count })}
+            </span>
+            <ChevronRight className="hidden size-4 shrink-0 transition-transform group-hover:translate-x-0.5 sm:block" strokeWidth={2} aria-hidden />
           </div>
         </div>
       </Link>
@@ -59,19 +72,20 @@ function ThreadCard({ s }: { s: OfferThreadSummary }) {
 
 export function OffersInbox() {
   const t = useTranslations('offers.inbox');
-  const [tab, setTab] = React.useState('all');
+  const params = useSearchParams();
+  const [tab, setTab] = React.useState(() => (['received', 'sent'].includes(params.get('box') ?? '') ? params.get('box')! : 'all'));
   const { data, error, isLoading, mutate } = useSWR<OfferThreadSummary[]>('/offers?box=all', fetcher, { refreshInterval: 30_000 });
   useRealtime('notification', () => void mutate());
   const all = data ?? [];
   const received = all.filter((s) => s.direction === 'received');
   const sent = all.filter((s) => s.direction === 'sent');
   const list = (items: OfferThreadSummary[], empty: 'emptyAll' | 'emptyReceived' | 'emptySent') => {
-    if (isLoading) return <div className="flex flex-col gap-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-28 rounded-card" />)}</div>;
+    if (isLoading) return <div className="flex flex-col gap-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-32 rounded-card" />)}</div>;
     if (error) return <p className="text-danger" role="alert">{t('loadError')}</p>;
     if (!items.length)
       return (
-        <EmptyState
-          icon={<FileSignature className="size-6" strokeWidth={1.5} />}
+        <AccountEmpty
+          icon={FileSignature}
           title={t(empty)}
           description={t('emptyHint')}
           action={

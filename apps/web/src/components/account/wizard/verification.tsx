@@ -2,7 +2,7 @@
 import * as React from 'react';
 import useSWR from 'swr';
 import { useTranslations } from 'next-intl';
-import { FileCheck2, Upload } from 'lucide-react';
+import { FileCheck2, ShieldCheck, Upload } from 'lucide-react';
 import { useFormat } from '@/i18n/use-format';
 import { Badge, Button, useToast } from '@lokacia/ui';
 import { apiFetch, ClientApiError, fetcher, uploadFile } from '@/lib/api-client';
@@ -40,7 +40,7 @@ export function OwnerVerification({ listingId }: { listingId: string | null }) {
   const label = { pending: t('statusPending'), approved: t('statusApproved'), rejected: t('statusRejected') };
 
   return (
-    <StepSection title={t('heading')} hint={t('hint')}>
+    <StepSection title={t('heading')} hint={t('hint')} icon={ShieldCheck} tone="success">
       {!listingId ? (
         <p className="text-small text-muted">{t('needsSave')}</p>
       ) : (
@@ -48,7 +48,7 @@ export function OwnerVerification({ listingId }: { listingId: string | null }) {
           <ul className="flex flex-col gap-2" aria-live="polite">
             {data.length === 0 && <li className="text-small text-muted">{t('none')}</li>}
             {data.map((v) => (
-              <li key={v.id} className="flex flex-wrap items-center gap-2 rounded-button border border-border px-3 py-2 text-small">
+              <li key={v.id} className="flex flex-wrap items-center gap-2 rounded-2xl bg-surface-2 px-4 py-3 text-small">
                 <FileCheck2 className="size-4 text-muted" strokeWidth={1.5} aria-hidden />
                 <a href={v.documentUrl} target="_blank" rel="noreferrer" className="text-link underline-offset-4 hover:underline">
                   {t('document')}

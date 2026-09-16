@@ -1,8 +1,9 @@
 'use client';
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
-import { BellRing } from 'lucide-react';
-import { Button, Card, useToast } from '@lokacia/ui';
+import { BellRing, CheckCircle2 } from 'lucide-react';
+import { Button, useToast } from '@lokacia/ui';
+import { SectionCard } from '@/components/common/ui';
 import { useApiMutation } from '@/lib/swr';
 
 /** Web push opt-in (C5). Real VAPID push is a HUMAN_TODO; the mock channel records pushes and the SW shows a local test notification. */
@@ -39,28 +40,26 @@ export function PushCard() {
   };
 
   return (
-    <Card className="flex flex-col gap-3 p-4">
-      <h2 className="flex items-center gap-2 text-[15px] font-semibold">
-        <BellRing className="size-4 text-muted" strokeWidth={1.5} aria-hidden />
-        {t('title')}
-      </h2>
-      <p className="text-small text-muted">{t('body')}</p>
+    <SectionCard title={t('title')} description={t('body')} icon={BellRing} tone={3} className="overflow-hidden">
       {state === 'granted' ? (
-        <>
-          <p className="text-small text-success">{t('pushEnabled')}</p>
+        <div className="flex flex-col gap-3">
+          <p className="flex items-center gap-2 rounded-xl bg-success/10 px-3 py-2 text-[13.5px] font-medium text-success">
+            <CheckCircle2 className="size-4 shrink-0" strokeWidth={2} aria-hidden />
+            {t('pushEnabled')}
+          </p>
           <Button size="sm" variant="secondary" onClick={test} className="self-start">
             {t('test')}
           </Button>
-        </>
+        </div>
       ) : state === 'denied' ? (
-        <p className="text-small text-danger">{t('pushDenied')}</p>
+        <p className="rounded-xl bg-danger/10 px-3 py-2 text-[13.5px] text-danger">{t('pushDenied')}</p>
       ) : state === 'unsupported' ? (
-        <p className="text-small text-muted">{t('pushUnsupported')}</p>
+        <p className="rounded-xl bg-surface-2 px-3 py-2 text-[13.5px] text-muted">{t('pushUnsupported')}</p>
       ) : (
-        <Button size="sm" variant="secondary" onClick={enable} className="self-start">
+        <Button size="sm" onClick={enable} className="w-full" icon={<BellRing className="size-4" strokeWidth={2} aria-hidden />}>
           {t('enablePush')}
         </Button>
       )}
-    </Card>
+    </SectionCard>
   );
 }

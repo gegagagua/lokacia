@@ -128,5 +128,15 @@
       "sequence": "Automated message"
     }
   },
-  "language": "Language"
+  "language": "Language",
+  "create": "Create",
+  "collapse": "Collapse menu",
+  "expand": "Expand menu",
+  "notifications": {
+    "title": "Notifications",
+    "labelUnread": "Notifications, unread: {count}",
+    "newCount": "{count} new",
+    "empty": "No new notifications",
+    "new": "New"
+  }
 }

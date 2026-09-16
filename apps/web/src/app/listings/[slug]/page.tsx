@@ -2,15 +2,14 @@ import type { Metadata } from 'next';
 import Link from '@/i18n/link';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { BadgeCheck, Clock, MapPin } from 'lucide-react';
+import { ArrowRight, BadgeCheck, Briefcase, Clock, EyeOff, FileText, MapPin, UserRound } from 'lucide-react';
 import {
   DEAL_TYPE_LABELS, LISTING_STATUS_LABELS, formatAreaFor, formatMoneyFor, pricePeriodSuffix, relativeDaysFor, type AppLocale, type ListingDetail,
 } from '@lokacia/contracts';
-import { Badge, PriceTag, VerifiedBadge, VipBadge } from '@lokacia/ui';
+import { Badge, VipBadge } from '@lokacia/ui';
 import { ListingV2Section } from '@/components/v2/listing-section';
 import { getInsights, getListing, getListingPublic, getNames, getSimilar } from '@/components/portal/data';
 import { FavoritesProvider } from '@/components/portal/favorites';
-import { ListingGrid } from '@/components/portal/listing-card-link';
 import { Breadcrumbs, JsonLd, pageMetadata } from '@/components/portal/seo';
 import { ContactCard, MobileActionBar } from '@/components/portal/listing/contact-card';
 import { CostCalculator } from '@/components/portal/listing/cost-calculator';
@@ -19,7 +18,9 @@ import { ListingGallery } from '@/components/portal/listing/gallery';
 import { InsightsPanel } from '@/components/portal/listing/insights-panel';
 import { PermitsChecklist } from '@/components/portal/listing/permits';
 import { ProjectBlock } from '@/components/portal/listing/prebook';
-import { ListingSpecs } from '@/components/portal/listing/specs';
+import { ListingKeyFacts, ListingSpecs } from '@/components/portal/listing/specs';
+import { ListingSection } from '@/components/portal/listing/section';
+import { SimilarCarousel } from '@/components/portal/listing/similar-carousel';
 import { getSession } from '@/lib/session';
 import { absUrl, cityName } from '@/lib/site';
 import { localizeListing } from '@/i18n/content';
@@ -119,125 +120,121 @@ export default async function ListingPage({ params }: Props) {
   if (city) (ld.contentLocation.address as Record<string, unknown>).addressLocality = city;
   const isPublic = l.status === 'active' || l.status === 'stale';
   const showEquipment = l.dealType === 'transfer' || l.equipment.length > 0;
-  const perM2 = l.pricePeriod === 'month' || l.pricePeriod === 'total' ? Math.round(l.priceMinor / l.areaM2) : null;
+
+  const facts = [
+    l.lastConfirmedAt ? { key: 'confirmed', icon: <Clock className="size-4" strokeWidth={2} aria-hidden />, text: tl('header.confirmed', { when: relativeDaysFor(l.lastConfirmedAt, locale) }), cls: 'text-success' } : null,
+    l.isOwner
+      ? { key: 'owner', icon: l.verifiedOwner ? <BadgeCheck className="size-4" strokeWidth={2} aria-hidden /> : <UserRound className="size-4" strokeWidth={2} aria-hidden />, text: l.verifiedOwner ? tm('verified') : tl('header.owner'), cls: l.verifiedOwner ? 'text-success' : '' }
+      : { key: 'broker', icon: <Briefcase className="size-4" strokeWidth={2} aria-hidden />, text: `${tl('header.broker')} · ${l.commissionPct ? tl('header.commission', { pct: l.commissionPct }) : tl('header.noCommission')}`, cls: '' },
+  ].filter((x): x is NonNullable<typeof x> => !!x);
 
   return (
     <FavoritesProvider loggedIn={!!session}>
       <JsonLd data={ld} />
-      <div className="container-page pb-28 pt-6 lg:pb-12">
-        <Breadcrumbs items={crumbs} className="mb-4" />
+      <div className="container-page pb-32 pt-5 md:pt-6 lg:pb-12">
+        <Breadcrumbs items={crumbs} className="mb-5 hidden sm:block" />
 
         {!isPublic && (
-          <p role="status" className="mb-4 rounded-card border border-accent bg-accent/10 px-4 py-3 text-small">
+          <p role="status" className="mb-5 flex items-center gap-2 rounded-2xl border border-accent/50 bg-accent-soft px-4 py-3 text-small font-medium">
+            <EyeOff className="size-4 shrink-0" strokeWidth={2} aria-hidden />
             {tl('header.status', { status: LISTING_STATUS_LABELS[locale][l.status] })} — {tl('header.notPublic')}
           </p>
         )}
 
-        <header className="mb-6 flex flex-col gap-3">
-          <div className="flex flex-wrap items-center gap-1.5">
-            {l.vip && <VipBadge />}
-            <Badge tone={l.dealType === 'transfer' ? 'link' : 'outline'}>{DEAL_TYPE_LABELS[locale][l.dealType]}</Badge>
-            {l.businessTypes.map((b) => (
-              <Link key={b} href={`/${b}`}>
-                <Badge tone="neutral" className="hover:border-border-strong">
-                  {typeName(b)}
-                </Badge>
-              </Link>
-            ))}
-            {l.offPlan && <Badge tone="primary">{tl('header.offPlan')}</Badge>}
-            {l.status !== 'active' && <Badge tone="danger">{LISTING_STATUS_LABELS[locale][l.status]}</Badge>}
-          </div>
-          <h1 className="text-h2 font-semibold md:text-h1">{l.title}</h1>
-          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-muted">
-            <MapPin className="size-4 shrink-0" strokeWidth={1.5} aria-hidden />
-            <span>{l.address}</span>
-            {l.districtSlug && l.districtName && (
-              <>
-                <span aria-hidden>·</span>
-                <Link href={`/districts/${l.districtSlug}`} className="text-link hover:underline">
-                  {l.districtName}
+        <header className="mb-6 flex flex-col gap-4 md:mb-8">
+          <div className="flex min-w-0 flex-col gap-3">
+            <div className="flex flex-wrap items-center gap-1.5">
+              {l.vip && <VipBadge />}
+              <Badge tone={l.dealType === 'transfer' ? 'link' : 'primary'}>{DEAL_TYPE_LABELS[locale][l.dealType]}</Badge>
+              {l.businessTypes.map((b) => (
+                <Link key={b} href={`/${b}`} className="rounded-full focus-visible:shadow-ring focus-visible:outline-none">
+                  <Badge tone="outline" className="transition-colors hover:bg-surface-2 hover:text-text">
+                    {typeName(b)}
+                  </Badge>
                 </Link>
-              </>
-            )}
-          </p>
-          <div className="flex flex-wrap items-end justify-between gap-4 border-t border-border pt-4">
-            <div className="flex flex-wrap items-end gap-6">
-              <PriceTag priceMinor={l.priceMinor} currency={l.currency} period={l.pricePeriod} size="lg" locale={locale} />
-              <div className="flex flex-col text-small text-muted">
-                <span className="compact text-h3 font-semibold text-text tabular">{formatAreaFor(l.areaM2, locale)}</span>
-                {perM2 !== null && <span className="tabular">{tl('header.perM2', { price: formatMoneyFor(perM2, locale, l.currency) })}</span>}
-              </div>
+              ))}
+              {l.offPlan && <Badge tone="link">{tl('header.offPlan')}</Badge>}
+              {l.status !== 'active' && <Badge tone="danger">{LISTING_STATUS_LABELS[locale][l.status]}</Badge>}
             </div>
-            <div className="flex flex-wrap items-center gap-2 text-small">
-              {l.isOwner ? (
-                l.verifiedOwner ? (
-                  <VerifiedBadge />
-                ) : (
-                  <Badge tone="primary">{tl('header.owner')}</Badge>
-                )
-              ) : (
-                <Badge tone="outline">
-                  {tl('header.broker')} · {l.commissionPct ? tl('header.commission', { pct: l.commissionPct }) : tl('header.noCommission')}
-                </Badge>
+            <h1 className="max-w-5xl text-[28px] font-bold leading-[1.2] tracking-tight md:text-[38px] md:leading-[1.15] lg:text-h1">{l.title}</h1>
+            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[15px] text-muted md:text-body">
+              <MapPin className="size-[18px] shrink-0 text-primary-500" strokeWidth={2} aria-hidden />
+              <span>{l.address}</span>
+              {l.districtSlug && l.districtName && (
+                <>
+                  <span aria-hidden>·</span>
+                  <Link href={`/districts/${l.districtSlug}`} className="font-medium text-link hover:underline">
+                    {l.districtName}
+                  </Link>
+                </>
               )}
-              {l.lastConfirmedAt && (
-                <span className="inline-flex items-center gap-1 text-muted">
-                  <Clock className="size-3.5" strokeWidth={1.5} aria-hidden />
-                  {tl('header.confirmed', { when: relativeDaysFor(l.lastConfirmedAt, locale) })}
-                </span>
-              )}
-              {!l.isOwner && l.verifiedOwner && <BadgeCheck className="size-4 text-success" strokeWidth={1.5} aria-label={tm('verified')} />}
-            </div>
+            </p>
           </div>
+          <ul className="flex flex-wrap items-center gap-2">
+            {l.locationScore != null && (
+              <li className="inline-flex h-8 items-center gap-2 rounded-full bg-primary-soft pl-1 pr-3 text-[13px] font-semibold text-primary-soft-text sm:h-9 sm:pr-3.5 sm:text-[14px]">
+                <span className="grid size-6 place-items-center rounded-full bg-primary sm:size-7 text-[12.5px] font-bold text-primary-contrast tabular">{l.locationScore}</span>
+                {tl('header.score')}
+              </li>
+            )}
+            {facts.map((f) => (
+              <li key={f.key} className={`inline-flex h-8 items-center gap-1.5 rounded-full border border-border bg-surface px-3 text-[13px] font-medium shadow-xs sm:h-9 sm:px-3.5 sm:text-[14px] ${f.cls || 'text-text'}`}>
+                {f.icon}
+                {f.text}
+              </li>
+            ))}
+          </ul>
         </header>
 
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
-          <div className="flex min-w-0 flex-col gap-10">
-            <ListingGallery media={l.media} title={l.title} videoUrl={l.videoUrl} tourUrl={l.tourUrl} />
+        <ListingGallery media={l.media} title={l.title} videoUrl={l.videoUrl} tourUrl={l.tourUrl} />
+
+        <div className="mt-8 grid gap-8 lg:mt-10 lg:grid-cols-[minmax(0,1fr)_380px] xl:gap-12">
+          <div className="flex min-w-0 flex-col gap-6">
+            <ListingKeyFacts listing={l} />
             {l.project && <ProjectBlock listingId={l.id} project={l.project} />}
+            <ListingSection id="desc-title" title={tl('description.title')} icon={<FileText className="size-5" strokeWidth={2} />}>
+              {l.description ? <p className="max-w-[70ch] whitespace-pre-line text-[16.5px] leading-[1.75]">{l.description}</p> : <p className="text-muted">{tl('description.empty')}</p>}
+            </ListingSection>
+            <div className="lg:hidden">
+              <ContactCard listing={l} />
+            </div>
             <ListingSpecs listing={l} />
-            <section aria-labelledby="desc-title" className="flex flex-col gap-2">
-              <h2 id="desc-title" className="text-h3 font-semibold">
-                {tl('description.title')}
-              </h2>
-              {l.description ? <p className="max-w-[72ch] whitespace-pre-line leading-relaxed">{l.description}</p> : <p className="text-muted">{tl('description.empty')}</p>}
-            </section>
             {(isLease || calcTypes.length > 0) && <CostCalculator listing={l} types={calcTypes} />}
             {showEquipment && <EquipmentTable listing={l} />}
-            {(l.history.length > 0 || l.closuresWarning) && <HistoryTimeline listing={l} typeNames={names.typeNames} />}
             {l.lat != null && l.lng != null && (
               <InsightsPanel initial={insights} query={{ lat: l.lat, lng: l.lng, businessType: primaryType, priceMinor: l.priceMinor, areaM2: l.areaM2, dealType: l.dealType }} />
             )}
+            {(l.history.length > 0 || l.closuresWarning) && <HistoryTimeline listing={l} typeNames={names.typeNames} />}
             {primaryType && <PermitsChecklist businessType={primaryType} typeName={typeName(primaryType)} />}
           </div>
-          <aside className="hidden lg:block">
-            <div className="sticky top-20">
+          <aside className="hidden lg:block" aria-label={tl('contact.title')}>
+            <div className="sticky top-24">
               <ContactCard listing={l} />
             </div>
           </aside>
         </div>
 
+        <div className="mt-6">
+          <ListingV2Section listing={l} />
+        </div>
+
         {similar.length > 0 && (
-          <section aria-labelledby="similar-title" className="mt-12 flex flex-col gap-4">
-            <div className="flex items-end justify-between gap-4">
-              <h2 id="similar-title" className="text-h3 font-semibold md:text-h2">
+          <section aria-labelledby="similar-title" className="mt-16 flex flex-col gap-6 border-t border-border pt-12 md:mt-20 md:pt-16">
+            <div className="flex flex-col gap-2 pr-0 md:pr-28">
+              <span className="eyebrow self-start">{tl('similar.eyebrow')}</span>
+              <h2 id="similar-title" className="text-[26px] font-bold leading-tight tracking-tight md:text-h2">
                 {tl('similar.title')}
               </h2>
               {primaryType && (
-                <Link href={`/search?businessType=${primaryType}&dealType=${l.dealType}`} className="text-small text-link hover:underline">
+                <Link href={`/search?businessType=${primaryType}&dealType=${l.dealType}`} className="inline-flex items-center gap-1 self-start font-semibold text-link hover:underline">
                   {tl('similar.all')}
+                  <ArrowRight className="size-4" strokeWidth={2} aria-hidden />
                 </Link>
               )}
             </div>
-            <ListingGrid listings={similar.slice(0, 6)} typeNames={names.typeNames} />
+            <SimilarCarousel listings={similar.slice(0, 9)} typeNames={names.typeNames} labelledBy="similar-title" />
           </section>
         )}
-
-        <div className="lg:hidden mt-10">
-          <ContactCard listing={l} />
-        </div>
-
-        <ListingV2Section listing={l} />
       </div>
       <MobileActionBar listing={l} />
     </FavoritesProvider>

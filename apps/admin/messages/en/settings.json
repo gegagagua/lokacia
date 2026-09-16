@@ -33,5 +33,13 @@
     "listing": "Listing",
     "report": "Report",
     "api": "API"
-  }
+  },
+  "groupPromo": "Launch promo",
+  "groupPromoHint": "During the promo every paid service is free. Set the last day or clear the field to end the promo.",
+  "groupTiming": "Timing and limits",
+  "groupMoney": "Commissions and taxes",
+  "groupOther": "Other settings",
+  "unsaved": "You have unsaved changes",
+  "perDays": "/ {days} days",
+  "noDays": "No expiry"
 }

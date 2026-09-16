@@ -2,7 +2,8 @@
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
 import { normalizePhone } from '@lokacia/contracts';
-import { Button, Card, Field, Input } from '@lokacia/ui';
+import { ArrowLeft, ArrowRight, FlaskConical, Lock, MessageSquareText, Phone } from 'lucide-react';
+import { Avatar, Button, Field, Input } from '@lokacia/ui';
 import { apiFetch, ClientApiError } from '@/lib/api-client';
 
 const DEMO = [
@@ -49,54 +50,71 @@ export function LoginForm({ next }: { next: string }) {
   };
 
   return (
-    <Card className="w-full max-w-md p-6 md:p-8">
-      <h1 className="text-h2 font-semibold">{t('title')}</h1>
-      <p className="mt-1 text-muted">{t('subtitle')}</p>
-      {step === 'phone' ? (
-        <form onSubmit={request} className="mt-6 flex flex-col gap-4">
-          <Field label={t('phone')} error={error}>
-            <Input inputMode="tel" autoComplete="tel" placeholder="5XX XX XX XX" value={phone} onChange={(e) => setPhone(e.target.value)} required />
-          </Field>
-          <Button type="submit" size="lg" loading={busy}>
-            {t('sendCode')}
-          </Button>
-        </form>
-      ) : (
-        <form onSubmit={verify} className="mt-6 flex flex-col gap-4">
-          <p className="text-small text-muted">{t('codeHint', { phone })}</p>
-          <Field label={t('code')} error={error}>
-            <Input inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} className="tabular tracking-[0.3em]" autoFocus required />
-          </Field>
-          <Button type="submit" size="lg" loading={busy} disabled={code.length !== 6}>
-            {t('verify')}
-          </Button>
-          <button type="button" className="self-start text-small text-link hover:underline" onClick={() => setStep('phone')}>
-            {t('changePhone')}
-          </button>
-        </form>
-      )}
+    <div>
+      <div className="eyebrow mb-4">
+        <Lock className="size-3.5" strokeWidth={2} aria-hidden />
+        {t('secure')}
+      </div>
+      <h1 className="text-[32px] font-bold leading-tight tracking-tight md:text-[36px]">{t('title')}</h1>
+      <p className="mt-2 text-[16px] text-muted">{t('subtitle')}</p>
+      <div className="card mt-8 p-6 md:p-7">
+        {step === 'phone' ? (
+          <form onSubmit={request} className="flex flex-col gap-5">
+            <Field label={t('phone')} error={error}>
+              <Input inputMode="tel" autoComplete="tel" placeholder="5XX XX XX XX" value={phone} onChange={(e) => setPhone(e.target.value)} prefixIcon={<Phone className="size-4" strokeWidth={2} aria-hidden />} required />
+            </Field>
+            <Button type="submit" size="lg" loading={busy} className="w-full">
+              {t('sendCode')}
+              <ArrowRight className="size-[18px]" strokeWidth={2} aria-hidden />
+            </Button>
+          </form>
+        ) : (
+          <form onSubmit={verify} className="flex flex-col gap-5">
+            <div className="flex items-center gap-3 rounded-2xl bg-primary-soft px-4 py-3 text-[14.5px] text-primary-soft-text">
+              <MessageSquareText className="size-5 shrink-0" strokeWidth={2} aria-hidden />
+              {t('codeHint', { phone })}
+            </div>
+            <Field label={t('code')} error={error}>
+              <Input inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} className="h-14 text-center text-[24px] font-bold tabular tracking-[0.5em]" autoFocus required />
+            </Field>
+            <Button type="submit" size="lg" loading={busy} disabled={code.length !== 6} className="w-full">
+              {t('verify')}
+            </Button>
+            <button type="button" className="inline-flex items-center gap-1.5 self-center text-[14.5px] font-semibold text-link hover:underline" onClick={() => setStep('phone')}>
+              <ArrowLeft className="size-4" strokeWidth={2} aria-hidden />
+              {t('changePhone')}
+            </button>
+          </form>
+        )}
+      </div>
       {step === 'phone' && (
-        <div className="mt-6 rounded-card border border-border p-3">
-          <div className="text-small font-medium">{t('demo')}</div>
-          <ul className="mt-2 flex flex-col">
+        <div className="mt-5 rounded-card border border-dashed border-border-strong bg-surface/60 p-4">
+          <div className="mb-2 flex items-center gap-2 text-[13.5px] font-semibold text-muted">
+            <FlaskConical className="size-4" strokeWidth={2} aria-hidden />
+            {t('demo')}
+          </div>
+          <ul className="grid gap-2 sm:grid-cols-2">
             {DEMO.map(([p, role]) => (
               <li key={p}>
                 <button
                   type="button"
-                  className="flex w-full justify-between rounded-[6px] px-2 py-1.5 text-small hover:bg-surface-2"
+                  className="flex w-full items-center gap-3 rounded-xl bg-surface px-3 py-2.5 text-left shadow-xs ring-1 ring-inset ring-border transition-all hover:-translate-y-0.5 hover:shadow-sm focus-visible:shadow-ring focus-visible:outline-none"
                   onClick={() => {
                     setPhone(p);
                     void request(undefined, p).then(() => setCode('123456'));
                   }}
                 >
-                  <span>{t(`roles.${role}`)}</span>
-                  <span className="tabular text-muted">{p}</span>
+                  <Avatar name={t(`roles.${role}`)} size={32} className="ring-0" />
+                  <span className="min-w-0">
+                    <span className="block truncate text-[14.5px] font-semibold">{t(`roles.${role}`)}</span>
+                    <span className="block text-[12.5px] text-muted tabular">{p}</span>
+                  </span>
                 </button>
               </li>
             ))}
           </ul>
         </div>
       )}
-    </Card>
+    </div>
   );
 }

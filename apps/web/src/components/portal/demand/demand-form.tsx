@@ -54,7 +54,7 @@ export function DemandForm({ types, groups, defaultPhone }: { types: { value: st
   };
 
   return (
-    <form onSubmit={submit} className="mt-6 flex flex-col gap-5 rounded-card border border-border bg-surface p-5 md:p-6" noValidate>
+    <form onSubmit={submit} className="card flex min-w-0 flex-col gap-5 p-5 md:p-7" noValidate>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label={t('businessType')} required error={errors.businessType}>
           <Select value={v.businessType} onChange={set('businessType')} placeholder={t('choose')} options={types} required />
@@ -83,7 +83,7 @@ export function DemandForm({ types, groups, defaultPhone }: { types: { value: st
       <fieldset className="flex flex-col gap-3">
         <legend className="text-small font-medium">{t('districts')}</legend>
         <p className="-mt-1 text-small text-muted">{t('districtsHint')}</p>
-        <div className="max-h-72 overflow-y-auto rounded-button border border-border p-3">
+        <div className="max-h-72 overflow-y-auto rounded-2xl border border-border bg-surface-2 p-4">
           {groups.map((g) => (
             <div key={g.city} className="mb-3 last:mb-0">
               <p className="mb-2 text-small font-semibold text-muted">{g.name}</p>

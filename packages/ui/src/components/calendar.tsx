@@ -25,16 +25,16 @@ export function Calendar({ value, onChange, events = [], minDate, className, ren
   const days = Array.from({ length: 42 }, (_, i) => new Date(start.getFullYear(), start.getMonth(), start.getDate() + i));
   const today = key(new Date());
   return (
-    <div className={cn('rounded-card border border-border bg-surface p-3', className)}>
+    <div className={cn('rounded-card border border-border bg-surface p-4 shadow-sm', className)}>
       <div className="mb-2 flex items-center justify-between">
-        <button type="button" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))} className="grid size-8 place-items-center rounded-button hover:bg-surface-2" aria-label="წინა თვე">
-          <ChevronLeft className="size-4" strokeWidth={1.5} />
+        <button type="button" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))} className="grid size-9 place-items-center rounded-full text-muted transition-colors hover:bg-surface-2 hover:text-text" aria-label="წინა თვე">
+          <ChevronLeft className="size-4" strokeWidth={2} />
         </button>
-        <div className="font-medium">
+        <div className="font-semibold">
           {MONTHS_KA[month.getMonth()]} {month.getFullYear()}
         </div>
-        <button type="button" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))} className="grid size-8 place-items-center rounded-button hover:bg-surface-2" aria-label="შემდეგი თვე">
-          <ChevronRight className="size-4" strokeWidth={1.5} />
+        <button type="button" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))} className="grid size-9 place-items-center rounded-full text-muted transition-colors hover:bg-surface-2 hover:text-text" aria-label="შემდეგი თვე">
+          <ChevronRight className="size-4" strokeWidth={2} />
         </button>
       </div>
       <div className="grid grid-cols-7 gap-1 text-center text-[12px] text-muted" aria-hidden>
@@ -57,10 +57,10 @@ export function Calendar({ value, onChange, events = [], minDate, className, ren
               aria-pressed={!!selected}
               aria-label={`${d.getDate()} ${MONTHS_KA[d.getMonth()]}${ev.length ? `, ${ev.length} ღონისძიება` : ''}`}
               className={cn(
-                'relative flex min-h-10 flex-col items-center justify-start rounded-[6px] border px-0.5 pt-1 text-small tabular transition-colors',
+                'relative flex min-h-10 flex-col items-center justify-start rounded-xl border px-0.5 pt-1 text-small font-medium tabular transition-all duration-200',
                 d.getMonth() !== month.getMonth() ? 'text-muted' : 'text-text',
-                selected ? 'border-primary bg-primary text-primary-contrast' : 'border-transparent hover:bg-surface-2',
-                k === today && !selected && 'border-border-strong',
+                selected ? 'border-primary bg-primary text-primary-contrast shadow-sm' : 'border-transparent hover:bg-surface-2',
+                k === today && !selected && 'border-primary/40 bg-primary-soft text-primary-soft-text',
                 disabled && 'opacity-40',
               )}
             >

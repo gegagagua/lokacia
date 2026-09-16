@@ -1,35 +1,77 @@
+/* Map v2: pill price markers with soft shadow, pointer tail, VIP/selected states. */
 .lk-pin {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 26px;
-  height: 26px;
-  padding: 0 8px;
-  border-radius: 13px 13px 13px 2px;
-  background: var(--c-mtatsminda);
-  color: #f7f9f5;
-  font: 600 12px/1 var(--font-sans);
+  min-width: 30px;
+  height: 30px;
+  padding: 0 11px;
+  margin-bottom: 7px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--primary-contrast);
+  font: 700 13px/1 var(--font-sans);
   font-variant-numeric: tabular-nums;
-  border: 2px solid #f7f9f5;
+  letter-spacing: -0.01em;
+  border: 2px solid var(--surface);
+  box-shadow: 0 1px 2px rgb(15 26 23 / 0.18), 0 6px 16px -4px rgb(15 26 23 / 0.35);
   cursor: pointer;
   white-space: nowrap;
-  transform-origin: bottom left;
+  transform-origin: bottom center;
+  transition: scale 180ms var(--ease-out, ease-out), background-color 180ms ease-out, box-shadow 180ms ease-out;
+}
+.lk-pin::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  width: 10px;
+  height: 10px;
+  background: inherit;
+  border-right: 2px solid var(--surface);
+  border-bottom: 2px solid var(--surface);
+  border-bottom-right-radius: 3px;
+  translate: -50% -50%;
+  rotate: 45deg;
+  z-index: -1;
+}
+.lk-pin:hover {
+  scale: 1.08;
+  z-index: 3;
+  box-shadow: 0 2px 4px rgb(15 26 23 / 0.2), 0 12px 24px -6px rgb(15 26 23 / 0.45);
 }
 .lk-pin[data-vip='true'] {
-  background: var(--c-sulfur);
-  color: var(--c-basalt);
+  background: var(--accent);
+  color: var(--accent-contrast);
 }
 .lk-pin[data-selected='true'] {
-  background: var(--c-basalt);
-  color: var(--c-sulfur);
-  z-index: 2;
+  background: var(--text);
+  color: var(--surface);
+  scale: 1.12;
+  z-index: 4;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 45%, transparent), 0 12px 24px -6px rgb(15 26 23 / 0.5);
 }
 .lk-pin:focus-visible {
   outline: 2px solid var(--focus);
-  outline-offset: 2px;
+  outline-offset: 3px;
 }
 .lk-map .maplibregl-ctrl-group {
-  border-radius: 6px;
-  box-shadow: none;
+  border-radius: 12px;
+  overflow: hidden;
   border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--elev-sm);
+}
+.lk-map .maplibregl-ctrl-group button + button {
+  border-top-color: var(--border);
+}
+.lk-map .maplibregl-ctrl-top-right {
+  margin: 4px;
+}
+[data-theme='dark'] .lk-map .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+  filter: invert(1);
+}
+.lk-map .maplibregl-ctrl-attrib {
+  border-radius: 999px;
 }

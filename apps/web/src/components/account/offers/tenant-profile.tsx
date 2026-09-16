@@ -32,22 +32,30 @@ export function TenantProfileSummary({ profile, name, businessTypes = [], action
       ].filter(Boolean)
     : [];
   return (
-    <div className={`rounded-card border border-border bg-surface p-4 ${className ?? ''}`}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-2 font-medium">
-          <Briefcase className="size-4 text-muted" strokeWidth={1.5} aria-hidden />
-          {name ? t('titleFor', { name }) : t('title')}
+    <div className={`card p-5 ${className ?? ''}`}>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-link/12 text-link" aria-hidden>
+            <Briefcase className="size-5" strokeWidth={2} />
+          </span>
+          <span className="font-bold leading-snug">{name ? t('titleFor', { name }) : t('title')}</span>
         </div>
         {action}
       </div>
       {facts.length ? (
-        <p className="mt-2 text-[15px]">{facts.join(' · ')}</p>
+        <ul className="mt-3 flex flex-wrap gap-1.5">
+          {facts.map((x, i) => (
+            <li key={i} className="inline-flex min-h-7 items-center rounded-full bg-surface-2 px-3 py-0.5 text-[13.5px] font-medium">
+              {x}
+            </li>
+          ))}
+        </ul>
       ) : (
-        <p className="mt-2 text-small text-muted">{t('empty')}</p>
+        <p className="mt-3 rounded-2xl border border-dashed border-border-strong px-4 py-3 text-small text-muted">{t('empty')}</p>
       )}
-      {profile?.about && <p className="mt-2 whitespace-pre-wrap text-small text-muted">{profile.about}</p>}
+      {profile?.about && <p className="mt-3 whitespace-pre-wrap text-small text-muted">{profile.about}</p>}
       {profile?.website && (
-        <a href={profile.website} target="_blank" rel="noreferrer" className="mt-1 inline-block break-all text-small text-link underline-offset-4 hover:underline">
+        <a href={profile.website} target="_blank" rel="noreferrer" className="mt-2 inline-block break-all text-small font-medium text-link underline-offset-4 hover:underline">
           {profile.website}
         </a>
       )}

@@ -2,30 +2,141 @@
 @import '@lokacia/ui/theme.css';
 
 @source '../../../../packages/ui/src';
+/* tone classes are composed at runtime by toneClass() (components/common/ui.tsx) */
+@source inline('tone-{1,2,3,4,5,6,7,8,primary,danger,success,accent,link}');
+
+/*
+ * CRM v2 (modern SaaS workspace). Adds a categorical "tone" palette for stages, channels, charts and avatars.
+ * Use `tone-1..tone-8` on an element to set `--tone`, then `bg-tone`, `bg-tone-soft`, `text-tone`, `border-tone`.
+ * Text on `bg-tone-soft` uses `text-tone-ink` (mixed toward --text for AA contrast in both themes).
+ */
+:root {
+  --tone-1: #2e8a72; /* green */
+  --tone-2: #3a6fd8; /* blue */
+  --tone-3: #c68a06; /* amber */
+  --tone-4: #7b5ce0; /* violet */
+  --tone-5: #d34f7c; /* rose */
+  --tone-6: #1c93ad; /* cyan */
+  --tone-7: #dc6a2c; /* orange */
+  --tone-8: #6b7a74; /* slate */
+  --crm-sidebar: #fbfcfb;
+  --crm-canvas: #f4f6f3;
+}
+:root[data-theme='dark'] {
+  --tone-1: #4cc3a2;
+  --tone-2: #86adf5;
+  --tone-3: #f0bd3a;
+  --tone-4: #b19cfb;
+  --tone-5: #f18aae;
+  --tone-6: #67cfe6;
+  --tone-7: #f3a06d;
+  --tone-8: #9fb0a9;
+  --crm-sidebar: #0d1513;
+  --crm-canvas: #0a110f;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --tone-1: #4cc3a2;
+    --tone-2: #86adf5;
+    --tone-3: #f0bd3a;
+    --tone-4: #b19cfb;
+    --tone-5: #f18aae;
+    --tone-6: #67cfe6;
+    --tone-7: #f3a06d;
+    --tone-8: #9fb0a9;
+    --crm-sidebar: #0d1513;
+    --crm-canvas: #0a110f;
+  }
+}
+
+@theme inline {
+  --color-sidebar: var(--crm-sidebar);
+  --color-canvas: var(--crm-canvas);
+  --color-tone-1: var(--tone-1);
+  --color-tone-2: var(--tone-2);
+  --color-tone-3: var(--tone-3);
+  --color-tone-4: var(--tone-4);
+  --color-tone-5: var(--tone-5);
+  --color-tone-6: var(--tone-6);
+  --color-tone-7: var(--tone-7);
+  --color-tone-8: var(--tone-8);
+}
+
+@utility tone-1 { --tone: var(--tone-1); }
+@utility tone-2 { --tone: var(--tone-2); }
+@utility tone-3 { --tone: var(--tone-3); }
+@utility tone-4 { --tone: var(--tone-4); }
+@utility tone-5 { --tone: var(--tone-5); }
+@utility tone-6 { --tone: var(--tone-6); }
+@utility tone-7 { --tone: var(--tone-7); }
+@utility tone-8 { --tone: var(--tone-8); }
+@utility tone-primary { --tone: var(--primary-500); }
+@utility tone-danger { --tone: var(--danger); }
+@utility tone-success { --tone: var(--success); }
+@utility tone-accent { --tone: var(--accent); }
+@utility tone-link { --tone: var(--link); }
+@utility bg-tone { background-color: var(--tone, var(--primary-500)); }
+@utility bg-tone-soft { background-color: color-mix(in srgb, var(--tone, var(--primary-500)) 13%, transparent); }
+@utility bg-tone-faint { background-color: color-mix(in srgb, var(--tone, var(--primary-500)) 6%, transparent); }
+@utility text-tone { color: var(--tone, var(--primary-500)); }
+@utility text-tone-ink { color: color-mix(in srgb, var(--tone, var(--primary-500)) 72%, var(--text)); }
+@utility border-tone { border-color: var(--tone, var(--primary-500)); }
+@utility border-tone-soft { border-color: color-mix(in srgb, var(--tone, var(--primary-500)) 28%, transparent); }
+@utility ring-tone { --tw-ring-color: var(--tone, var(--primary-500)); }
+
+/* Soft ambient wash behind page headers. */
+@utility crm-wash {
+  background:
+    radial-gradient(700px 240px at 0% 0%, color-mix(in srgb, var(--primary-500) 9%, transparent), transparent 70%),
+    radial-gradient(600px 220px at 100% 0%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 70%);
+}
 
 @layer base {
   /* Dense professional workspace: slightly smaller base size, tabular numbers everywhere in data views. */
   .crm-dense {
     font-size: 15px;
+    line-height: 1.55;
   }
   .crm-dense table td,
   .crm-dense table th {
-    padding-top: 8px;
-    padding-bottom: 8px;
+    padding-top: 10px;
+    padding-bottom: 10px;
   }
   kbd {
-    font-family: var(--font-mono);
+    display: inline-grid;
+    place-items: center;
+    min-width: 20px;
+    height: 20px;
+    font-family: var(--font-sans);
     font-size: 11px;
-    border: 1px solid var(--border-strong);
+    font-weight: 600;
+    line-height: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
     border-bottom-width: 2px;
-    border-radius: 4px;
-    padding: 0 4px;
+    border-radius: 6px;
+    padding: 0 5px;
     color: var(--text-muted);
   }
 }
 
 @utility scrollbar-thin {
   scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@keyframes crm-fade-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@utility animate-fade-up {
+  animation: crm-fade-up 320ms var(--ease-out) both;
 }
 
 @media print {

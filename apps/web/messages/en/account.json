@@ -17,7 +17,8 @@
     "billing": "Payments",
     "property": "My property",
     "crm": "Go to CRM",
-    "countLabel": "{count} new"
+    "countLabel": "{count} new",
+    "noName": "My profile"
   },
   "dashboard": {
     "title": "My account",
@@ -59,7 +60,17 @@
     "tenantProfileAction": "Complete profile",
     "statsAction": "Statistics",
     "myListings": "My listings",
-    "error": "Error"
+    "error": "Error",
+    "attention": "{count} items need your attention",
+    "allClear": "You're all caught up",
+    "offersAwaitingHint": "Review the terms and respond",
+    "unreadHint": "Someone is waiting for your reply",
+    "rejectedHint": "Fix the issues and resubmit for review",
+    "draftsHint": "Drafts are not visible in search",
+    "reply": "Reply",
+    "continue": "Continue",
+    "portfolioTitle": "Listings by status",
+    "manageListings": "Manage"
   },
   "profile": {
     "title": "Profile",

@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import { BellOff } from 'lucide-react';
 import { Button, EmptyState } from '@lokacia/ui';
 import { apiOrNull } from '@/lib/api-server';
+import { HeroGlow } from '@/components/portal/page-hero';
 import { UnsubscribeButton } from '@/components/portal/search/unsubscribe-button';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -16,17 +17,19 @@ export default async function UnsubscribePage({ params }: { params: Promise<{ to
   const t = await getTranslations('alerts.unsubscribe');
   const info = await apiOrNull<{ name: string; active: boolean }>(`/v1/saved-searches/unsubscribe/${encodeURIComponent(token)}`, { auth: false });
   return (
-    <div className="drawing-grid min-h-[60dvh] py-12">
+    <div className="relative isolate min-h-[70dvh] overflow-hidden py-16 md:py-24">
+      <HeroGlow variant="page" />
       <div className="container-page flex justify-center">
-        <div className="w-full max-w-lg rounded-card border border-border bg-surface p-6 md:p-8">
+        <div className="card w-full max-w-lg p-6 shadow-lg md:p-10">
           {!info ? (
-            <EmptyState title={t('heading')} description={t('notFound')} action={<Button asChild variant="secondary"><Link href="/account/saved-searches">{t('manage')}</Link></Button>} />
+            <EmptyState className="border-0 py-6" title={t('heading')} description={t('notFound')} action={<Button asChild variant="secondary"><Link href="/account/saved-searches">{t('manage')}</Link></Button>} />
           ) : (
             <div className="flex flex-col gap-4">
-              <div className="grid size-12 place-items-center rounded-full border border-border-strong text-muted">
-                <BellOff className="size-5" strokeWidth={1.5} aria-hidden />
-              </div>
-              <h1 className="text-h2 font-semibold">{t('heading')}</h1>
+              <span className="grid size-14 place-items-center rounded-2xl bg-primary-soft text-primary-soft-text">
+                <BellOff className="size-6" strokeWidth={2} aria-hidden />
+              </span>
+              <p className="eyebrow self-start">{t('eyebrow')}</p>
+              <h1 className="-mt-1 text-[30px] font-bold leading-[38px] tracking-tight">{t('heading')}</h1>
               {info.active ? (
                 <>
                   <p className="text-muted">{t('text', { name: info.name })}</p>

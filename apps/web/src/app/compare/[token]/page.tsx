@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from '@/i18n/link';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { BadgeCheck } from 'lucide-react';
+import { BadgeCheck, Columns3, Eye, Trophy } from 'lucide-react';
 import {
   PASSPORT_FIELDS, type CompareListingDto, type PassportKey,
 } from '@lokacia/contracts';
@@ -10,6 +10,7 @@ import { EmptyState, SpacePlan } from '@lokacia/ui';
 import { getCompareShared } from '@/components/portal/data';
 import { CopyLinkButton } from '@/components/portal/copy-link-button';
 import { getFormat } from '@/i18n/server';
+import { HeroGlow } from '@/components/portal/hero-glow';
 import { localizeListing } from '@/i18n/content';
 
 type Props = { params: Promise<{ token: string }> };
@@ -115,13 +116,20 @@ export default async function ComparePage({ params }: Props) {
     list.map((r) => {
       const best = bestIndexes(r.numbers, r.best);
       return (
-        <tr key={r.key} className="border-b border-border last:border-b-0">
-          <th scope="row" className="sticky left-0 z-10 w-40 min-w-36 bg-surface px-3 py-2.5 text-left text-small font-medium text-muted">
+        <tr key={r.key} className="border-b border-border transition-colors last:border-b-0 hover:bg-surface-2/60">
+          <th scope="row" className="sticky left-0 z-10 w-44 min-w-36 bg-surface px-4 py-3 text-left text-small font-medium text-muted shadow-[1px_0_0_var(--border)]">
             {r.label}
           </th>
           {r.values.map((v, i) => (
-            <td key={i} className={`min-w-44 px-3 py-2.5 align-top tabular ${best.has(i) ? 'bg-primary/10 font-semibold text-text' : ''}`}>
-              {v}
+            <td key={i} className="min-w-48 px-4 py-3 align-top tabular">
+              {best.has(i) ? (
+                <span className="inline-flex items-start gap-1.5 rounded-xl bg-primary-soft px-2.5 py-1 font-semibold text-primary-soft-text">
+                  <Trophy className="mt-1 size-3.5 shrink-0" strokeWidth={2} aria-hidden />
+                  <span>{v}</span>
+                </span>
+              ) : (
+                v
+              )}
               {best.has(i) && <span className="sr-only"> ({t('best')})</span>}
             </td>
           ))}
@@ -130,35 +138,43 @@ export default async function ComparePage({ params }: Props) {
     });
 
   return (
-    <div className="container-page py-8">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <p className="text-small text-muted">{t('title')}</p>
-          <h1 className="text-h2 font-semibold md:text-h1">{data.name}</h1>
-          <p className="mt-1 text-small text-muted">
-            {t('readOnly')} {t('updated', { date: f.date(data.updatedAt) })}
-          </p>
+    <>
+      <section className="relative isolate overflow-hidden border-b border-border bg-surface">
+        <HeroGlow />
+        <div className="container-page relative flex flex-wrap items-end justify-between gap-4 pb-10 pt-8 md:pb-12 md:pt-12">
+          <div className="min-w-0 max-w-3xl">
+            <p className="eyebrow">
+              <Columns3 className="size-3.5" strokeWidth={2} aria-hidden />
+              {t('title')}
+            </p>
+            <h1 className="mt-4 break-words text-[32px] font-bold leading-[40px] tracking-tight md:text-h1">{data.name}</h1>
+            <p className="mt-2 flex flex-wrap items-center gap-2 text-[15px] text-muted">
+              <Eye className="size-4" strokeWidth={2} aria-hidden />
+              {t('readOnly')} {t('updated', { date: f.date(data.updatedAt) })}
+            </p>
+          </div>
+          <CopyLinkButton path={`/compare/${token}`} label={t('copy')} copiedLabel={t('copied')} />
         </div>
-        <CopyLinkButton path={`/compare/${token}`} label={t('copy')} copiedLabel={t('copied')} />
-      </div>
+      </section>
 
+      <div className="container-page py-8 md:py-12">
       {!L.length ? (
-        <EmptyState className="mt-8" title={t('empty')} />
+        <EmptyState title={t('empty')} />
       ) : (
-        <div className="mt-6 overflow-x-auto rounded-card border border-border bg-surface">
+        <div className="card overflow-x-auto p-0">
           <table className="w-full border-collapse text-[15px]">
             <caption className="sr-only">{data.name}</caption>
             <thead>
-              <tr className="border-b border-border-strong">
-                <th scope="col" className="sticky left-0 z-10 bg-surface px-3 py-3 text-left text-small font-medium text-muted">
+              <tr className="border-b border-border">
+                <th scope="col" className="sticky left-0 z-10 bg-surface px-4 py-4 text-left align-bottom text-small font-medium text-muted shadow-[1px_0_0_var(--border)]">
                   {t('parameter')}
                 </th>
                 {L.map((l) => (
-                  <th key={l.id} scope="col" className="min-w-44 px-3 py-3 text-left align-top font-normal">
-                    <div className="drawing-grid mb-2 rounded-photo border border-border bg-bg p-1">
+                  <th key={l.id} scope="col" className="min-w-48 px-4 py-4 text-left align-top font-normal">
+                    <div className="mb-3 rounded-photo bg-surface-2 p-2">
                       <SpacePlan compact areaM2={l.areaM2} widthM={l.passport.widthM} depthM={l.passport.depthM} locale={f.locale} />
                     </div>
-                    <Link href={`/listings/${l.slug}`} className="line-clamp-3 font-semibold leading-snug hover:text-link">
+                    <Link href={`/listings/${l.slug}`} className="line-clamp-3 text-[15.5px] font-semibold leading-snug hover:text-link">
                       {l.title}
                     </Link>
                   </th>
@@ -168,13 +184,13 @@ export default async function ComparePage({ params }: Props) {
             <tbody>
               {renderRows(rows)}
               <tr className="border-b border-border bg-surface-2">
-                <th scope="colgroup" colSpan={L.length + 1} className="sticky left-0 px-3 py-2 text-left text-small font-semibold uppercase tracking-wide">
+                <th scope="colgroup" colSpan={L.length + 1} className="sticky left-0 px-4 py-2.5 text-left text-small font-bold">
                   {t('passport')}
                 </th>
               </tr>
               {renderRows(passportRows)}
               <tr className="border-b border-border bg-surface-2">
-                <th scope="colgroup" colSpan={L.length + 1} className="sticky left-0 px-3 py-2 text-left text-small font-semibold uppercase tracking-wide">
+                <th scope="colgroup" colSpan={L.length + 1} className="sticky left-0 px-4 py-2.5 text-left text-small font-bold">
                   {t('contact')}
                 </th>
               </tr>
@@ -183,6 +199,7 @@ export default async function ComparePage({ params }: Props) {
           </table>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

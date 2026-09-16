@@ -4,9 +4,11 @@ import { redirect } from 'next/navigation';
 import { getAppLocale } from '@/i18n/server';
 import { localizePath } from '@/i18n/locale';
 import { getTranslations } from 'next-intl/server';
-import { Plus } from 'lucide-react';
+import { Megaphone, Plus } from 'lucide-react';
 import type { DemandDto } from '@lokacia/contracts';
-import { Button, EmptyState } from '@lokacia/ui';
+import { Button } from '@lokacia/ui';
+import { AccountPageHeader } from '@/components/account/page-header';
+import { AccountEmpty } from '@/components/account/ui';
 import { api } from '@/lib/api-server';
 import { getSession } from '@/lib/session';
 import { getNames } from '@/components/portal/data';
@@ -25,30 +27,35 @@ export default async function MyDemandPage() {
   const icons = Object.fromEntries(types.map((x) => [x.slug, x.icon]));
   return (
     <div>
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <h1 className="text-h2 font-semibold md:text-h1">{t('account.title')}</h1>
-        <Button asChild>
-          <Link href="/demand/new">
-            <Plus className="size-4" strokeWidth={1.5} aria-hidden />
-            {t('board.add')}
-          </Link>
-        </Button>
-      </div>
+      <AccountPageHeader
+        title={t('account.title')}
+        actions={
+          <Button asChild>
+            <Link href="/demand/new">
+              <Plus className="size-4" strokeWidth={2.25} aria-hidden />
+              {t('board.add')}
+            </Link>
+          </Button>
+        }
+      />
       {items.length === 0 ? (
-        <EmptyState
-          className="mt-6"
+        <AccountEmpty
+          icon={Megaphone}
           title={t('account.empty')}
           description={t('account.emptyHint')}
           action={
             <Button asChild>
-              <Link href="/demand/new">{t('board.add')}</Link>
+              <Link href="/demand/new">
+                <Plus className="size-4" strokeWidth={2.25} aria-hidden />
+                {t('board.add')}
+              </Link>
             </Button>
           }
         />
       ) : (
-        <ul className="mt-6 grid gap-4 md:grid-cols-2">
+        <ul className="grid gap-4 md:grid-cols-2">
           {items.map((d) => (
-            <li key={d.id}>
+            <li key={d.id} className="[&>*]:h-full">
               <DemandCard d={d} icon={icons[d.businessType]} showStatus />
             </li>
           ))}

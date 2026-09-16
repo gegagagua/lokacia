@@ -4,10 +4,10 @@
 @source '../../../../packages/ui/src';
 
 @layer base {
-  .prose-ka h1 { font-size: 28px; line-height: 36px; font-weight: 600; margin: 0 0 12px; }
-  .prose-ka h2 { font-size: 20px; line-height: 28px; font-weight: 600; margin: 24px 0 8px; }
+  .prose-ka h1 { font-size: 30px; line-height: 38px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 12px; }
+  .prose-ka h2 { font-size: 21px; line-height: 30px; font-weight: 700; margin: 24px 0 8px; }
   .prose-ka h3 { font-size: 17px; font-weight: 600; margin: 16px 0 6px; }
-  .prose-ka p { margin: 8px 0; }
+  .prose-ka p { margin: 10px 0; line-height: 1.7; }
   .prose-ka ul, .prose-ka ol { padding-left: 20px; margin: 12px 0; list-style: disc; }
   .prose-ka ol { list-style: decimal; }
   .prose-ka li { padding: 2px 0; }
@@ -15,5 +15,7 @@
   .prose-ka a { color: var(--link); text-decoration: underline; text-underline-offset: 3px; }
   .prose-ka table { border-collapse: collapse; margin: 12px 0; }
   .prose-ka td, .prose-ka th { border: 1px solid var(--border); padding: 4px 8px; }
-  .prose-ka code { font-family: var(--font-mono); font-size: 14px; }
+  .prose-ka code { font-family: var(--font-mono); font-size: 13.5px; background: var(--surface-2); padding: 1px 6px; border-radius: 6px; }
+  .prose-ka li:has(> input[type=checkbox]) { list-style: none; margin-left: -20px; }
+  .prose-ka input[type=checkbox] { accent-color: var(--primary); margin-right: 8px; }
 }

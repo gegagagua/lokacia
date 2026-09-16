@@ -34,6 +34,7 @@
     "already": "This subscription has already been cancelled.",
     "notFound": "The link is invalid or the search was deleted.",
     "manage": "Manage saved searches",
-    "failed": "Couldn't unsubscribe. Please try again."
+    "failed": "Couldn't unsubscribe. Please try again.",
+    "eyebrow": "Notifications"
   }
 }

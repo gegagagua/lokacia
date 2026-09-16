@@ -2,13 +2,14 @@ import type { Metadata } from 'next';
 import Link from '@/i18n/link';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { ArrowLeft, BadgeCheck, MapPin, Phone } from 'lucide-react';
-import { Avatar, Badge, Button, SpecRow } from '@lokacia/ui';
+import { ArrowLeft, BadgeCheck, CheckCircle2, MapPin, MessageSquareQuote, Phone, Star } from 'lucide-react';
+import { Avatar, Badge, Button, EmptyState } from '@lokacia/ui';
 import { getSession } from '@/lib/session';
 import { absUrl } from '@/lib/site';
 import { getFormat } from '@/i18n/server';
 import { getProvider } from '@/components/portal/data';
 import { Breadcrumbs, JsonLd, pageMetadata } from '@/components/portal/seo';
+import { HeroGlow } from '@/components/portal/page-hero';
 import { Stars, categoryName } from '@/components/portal/services/provider-card';
 
 async function getCategoryName() {
@@ -51,124 +52,158 @@ export default async function ProviderPage({ params }: Props) {
   };
 
   return (
-    <div className="container-page py-8">
+    <>
       <JsonLd data={ld} />
-      <Breadcrumbs
-        items={[
-          { name: 'lokacia.ge', href: '/' },
-          { name: hub('providers'), href: '/services' },
-          { name: p.name, href: `/services/${p.slug}` },
-        ]}
-      />
-      <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <div className="min-w-0">
-          <div className="flex items-start gap-4">
-            <Avatar src={p.logoUrl} name={p.name} size={72} />
+      <section className="relative isolate overflow-hidden border-b border-border bg-surface">
+        <HeroGlow />
+        <div className="container-page relative pb-10 pt-6 md:pb-12 md:pt-8">
+          <Breadcrumbs
+            className="mb-6 md:mb-8"
+            items={[
+              { name: 'lokacia.ge', href: '/' },
+              { name: hub('providers'), href: '/services' },
+              { name: p.name, href: `/services/${p.slug}` },
+            ]}
+          />
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+            <Avatar src={p.logoUrl} name={p.name} size={96} className="text-[28px] shadow-md ring-4 ring-surface" />
             <div className="min-w-0">
-              <h1 className="text-h2 font-semibold md:text-h1">{p.name}</h1>
-              <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
+              <p className="eyebrow">{t('provider.eyebrow')}</p>
+              <h1 className="mt-3 text-[32px] font-bold leading-[40px] tracking-tight md:text-h1">{p.name}</h1>
+              <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
                 <Stars rating={p.rating} count={p.reviewsCount} />
                 {p.verified && (
-                  <span className="inline-flex items-center gap-1 text-small text-success">
-                    <BadgeCheck className="size-4" strokeWidth={1.5} aria-hidden />
+                  <Badge tone="success" icon={<BadgeCheck className="size-3.5" strokeWidth={2} aria-hidden />}>
                     {t('provider.verified')}
-                  </span>
+                  </Badge>
                 )}
-                <span className="inline-flex items-center gap-1 text-small text-muted">
-                  <MapPin className="size-3.5" strokeWidth={1.5} aria-hidden />
+                <span className="inline-flex items-center gap-1 text-[15px] text-muted">
+                  <MapPin className="size-4 text-primary-500" strokeWidth={2} aria-hidden />
                   {f.city(p.city)}
                 </span>
               </div>
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {p.categories.map((c) => (
-                  <Link key={c} href={`/services?category=${c}`}>
+                  <Link key={c} href={`/services?category=${c}`} className="rounded-full transition-transform hover:-translate-y-0.5">
                     <Badge tone="primary">{catName(c)}</Badge>
                   </Link>
                 ))}
               </div>
             </div>
           </div>
-
-          {p.about && (
-            <section className="mt-8">
-              <h2 className="text-h3 font-semibold">{t('provider.about')}</h2>
-              <p className="mt-2 whitespace-pre-line leading-relaxed">{p.about}</p>
-            </section>
-          )}
-
-          {p.portfolio.length > 0 && (
-            <section className="mt-8">
-              <h2 className="text-h3 font-semibold">{t('provider.portfolio')}</h2>
-              <ul className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-3">
-                {p.portfolio.map((src, i) => (
-                  <li key={src} className="overflow-hidden rounded-photo border border-border bg-surface-2">
-                    <img src={src} alt={t('provider.portfolioAlt', { name: p.name, n: i + 1 })} loading="lazy" decoding="async" className="aspect-[4/3] w-full object-cover" />
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-
-          <section className="mt-8" aria-labelledby="reviews">
-            <h2 id="reviews" className="text-h3 font-semibold">
-              {t('provider.reviews')} <span className="text-muted tabular">({p.reviewsCount})</span>
-            </h2>
-            {p.reviews.length === 0 ? (
-              <p className="mt-2 text-muted">{t('provider.noReviews')}</p>
-            ) : (
-              <ul className="mt-3 divide-y divide-border rounded-card border border-border bg-surface">
-                {p.reviews.map((r) => (
-                  <li key={r.id} className="p-4">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="font-medium">{r.authorName}</span>
-                      <span className="text-small text-muted">{f.date(r.createdAt)}</span>
-                    </div>
-                    <Stars rating={r.rating} className="mt-1" />
-                    {r.body && <p className="mt-2 leading-relaxed">{r.body}</p>}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
         </div>
+      </section>
 
-        <aside className="flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
-          <div className="flex flex-col gap-4 rounded-card border border-border bg-surface p-5">
-            {p.priceFrom && <SpecRow label={t('provider.priceFrom')} value={p.priceFrom} />}
-            <SpecRow label={t('provider.reviews')} value={t('provider.reviewsCount', { count: p.reviewsCount })} />
-            <SpecRow label={t('orders.title')} value={t('provider.completed', { count: p.completedOrders })} />
-            {p.isMine ? (
-              <>
-                <p className="text-small text-muted">{t('provider.yours')}</p>
-                <Button asChild variant="secondary">
-                  <Link href="/account/services?tab=provider">{t('provider.dashboard')}</Link>
-                </Button>
-              </>
-            ) : (
-              <QuoteDialog providerId={p.id} providerSlug={p.slug} categories={p.categories} loggedIn={!!user} />
+      <div className="container-page py-10 md:py-12">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="flex min-w-0 flex-col gap-8">
+            {p.about && (
+              <section className="card p-5 md:p-6">
+                <h2 className="text-h3 font-bold">{t('provider.about')}</h2>
+                <p className="mt-3 whitespace-pre-line text-[16.5px] leading-relaxed">{p.about}</p>
+              </section>
             )}
-            <div className="border-t border-border pt-4">
-              <p className="text-small text-muted">{t('provider.phone')}</p>
-              {p.phone ? (
-                <a href={`tel:${p.phone}`} className="mt-1 inline-flex items-center gap-2 font-medium tabular hover:text-link">
-                  <Phone className="size-4" strokeWidth={1.5} aria-hidden />
-                  {p.phone}
-                </a>
+
+            {p.portfolio.length > 0 && (
+              <section>
+                <h2 className="mb-4 text-[24px] font-bold tracking-tight">{t('provider.portfolio')}</h2>
+                <ul className="grid grid-cols-2 gap-3 md:grid-cols-3">
+                  {p.portfolio.map((src, i) => (
+                    <li key={src} className={`group overflow-hidden rounded-photo bg-surface-2 shadow-sm ${i === 0 ? 'col-span-2 row-span-2' : ''}`}>
+                      <img src={src} alt={t('provider.portfolioAlt', { name: p.name, n: i + 1 })} loading="lazy" decoding="async" className="aspect-[4/3] size-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]" />
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            <section aria-labelledby="reviews">
+              <h2 id="reviews" className="mb-4 text-[24px] font-bold tracking-tight">
+                {t('provider.reviews')} <span className="text-muted tabular">({p.reviewsCount})</span>
+              </h2>
+              {p.reviews.length === 0 ? (
+                <EmptyState icon={<MessageSquareQuote className="size-6" strokeWidth={2} aria-hidden />} title={t('provider.noReviews')} />
               ) : (
-                <Link href={`/login?next=${encodeURIComponent(`/services/${p.slug}`)}`} className="mt-1 inline-block text-link hover:underline">
-                  {t('provider.loginForPhone')}
-                </Link>
+                <ul className="grid gap-3 md:grid-cols-2">
+                  {p.reviews.map((r) => (
+                    <li key={r.id} className="card flex flex-col gap-2 p-5">
+                      <div className="flex items-center gap-3">
+                        <Avatar name={r.authorName} size={40} />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-semibold">{r.authorName}</p>
+                          <p className="text-small text-muted">{f.date(r.createdAt)}</p>
+                        </div>
+                      </div>
+                      <Stars rating={r.rating} />
+                      {r.body && <p className="leading-relaxed">{r.body}</p>}
+                    </li>
+                  ))}
+                </ul>
               )}
-            </div>
+            </section>
           </div>
-          <Button asChild variant="ghost" className="self-start">
-            <Link href="/services">
-              <ArrowLeft className="size-4" strokeWidth={1.5} aria-hidden />
-              {t('provider.back')}
-            </Link>
-          </Button>
-        </aside>
+
+          <aside className="flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
+            <div className="card flex flex-col gap-4 p-5 shadow-md md:p-6">
+              {p.priceFrom && (
+                <div>
+                  <p className="text-small text-muted">{t('provider.priceFrom')}</p>
+                  <p className="text-[30px] font-bold leading-tight tracking-tight tabular">{p.priceFrom}</p>
+                </div>
+              )}
+              <dl className="grid grid-cols-2 gap-2">
+                <div className="flex flex-col gap-0.5 rounded-xl bg-surface-2 p-3">
+                  <dt className="flex items-center gap-1.5 text-[12.5px] text-muted">
+                    <Star className="size-3.5" strokeWidth={2} aria-hidden />
+                    {t('provider.reviews')}
+                  </dt>
+                  <dd className="text-[14.5px] font-semibold leading-snug tabular">{t('provider.reviewsCount', { count: p.reviewsCount })}</dd>
+                </div>
+                <div className="flex flex-col gap-0.5 rounded-xl bg-surface-2 p-3">
+                  <dt className="flex items-center gap-1.5 text-[12.5px] text-muted">
+                    <CheckCircle2 className="size-3.5" strokeWidth={2} aria-hidden />
+                    {t('orders.title')}
+                  </dt>
+                  <dd className="text-[14.5px] font-semibold leading-snug tabular">{t('provider.completed', { count: p.completedOrders })}</dd>
+                </div>
+              </dl>
+              {p.isMine ? (
+                <>
+                  <p className="text-small text-muted">{t('provider.yours')}</p>
+                  <Button asChild variant="secondary">
+                    <Link href="/account/services?tab=provider">{t('provider.dashboard')}</Link>
+                  </Button>
+                </>
+              ) : (
+                <QuoteDialog providerId={p.id} providerSlug={p.slug} categories={p.categories} loggedIn={!!user} />
+              )}
+              <div className="flex items-center gap-3 border-t border-border pt-4">
+                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary-soft-text">
+                  <Phone className="size-[18px]" strokeWidth={2} aria-hidden />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-small text-muted">{t('provider.phone')}</p>
+                  {p.phone ? (
+                    <a href={`tel:${p.phone}`} className="font-semibold tabular hover:text-link">
+                      {p.phone}
+                    </a>
+                  ) : (
+                    <Link href={`/login?next=${encodeURIComponent(`/services/${p.slug}`)}`} className="font-medium text-link hover:underline">
+                      {t('provider.loginForPhone')}
+                    </Link>
+                  )}
+                </div>
+              </div>
+            </div>
+            <Button asChild variant="ghost" className="self-start">
+              <Link href="/services">
+                <ArrowLeft className="size-4" strokeWidth={2} aria-hidden />
+                {t('provider.back')}
+              </Link>
+            </Button>
+          </aside>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

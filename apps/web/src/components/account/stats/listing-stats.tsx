@@ -3,14 +3,15 @@ import * as React from 'react';
 import Link from '@/i18n/link';
 import useSWR from 'swr';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, Sparkles } from 'lucide-react';
+import { AlertOctagon, AlertTriangle, ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, ClipboardList, ExternalLink, Eye, FileSignature, Heart, Lightbulb, LineChart, MapPinned, Pencil, Percent, Phone, Scale, Sparkles, TrendingDown, TrendingUp } from 'lucide-react';
 import { type AdviceItem, type ListingStatsDto, type StatsTotals } from '@lokacia/contracts';
 import { useFormat } from '@/i18n/use-format';
-import { Badge, Button, cn } from '@lokacia/ui';
+import { Button, cn } from '@lokacia/ui';
 import { apiFetch, ClientApiError, fetcher } from '@/lib/api-client';
 import { AccountPageHeader } from '../page-header';
 import { ListingStatusBadge } from '../status-badges';
 import { BarChart } from './bar-chart';
+import { IconTile, KpiCard, SectionCard, Segmented, Trend, type Tone } from '../ui';
 
 const PERIODS = [7, 30, 90] as const;
 
@@ -24,8 +25,8 @@ export function ListingStats({ listingId, initial }: { listingId: string; initia
     <div>
       <AccountPageHeader
         back={
-          <Link href="/account/listings" className="inline-flex items-center gap-1 text-link hover:underline">
-            <ArrowLeft className="size-3.5" strokeWidth={1.5} aria-hidden />
+          <Link href="/account/listings" className="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-muted shadow-xs ring-1 ring-border transition-colors hover:text-text">
+            <ArrowLeft className="size-3.5" strokeWidth={2} aria-hidden />
             {t('back')}
           </Link>
         }
@@ -33,105 +34,114 @@ export function ListingStats({ listingId, initial }: { listingId: string; initia
         description={
           <span className="flex flex-wrap items-center gap-2">
             <ListingStatusBadge status={l.status as never} />
-            <span className="text-text">{l.title}</span>
+            <span className="font-medium text-text">{l.title}</span>
           </span>
         }
         actions={
           <>
             <Button asChild size="sm" variant="secondary">
-              <Link href={`/listings/${l.slug}`}>{t('listing.open')}</Link>
+              <Link href={`/listings/${l.slug}`}>
+                <ExternalLink className="size-4" strokeWidth={2} aria-hidden />
+                {t('listing.open')}
+              </Link>
             </Button>
-            <Button asChild size="sm" variant="secondary">
-              <Link href={`/account/listings/${l.id}/edit`}>{t('listing.edit')}</Link>
+            <Button asChild size="sm">
+              <Link href={`/account/listings/${l.id}/edit`}>
+                <Pencil className="size-4" strokeWidth={2} aria-hidden />
+                {t('listing.edit')}
+              </Link>
             </Button>
           </>
         }
       />
 
-      <div role="radiogroup" aria-label={t('period.label')} className="mb-5 inline-flex rounded-button border border-border bg-surface p-0.5" aria-busy={isValidating}>
-        {PERIODS.map((p) => (
-          <button key={p} type="button" role="radio" aria-checked={days === p} onClick={() => setDays(p)} className={cn('h-8 rounded-[5px] px-3 text-small', days === p ? 'bg-primary text-primary-contrast' : 'text-muted hover:text-text')}>
-            {t(`period.d${p}`)}
-          </button>
-        ))}
-      </div>
+      <Segmented label={t('period.label')} value={days} onChange={setDays} busy={isValidating} options={PERIODS.map((p) => ({ value: p, label: t(`period.d${p}`) }))} className="mb-5" />
 
-      <section className="grid grid-cols-2 gap-3 md:grid-cols-3" aria-label={t('title')}>
-        <Tile label={t('tiles.views')} value={data.totals.views} prev={data.previousTotals.views} />
-        <Tile label={t('tiles.reveals')} value={data.totals.reveals} prev={data.previousTotals.reveals} />
-        <Tile label={t('tiles.saves')} value={data.totals.saves} prev={data.previousTotals.saves} />
-        <Tile label={t('tiles.revealRate')} value={data.revealRatePct} suffix="%" />
-        <Tile label={t('tiles.offers')} value={data.offers} />
-        <Tile label={t('tiles.viewings')} value={data.viewings} />
+      <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3" aria-label={t('title')}>
+        <Tile icon={Eye} tone="link" label={t('tiles.views')} value={data.totals.views} prev={data.previousTotals.views} />
+        <Tile icon={Phone} tone="success" label={t('tiles.reveals')} value={data.totals.reveals} prev={data.previousTotals.reveals} />
+        <Tile icon={Heart} tone="danger" label={t('tiles.saves')} value={data.totals.saves} prev={data.previousTotals.saves} />
+        <Tile icon={Percent} tone="accent" label={t('tiles.revealRate')} value={data.revealRatePct} suffix="%" />
+        <Tile icon={FileSignature} tone="primary" label={t('tiles.offers')} value={data.offers} />
+        <Tile icon={CalendarDays} tone="primary" label={t('tiles.viewings')} value={data.viewings} />
       </section>
 
-      <section className="mt-6 rounded-card border border-border bg-surface p-4">
-        <h2 className="mb-3 text-h3 font-semibold">{t('charts.title')}</h2>
-        <div className="grid gap-6">
+      <SectionCard title={t('charts.title')} icon={LineChart} tone="link" className="mt-6">
+        <div className="grid gap-8 lg:grid-cols-2">
           {(['views', 'reveals', 'saves'] as const).map((k, i) => (
-            <BarChart
-              key={k}
-              label={t(`charts.${k}`)}
-              tone={i === 0 ? 'primary' : i === 1 ? 'link' : 'primary'}
-              data={data.series.map((p) => ({ day: p.day, value: p[k] }))}
-              caption={t('charts.tableCaption', { metric: t(`charts.${k}`) })}
-              dayLabel={t('charts.day')}
-              valueLabel={t('charts.value')}
-            />
+            <div key={k} className={i === 0 ? 'lg:col-span-2' : ''}>
+              <BarChart
+                label={t(`charts.${k}`)}
+                tone={i === 0 ? 'link' : i === 1 ? 'primary' : 'accent'}
+                height={i === 0 ? 200 : 190}
+                width={i === 0 ? 640 : 400}
+                data={data.series.map((p) => ({ day: p.day, value: p[k] }))}
+                caption={t('charts.tableCaption', { metric: t(`charts.${k}`) })}
+                dayLabel={t('charts.day')}
+                valueLabel={t('charts.value')}
+              />
+            </div>
           ))}
         </div>
-      </section>
+      </SectionCard>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <DistrictCompare totals={data.totals} avg={data.districtAvg} />
         <PriceCard data={data} />
       </div>
 
-      <section className="mt-6 rounded-card border border-border bg-surface p-4">
-        <div className="flex items-center justify-between gap-2">
-          <h2 className="text-h3 font-semibold">{t('passport.title')}</h2>
-          <Link href={`/account/listings/${l.id}/edit?step=passport`} className="text-small text-link hover:underline">
-            {t('passport.fill')}
-          </Link>
-        </div>
-        <div className="mt-3 flex items-center gap-3">
-          <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-surface-2" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={data.passportCompletenessPct} aria-label={t('passport.title')}>
-            <div className={cn('h-full rounded-full', data.passportCompletenessPct >= 70 ? 'bg-primary' : 'bg-accent')} style={{ width: `${data.passportCompletenessPct}%` }} />
+      <SectionCard
+        title={t('passport.title')}
+        icon={ClipboardList}
+        className="mt-6"
+        action={
+          <Button asChild size="sm" variant="secondary">
+            <Link href={`/account/listings/${l.id}/edit?step=passport`}>{t('passport.fill')}</Link>
+          </Button>
+        }
+      >
+        <div className="flex items-center gap-4">
+          <div className="h-3 flex-1 overflow-hidden rounded-full bg-surface-2" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={data.passportCompletenessPct} aria-label={t('passport.title')}>
+            <div className={cn('h-full rounded-full transition-all duration-500', data.passportCompletenessPct >= 70 ? 'bg-[linear-gradient(90deg,var(--primary),var(--success))]' : 'bg-accent')} style={{ width: `${data.passportCompletenessPct}%` }} />
           </div>
-          <span className="text-small tabular">{t('passport.filled', { pct: data.passportCompletenessPct })}</span>
+          <span className="text-[15px] font-bold tabular">{t('passport.filled', { pct: data.passportCompletenessPct })}</span>
         </div>
-      </section>
+      </SectionCard>
 
       <Advice listingId={l.id} advice={data.advice} />
     </div>
   );
 }
 
-function Tile({ label, value, prev, suffix = '' }: { label: string; value: number | null; prev?: number; suffix?: string }) {
+function Tile({ label, value, prev, suffix = '', icon, tone }: { label: string; value: number | null; prev?: number; suffix?: string; icon: typeof Eye; tone: Tone }) {
   const t = useTranslations('stats.tiles');
-  let delta: React.ReactNode = null;
+  const f = useFormat();
+  let trend: React.ReactNode = null;
   if (prev !== undefined && value !== null) {
-    if (prev === 0) delta = value > 0 ? <span className="text-muted">{t('deltaNew')}</span> : null;
+    if (prev === 0) trend = value > 0 ? <Trend pct={null} isNew={t('deltaNew')} /> : null;
     else {
       const pct = Math.round(((value - prev) / prev) * 100);
-      delta = <span className={pct > 0 ? 'text-success' : pct < 0 ? 'text-danger' : 'text-muted'}>{t('delta', { sign: pct > 0 ? '+' : pct < 0 ? '−' : '', pct: Math.abs(pct) })}</span>;
+      const full = t('delta', { sign: pct > 0 ? '+' : pct < 0 ? '−' : '', pct: Math.abs(pct) });
+      trend = (
+        <span title={full}>
+          <Trend pct={pct} label={`${pct > 0 ? '+' : pct < 0 ? '−' : ''}${Math.abs(pct)}%`} />
+          <span className="sr-only">{full}</span>
+        </span>
+      );
     }
   }
-  return (
-    <div className="rounded-card border border-border bg-surface p-4">
-      <div className="text-small text-muted">{label}</div>
-      <div className="compact mt-1 text-h2 font-semibold tabular">{value === null ? t('noData') : `${value}${suffix}`}</div>
-      {delta && <div className="mt-1 text-[12px] tabular">{delta}</div>}
-    </div>
-  );
+  return <KpiCard icon={icon} tone={tone} label={label} value={value === null ? t('noData') : `${f.number(value)}${suffix}`} trend={trend} />;
 }
 
 function DistrictCompare({ totals, avg }: { totals: StatsTotals; avg: ListingStatsDto['districtAvg'] }) {
   const t = useTranslations('stats');
   const rows = (['views', 'reveals', 'saves'] as const).map((k) => ({ k, you: totals[k], avg: avg[k] }));
   return (
-    <section className="rounded-card border border-border bg-surface p-4">
-      <h2 className="text-h3 font-semibold">{t('district.title')}</h2>
+    <section className="card p-5 sm:p-6">
+      <div className="flex items-center gap-3">
+        <IconTile icon={MapPinned} tone="primary" size="sm" />
+        <h2 className="text-[18px] font-bold tracking-tight">{t('district.title')}</h2>
+      </div>
       {avg.listings < 2 ? (
         <p className="mt-2 text-small text-muted">{t('district.none')}</p>
       ) : (
@@ -142,18 +152,18 @@ function DistrictCompare({ totals, avg }: { totals: StatsTotals; avg: ListingSta
               const max = Math.max(1, r.you, r.avg);
               return (
                 <div key={r.k}>
-                  <dt className="mb-1 text-small font-medium">{t(`charts.${r.k}`)}</dt>
+                  <dt className="mb-1.5 text-[14px] font-semibold">{t(`charts.${r.k}`)}</dt>
                   <dd className="flex flex-col gap-1">
                     {[
-                      { label: t('district.you'), v: r.you, cls: 'bg-primary' },
+                      { label: t('district.you'), v: r.you, cls: 'bg-[linear-gradient(90deg,var(--primary),var(--primary-500))]' },
                       { label: t('district.avg'), v: r.avg, cls: 'bg-border-strong' },
                     ].map((b) => (
                       <div key={b.label} className="grid grid-cols-[64px_minmax(0,1fr)_48px] items-center gap-2 text-small">
                         <span className="text-muted">{b.label}</span>
-                        <span className="h-2.5 overflow-hidden rounded-full bg-surface-2">
+                        <span className="h-3 overflow-hidden rounded-full bg-surface-2">
                           <span className={cn('block h-full rounded-full', b.cls)} style={{ width: `${(b.v / max) * 100}%` }} />
                         </span>
-                        <span className="text-right tabular">{b.v}</span>
+                        <span className="text-right font-bold tabular">{b.v}</span>
                       </div>
                     ))}
                   </dd>
@@ -171,32 +181,36 @@ function PriceCard({ data }: { data: ListingStatsDto }) {
   const t = useTranslations('stats.price');
   const f = useFormat();
   const p = data.price;
+  const v = p?.verdict;
+  const tone = v === 'above' ? 'danger' : v === 'below' ? 'link' : 'success';
+  const Icon = v === 'above' ? TrendingUp : v === 'below' ? TrendingDown : Scale;
   return (
-    <section className={cn('rounded-card border bg-surface p-4', p?.verdict === 'above' ? 'border-accent' : 'border-border')}>
-      <h2 className="text-h3 font-semibold">{t('title')}</h2>
+    <section className={cn('card p-5 sm:p-6', v === 'above' && 'ring-1 ring-inset ring-danger/30', v === 'below' && 'ring-1 ring-inset ring-link/30')}>
+      <div className="flex items-center gap-3">
+        <IconTile icon={p ? Icon : Scale} tone={p ? tone : 'neutral'} size="sm" />
+        <h2 className="text-[18px] font-bold tracking-tight">{t('title')}</h2>
+      </div>
       {!p ? (
-        <p className="mt-2 text-small text-muted">{t('none')}</p>
+        <p className="mt-3 text-small text-muted">{t('none')}</p>
       ) : (
         <>
-          <p className={cn('mt-2 font-medium', p.verdict === 'above' ? 'text-danger' : p.verdict === 'below' ? 'text-link' : 'text-success')} role="status">
+          <p className={cn('mt-3 text-[16px] font-semibold', v === 'above' ? 'text-danger' : v === 'below' ? 'text-link' : 'text-success')} role="status">
             {p.messageKa}
           </p>
-          <dl className="mt-3 grid grid-cols-1 gap-2 text-small sm:grid-cols-3">
-            <div className="rounded-button bg-surface-2 p-2">
-              <dt className="text-muted">{t('perM2')}</dt>
-              <dd className="font-medium tabular">{f.money(p.perM2Minor)}</dd>
-            </div>
-            <div className="rounded-button bg-surface-2 p-2">
-              <dt className="text-muted">{t('avgM2')}</dt>
-              <dd className="font-medium tabular">{f.money(p.districtAvgM2Minor)}</dd>
-            </div>
-            <div className="rounded-button bg-surface-2 p-2">
-              <dt className="text-muted">{t('recommended')}</dt>
-              <dd className="font-medium tabular">{f.money(p.recommendedMinor)}</dd>
-            </div>
+          <dl className="mt-4 flex flex-col gap-2">
+            {[
+              { k: t('perM2'), v: p.perM2Minor },
+              { k: t('avgM2'), v: p.districtAvgM2Minor },
+              { k: t('recommended'), v: p.recommendedMinor },
+            ].map((x, i) => (
+              <div key={x.k} className={cn('flex items-center justify-between gap-3 rounded-2xl px-4 py-3', i === 2 ? 'bg-primary-soft text-primary-soft-text' : 'bg-surface-2')}>
+                <dt className={cn('text-[14px]', i === 2 ? 'font-semibold' : 'text-muted')}>{x.k}</dt>
+                <dd className="text-[18px] font-bold tabular">{f.money(x.v)}</dd>
+              </div>
+            ))}
           </dl>
           {p.verdict !== 'fair' && (
-            <Button asChild size="sm" variant="secondary" className="mt-3">
+            <Button asChild size="sm" variant="secondary" className="mt-4">
               <Link href={`/account/listings/${data.listing.id}/edit?step=price`}>{t('change')}</Link>
             </Button>
           )}
@@ -211,16 +225,23 @@ function Advice({ listingId, advice }: { listingId: string; advice: AdviceItem[]
   const [explain, setExplain] = React.useState<{ text: string; source: string } | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const tone = { high: 'danger', medium: 'accent', low: 'outline' } as const;
+  const sev = {
+    high: { box: 'border-danger/25 bg-danger/[0.06]', pill: 'bg-danger/12 text-danger', icon: AlertOctagon, tone: 'danger' as const },
+    medium: { box: 'border-accent/40 bg-accent-soft/60', pill: 'bg-accent text-accent-contrast', icon: AlertTriangle, tone: 'accent' as const },
+    low: { box: 'border-border bg-surface-2/60', pill: 'bg-surface-3 text-muted', icon: Lightbulb, tone: 'link' as const },
+  };
   return (
-    <section className="mt-6 rounded-card border border-border bg-surface p-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-h3 font-semibold">{t('title')}</h2>
+    <SectionCard
+      title={t('title')}
+      icon={Sparkles}
+      tone="accent"
+      className="mt-6"
+      action={
         <Button
           size="sm"
-          variant="secondary"
+          variant="accent"
           loading={loading}
-          icon={<Sparkles className="size-4" strokeWidth={1.5} aria-hidden />}
+          icon={<Sparkles className="size-4" strokeWidth={2} aria-hidden />}
           onClick={async () => {
             setLoading(true);
             setError(null);
@@ -235,36 +256,50 @@ function Advice({ listingId, advice }: { listingId: string; advice: AdviceItem[]
         >
           {t('explain')}
         </Button>
-      </div>
+      }
+    >
       <div aria-live="polite">
-        {loading && <p className="mt-3 text-small text-muted">{t('explaining')}</p>}
-        {error && <p className="mt-3 text-small text-danger">{error}</p>}
+        {loading && <p className="mb-3 text-small text-muted">{t('explaining')}</p>}
+        {error && <p className="mb-3 text-small text-danger">{error}</p>}
         {explain && !loading && (
-          <div className="mt-3 rounded-button border border-link/30 bg-link/5 p-3">
-            <div className="mb-1 text-[12px] text-muted">{explain.source === 'ai' ? t('explainAi') : t('explainRules')}</div>
+          <div className="mb-4 rounded-2xl border border-link/20 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--link)_8%,transparent),transparent)] p-4">
+            <div className="mb-1.5 inline-flex items-center gap-1.5 rounded-full bg-link/10 px-2.5 py-0.5 text-[12px] font-semibold text-link">
+              <Sparkles className="size-3" strokeWidth={2} aria-hidden />
+              {explain.source === 'ai' ? t('explainAi') : t('explainRules')}
+            </div>
             <p className="whitespace-pre-wrap text-[15px]">{explain.text}</p>
           </div>
         )}
       </div>
       {advice.length === 0 ? (
-        <p className="mt-3 text-small text-muted">{t('empty')}</p>
+        <div className="flex items-center gap-3 rounded-2xl bg-success/[0.07] p-4">
+          <IconTile icon={CheckCircle2} tone="success" size="sm" />
+          <p className="text-[15px]">{t('empty')}</p>
+        </div>
       ) : (
-        <ul className="mt-4 flex flex-col divide-y divide-border">
-          {advice.map((a) => (
-            <li key={a.key} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-start sm:gap-3">
-              <Badge tone={tone[a.severity]} className="self-start">
-                {t(a.severity)}
-              </Badge>
-              <p className="flex-1 text-[15px]">{a.messageKa}</p>
-              {a.action && (
-                <Link href={a.action.href} className="shrink-0 text-small text-link hover:underline">
-                  {a.action.labelKa}
-                </Link>
-              )}
-            </li>
-          ))}
+        <ul className="grid gap-3 md:grid-cols-2">
+          {advice.map((a) => {
+            const x = sev[a.severity];
+            return (
+              <li key={a.key} className={cn('flex flex-col gap-3 rounded-2xl border p-4', x.box)}>
+                <div className="flex items-start gap-3">
+                  <IconTile icon={x.icon} tone={x.tone} size="sm" />
+                  <div className="min-w-0 flex-1">
+                    <span className={cn('inline-flex h-6 items-center rounded-full px-2 text-[12px] font-semibold', x.pill)}>{t(a.severity)}</span>
+                    <p className="mt-1.5 text-[15px]">{a.messageKa}</p>
+                  </div>
+                </div>
+                {a.action && (
+                  <Link href={a.action.href} className="inline-flex items-center gap-1 self-start pl-12 text-small font-semibold text-link hover:underline">
+                    {a.action.labelKa}
+                    <ArrowRight className="size-3.5" strokeWidth={2} aria-hidden />
+                  </Link>
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
-    </section>
+    </SectionCard>
   );
 }

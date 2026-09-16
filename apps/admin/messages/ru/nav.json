@@ -35,5 +35,8 @@
     "developer": "Девелопер",
     "guest": "Гость"
   },
-  "language": "Язык"
+  "language": "Язык",
+  "attentionTitle": "Требует внимания",
+  "attentionText": "элементов в очередях — начните с модерации",
+  "allClear": "Все очереди пусты"
 }

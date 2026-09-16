@@ -2,7 +2,7 @@
 import * as React from 'react';
 import useSWR from 'swr';
 import { useTranslations } from 'next-intl';
-import { Plus, Trash2, TrendingDown, TrendingUp, Scale } from 'lucide-react';
+import { Banknote, Building2, CalendarClock, History, Plus, Scale, Trash2, TrendingDown, TrendingUp, Wrench } from 'lucide-react';
 import type { SessionUser } from '@lokacia/contracts';
 import { useFormat } from '@/i18n/use-format';
 import { Button, Checkbox, Field, IconButton, Input, Select, cn } from '@lokacia/ui';
@@ -44,7 +44,7 @@ export function StepPrice({ form, set, types, user, listingId, errors }: { form:
 
   return (
     <div className="flex flex-col gap-6">
-      <StepSection title={t('heading')}>
+      <StepSection title={t('heading')} icon={Banknote}>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={priceLabel} required error={errors.price}>
             <Input type="number" inputMode="decimal" min={1} value={form.price} suffix="₾" onChange={(e) => set({ price: e.target.value })} />
@@ -76,34 +76,17 @@ export function StepPrice({ form, set, types, user, listingId, errors }: { form:
             </>
           )}
         </div>
-        {isLease && (
-          <div aria-live="polite" className={cn('flex items-start gap-3 rounded-card border p-4', check?.verdict === 'above' ? 'border-danger/50' : check?.verdict === 'below' ? 'border-link/50' : 'border-border')}>
-            {check?.verdict === 'above' ? <TrendingUp className="mt-0.5 size-5 shrink-0 text-danger" strokeWidth={1.5} aria-hidden /> : check?.verdict === 'below' ? <TrendingDown className="mt-0.5 size-5 shrink-0 text-link" strokeWidth={1.5} aria-hidden /> : <Scale className="mt-0.5 size-5 shrink-0 text-success" strokeWidth={1.5} aria-hidden />}
-            <div className="min-w-0">
-              <div className="text-small text-muted">{t('recommendation')}</div>
-              {check ? (
-                <>
-                  <div className={cn('font-medium', check.verdict === 'above' && 'text-danger')}>{check.messageKa}</div>
-                  <div className="mt-1 text-small text-muted tabular">
-                    {t('recommended', { price: f.money(check.recommendedMinor) })} · {t('perM2', { price: f.money(check.perM2Minor) })}
-                  </div>
-                </>
-              ) : (
-                <div className="text-small text-muted">{t('noRecommendation')}</div>
-              )}
-            </div>
-          </div>
-        )}
+        {isLease && <PriceAdvice check={check ?? null} />}
       </StepSection>
 
       {form.dealType === 'short_term' && (
-        <StepSection title={t('slots')} hint={t('slotsHint')}>
+        <StepSection title={t('slots')} hint={t('slotsHint')} icon={CalendarClock}>
           {listingId ? <SlotsManager listingId={listingId} kind="short_term" defaultPriceMinor={money(form.priceDay) ?? money(form.priceHour)} /> : <p className="text-small text-muted">{t('slotsNeedDraft')}</p>}
         </StepSection>
       )}
 
       {form.dealType === 'transfer' && (
-        <StepSection title={t('equipment')} hint={t('equipmentHint')}>
+        <StepSection title={t('equipment')} hint={t('equipmentHint')} icon={Wrench}>
           <ul className="flex flex-col gap-3">
             {form.equipment.map((e, i) => (
               <li key={i} className="grid grid-cols-[minmax(0,1fr)_64px_96px_auto] items-end gap-2">
@@ -132,7 +115,7 @@ export function StepPrice({ form, set, types, user, listingId, errors }: { form:
       )}
 
       {devOrgs.length > 0 && (
-        <StepSection title={t('project')} hint={t('offPlanHint')}>
+        <StepSection title={t('project')} hint={t('offPlanHint')} icon={Building2}>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={t('project')}>
               <Select
@@ -151,12 +134,12 @@ export function StepPrice({ form, set, types, user, listingId, errors }: { form:
         </StepSection>
       )}
 
-      <StepSection title={t('history')} hint={t('historyHint')}>
+      <StepSection title={t('history')} hint={t('historyHint')} icon={History}>
         <ul className="flex flex-col gap-4">
           {form.history.map((h, i) => {
             const upd = (p: Partial<typeof h>) => set({ history: form.history.map((x, j) => (j === i ? { ...x, ...p } : x)) });
             return (
-              <li key={i} className="grid gap-2 rounded-card border border-border p-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,160px)_140px_140px_auto] sm:items-end sm:border-0 sm:p-0">
+              <li key={i} className="grid gap-3 rounded-2xl border border-border bg-surface-2/50 p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,160px)_150px_150px_auto] lg:items-end">
                 <Field label={t('historyName')}>
                   <Input value={h.businessName} maxLength={120} onChange={(e) => upd({ businessName: e.target.value })} />
                 </Field>
@@ -180,6 +163,51 @@ export function StepPrice({ form, set, types, user, listingId, errors }: { form:
           {t('historyAdd')}
         </Button>
       </StepSection>
+    </div>
+  );
+}
+
+function PriceAdvice({ check }: { check: NonNullable<PriceCheck> | null }) {
+  const t = useTranslations('wizard.price');
+  const f = useFormat();
+  const v = check?.verdict;
+  const tone = v === 'above' ? { box: 'border-danger/30 bg-danger/[0.06]', tile: 'bg-danger/15 text-danger', Icon: TrendingUp, bar: 'bg-danger' } : v === 'below' ? { box: 'border-link/30 bg-link/[0.06]', tile: 'bg-link/15 text-link', Icon: TrendingDown, bar: 'bg-link' } : v === 'fair' ? { box: 'border-success/30 bg-success/[0.07]', tile: 'bg-success/15 text-success', Icon: Scale, bar: 'bg-success' } : { box: 'border-dashed border-border-strong bg-surface-2/50', tile: 'bg-surface-3 text-muted', Icon: Scale, bar: 'bg-border-strong' };
+  const max = check ? Math.max(check.perM2Minor, check.districtAvgM2Minor) * 1.15 || 1 : 1;
+  return (
+    <div aria-live="polite" className={cn('rounded-card border p-5 transition-colors duration-300', tone.box)}>
+      <div className="flex items-start gap-4">
+        <span className={cn('grid size-11 shrink-0 place-items-center rounded-2xl', tone.tile)} aria-hidden>
+          <tone.Icon className="size-5" strokeWidth={2} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="text-[13px] font-semibold text-muted">{t('recommendation')}</div>
+          {check ? (
+            <>
+              <div className={cn('mt-0.5 text-[17px] font-bold leading-snug', v === 'above' && 'text-danger')}>{check.messageKa}</div>
+              <div className="mt-4 grid gap-2.5">
+                {[
+                  { label: t('yourPerM2'), value: check.perM2Minor, cls: tone.bar },
+                  { label: t('districtPerM2'), value: check.districtAvgM2Minor, cls: 'bg-border-strong' },
+                ].map((r) => (
+                  <div key={r.label} className="grid grid-cols-[minmax(0,110px)_minmax(0,1fr)_auto] items-center gap-3 text-small sm:grid-cols-[150px_minmax(0,1fr)_auto]">
+                    <span className="truncate text-muted">{r.label}</span>
+                    <span className="h-2.5 overflow-hidden rounded-full bg-surface-3/70">
+                      <span className={cn('block h-full rounded-full transition-all duration-500', r.cls)} style={{ width: `${Math.min(100, (r.value / max) * 100)}%` }} />
+                    </span>
+                    <span className="font-bold tabular">{f.money(r.value)}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 inline-flex flex-wrap items-center gap-2 rounded-full bg-surface px-3.5 py-1.5 text-small shadow-xs">
+                <span className="text-muted">{t('recommendedShort')}</span>
+                <span className="font-bold tabular">{f.money(check.recommendedMinor)}</span>
+              </div>
+            </>
+          ) : (
+            <div className="mt-0.5 text-[15px] text-muted">{t('noRecommendation')}</div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

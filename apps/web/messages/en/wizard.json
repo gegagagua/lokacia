@@ -135,7 +135,10 @@
     "historyStart": "Start",
     "historyEnd": "End",
     "historyAdd": "Add history entry",
-    "historyNoType": "—"
+    "historyNoType": "—",
+    "yourPerM2": "Your price / m²",
+    "districtPerM2": "District average / m²",
+    "recommendedShort": "Recommended price"
   },
   "describe": {
     "heading": "Title and description",
@@ -152,7 +155,9 @@
     "generatedTemplate": "Description generated from a template — review and edit it",
     "generateError": "Couldn't generate the description",
     "errorTitle": "Title must be at least 5 characters",
-    "defaultTitle": "Commercial space"
+    "defaultTitle": "Commercial space",
+    "aiTitle": "AI description in three languages",
+    "aiHint": "Generated from the listing facts — type, area, passport and location. Edit it afterwards."
   },
   "review": {
     "heading": "Review",

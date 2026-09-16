@@ -32,7 +32,7 @@ export function CallButton({ phone, entity = 'contact', entityId, onLogged, vari
             setTimeout(() => setOpen(true), 400);
           }}
         >
-          <Phone className="size-3.5" strokeWidth={1.5} aria-hidden />
+          <Phone className="size-4" strokeWidth={2} aria-hidden />
           {!compact && <span className="tabular">{phone}</span>}
         </a>
       </Button>

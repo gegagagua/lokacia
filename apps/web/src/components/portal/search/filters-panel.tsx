@@ -1,6 +1,7 @@
 'use client';
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
+import { Banknote, FileText, Handshake, MapPin, Maximize2, Search, ShieldCheck, Store, type LucideIcon } from 'lucide-react';
 import { DEAL_TYPES, PASSPORT_KEYS, type PassportKey, type SearchFilters } from '@lokacia/contracts';
 import { Button, Checkbox, Input, Label, Select, Switch, cn } from '@lokacia/ui';
 import { CITY_NAMES_KA } from '@/lib/site';
@@ -55,10 +56,17 @@ export function DebouncedNumber({ value, onCommit, label, suffix, min, max, step
   );
 }
 
-function Section({ title, children, className }: { title: React.ReactNode; children: React.ReactNode; className?: string }) {
+function Section({ title, icon: Icon, children, className }: { title: React.ReactNode; icon?: LucideIcon; children: React.ReactNode; className?: string }) {
   return (
-    <fieldset className={cn('flex flex-col gap-2.5 border-b border-border py-4 first:pt-0 last:border-b-0', className)}>
-      <legend className="float-left mb-2.5 w-full text-small font-semibold uppercase tracking-wide text-muted">{title}</legend>
+    <fieldset className={cn('flex min-w-0 flex-col gap-3 border-b border-border py-5 first:pt-1 last:border-b-0 last:pb-1', className)}>
+      <legend className="float-left mb-3 flex w-full items-center gap-2 text-[15px] font-semibold text-text">
+        {Icon && (
+          <span className="grid size-7 place-items-center rounded-lg bg-primary-soft text-primary-soft-text" aria-hidden>
+            <Icon className="size-4" strokeWidth={2} />
+          </span>
+        )}
+        {title}
+      </legend>
       {children}
     </fieldset>
   );
@@ -83,12 +91,12 @@ export function FiltersPanel({ filters, onChange, types, districts }: { filters:
 
   return (
     <div className="flex flex-col">
-      <Section title={t('businessTypes')}>
+      <Section title={t('businessTypes')} icon={Store}>
         <Select aria-label={t('businessTypes')} value={filters.businessType ?? ''} onChange={(e) => changeType(e.target.value)} placeholder={t('allTypes')} options={types.map((x) => ({ value: x.slug, label: x.nameKa }))} />
       </Section>
 
       {type && type.filterConfig.filters.length > 0 && (
-        <Section title={t('passport')}>
+        <Section title={t('passport')} icon={FileText}>
           <p className="-mt-1 text-small text-muted">{t('passportHint', { type: type.nameKa })}</p>
           {type.filterConfig.filters.map((f) => {
             const key = f.key as PassportKey;
@@ -105,8 +113,8 @@ export function FiltersPanel({ filters, onChange, types, districts }: { filters:
         </Section>
       )}
 
-      <Section title={t('dealType')}>
-        <div className="grid grid-cols-2 gap-1.5" role="radiogroup" aria-label={t('dealType')}>
+      <Section title={t('dealType')} icon={Handshake}>
+        <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={t('dealType')}>
           {[undefined, ...DEAL_TYPES].map((d) => {
             const active = filters.dealType === d;
             return (
@@ -116,7 +124,10 @@ export function FiltersPanel({ filters, onChange, types, districts }: { filters:
                 role="radio"
                 aria-checked={active}
                 onClick={() => onChange({ dealType: d })}
-                className={cn('h-9 rounded-button border px-2 text-small transition-colors duration-150', active ? 'border-primary bg-primary text-primary-contrast' : 'border-border-strong bg-surface hover:bg-surface-2')}
+                className={cn(
+                  'h-9 whitespace-nowrap rounded-full border px-3.5 text-[14px] font-medium transition-all duration-200 focus-visible:outline-none focus-visible:shadow-ring',
+                  active ? 'border-primary bg-primary text-primary-contrast shadow-xs' : 'border-border bg-surface text-text hover:border-border-strong hover:bg-surface-2',
+                )}
               >
                 {d ? fmt.dealType(d) : t('anyDeal')}
               </button>
@@ -125,15 +136,15 @@ export function FiltersPanel({ filters, onChange, types, districts }: { filters:
         </div>
       </Section>
 
-      <Section title={t('city')}>
+      <Section title={t('city')} icon={MapPin}>
         <Select aria-label={t('city')} value={filters.city ?? ''} placeholder={t('anyDeal')} onChange={(e) => onChange({ city: e.target.value || undefined, districts: undefined })} options={Object.keys(CITY_NAMES_KA).map((value) => ({ value, label: fmt.city(value) }))} />
         {cityDistricts.length > 0 && (
           <div>
             <div className="mb-1.5 flex items-center justify-between text-small">
               <span className="font-medium">{t('districts')}</span>
-              {selected.size > 0 && <span className="text-muted">{t('districtsSelected', { count: selected.size })}</span>}
+              {selected.size > 0 && <span className="rounded-full bg-primary-soft px-2 py-0.5 text-[12.5px] font-semibold text-primary-soft-text">{t('districtsSelected', { count: selected.size })}</span>}
             </div>
-            <div className="flex max-h-56 flex-col gap-2 overflow-y-auto rounded-button border border-border p-2.5">
+            <div className="flex max-h-56 flex-col gap-2.5 overflow-y-auto rounded-2xl bg-surface-2 p-3 [scrollbar-width:thin]">
               {cityDistricts.map((d) => (
                 <Checkbox
                   key={d.slug}
@@ -152,30 +163,30 @@ export function FiltersPanel({ filters, onChange, types, districts }: { filters:
         )}
       </Section>
 
-      <Section title={t('price')}>
+      <Section title={t('price')} icon={Banknote}>
         <div className="grid grid-cols-2 gap-2">
           <DebouncedNumber label={t('from')} suffix="₾" value={filters.priceMin} onCommit={(v) => onChange({ priceMin: v })} />
           <DebouncedNumber label={t('to')} suffix="₾" value={filters.priceMax} onCommit={(v) => onChange({ priceMax: v })} />
         </div>
       </Section>
 
-      <Section title={t('area')}>
+      <Section title={t('area')} icon={Maximize2}>
         <div className="grid grid-cols-2 gap-2">
           <DebouncedNumber label={t('from')} suffix={fmt.areaUnit} value={filters.areaMin} onCommit={(v) => onChange({ areaMin: v })} />
           <DebouncedNumber label={t('to')} suffix={fmt.areaUnit} value={filters.areaMax} onCommit={(v) => onChange({ areaMax: v })} />
         </div>
       </Section>
 
-      <Section title={t('filters')}>
+      <Section title={t('filters')} icon={ShieldCheck}>
         <Switch label={t('onlyOwners')} checked={!!filters.onlyOwners} onCheckedChange={(v) => onChange({ onlyOwners: v || undefined })} />
         <Switch label={t('verifiedOnly')} checked={!!filters.verifiedOnly} onCheckedChange={(v) => onChange({ verifiedOnly: v || undefined })} />
         <Switch label={t('offPlan')} checked={!!filters.offPlan} onCheckedChange={(v) => onChange({ offPlan: v || undefined })} />
         <Switch label={t('hasVideo')} checked={!!filters.hasVideo} onCheckedChange={(v) => onChange({ hasVideo: v || undefined })} />
-        <div className="flex items-center justify-between gap-3 pt-1">
+        <div className="flex flex-col gap-1.5 pt-1">
           <Label htmlFor={`${ids}-score`}>{t('scoreMin')}</Label>
           <Select
             id={`${ids}-score`}
-            className="w-36"
+            className="w-full"
             value={filters.scoreMin != null ? String(filters.scoreMin) : ''}
             onChange={(e) => onChange({ scoreMin: e.target.value ? Number(e.target.value) : undefined })}
             placeholder={t('scoreAny')}
@@ -184,7 +195,7 @@ export function FiltersPanel({ filters, onChange, types, districts }: { filters:
         </div>
       </Section>
 
-      <Section title={t('keyword')}>
+      <Section title={t('keyword')} icon={Search}>
         <KeywordInput value={filters.q} onCommit={(q) => onChange({ q })} label={t('keyword')} placeholder={t('keywordPlaceholder')} />
       </Section>
     </div>

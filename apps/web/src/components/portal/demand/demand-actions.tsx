@@ -54,10 +54,13 @@ export function DemandContactForm({ id, loggedIn }: { id: string; loggedIn: bool
 
   if (!loggedIn) {
     return (
-      <div className="rounded-card border border-border bg-surface p-5">
-        <h2 className="text-h3 font-semibold">{t('title')}</h2>
+      <div className="card p-5 md:p-6">
+        <span className="mb-3 grid size-11 place-items-center rounded-2xl bg-primary-soft text-primary-soft-text">
+          <Send className="size-5" strokeWidth={2} aria-hidden />
+        </span>
+        <h2 className="text-h3 font-bold">{t('title')}</h2>
         <p className="mt-1 text-small text-muted">{t('hint')}</p>
-        <Button asChild className="mt-4">
+        <Button asChild className="mt-4 w-full">
           <Link href={`/login?next=${encodeURIComponent(`/demand/${id}`)}`}>{t('login')}</Link>
         </Button>
       </div>
@@ -66,7 +69,7 @@ export function DemandContactForm({ id, loggedIn }: { id: string; loggedIn: bool
 
   if (sent) {
     return (
-      <div className="rounded-card border border-success bg-surface p-5" role="status">
+      <div className="card border-success/50 p-5" role="status">
         <p className="flex items-center gap-2 font-medium text-success">
           <CheckCircle2 className="size-5" strokeWidth={1.5} aria-hidden />
           {t('sent')}
@@ -80,7 +83,7 @@ export function DemandContactForm({ id, loggedIn }: { id: string; loggedIn: bool
 
   return (
     <form
-      className="flex flex-col gap-4 rounded-card border border-border bg-surface p-5"
+      className="card flex flex-col gap-4 p-5 md:p-6"
       onSubmit={async (e) => {
         e.preventDefault();
         setSending(true);
@@ -97,7 +100,7 @@ export function DemandContactForm({ id, loggedIn }: { id: string; loggedIn: bool
       }}
     >
       <div>
-        <h2 className="text-h3 font-semibold">{t('title')}</h2>
+        <h2 className="text-h3 font-bold">{t('title')}</h2>
         <p className="mt-1 text-small text-muted">{t('hint')}</p>
       </div>
       <Field label={t('body')} required error={error ?? undefined}>
@@ -108,7 +111,7 @@ export function DemandContactForm({ id, loggedIn }: { id: string; loggedIn: bool
           <Select value={listingId} onChange={(e) => setListingId(e.target.value)} placeholder={t('noListing')} options={active.map((l) => ({ value: l.id, label: l.title }))} />
         </Field>
       )}
-      <Button type="submit" loading={sending} disabled={body.trim().length < 5} icon={<Send className="size-4" strokeWidth={1.5} aria-hidden />} className="self-start">
+      <Button type="submit" loading={sending} disabled={body.trim().length < 5} icon={<Send className="size-4" strokeWidth={1.5} aria-hidden />} className="w-full">
         {t('submit')}
       </Button>
     </form>

@@ -3,6 +3,7 @@ import * as React from 'react';
 import { useTranslations } from 'next-intl';
 import useSWR from 'swr';
 import { normalizePhone } from '@lokacia/contracts';
+import { KeyRound, Smartphone } from 'lucide-react';
 import { Button, Card, Field, Input } from '@lokacia/ui';
 import { apiFetch, ClientApiError, fetcher } from '@/lib/api-client';
 import { useLocalizedPath } from '@/i18n/link';
@@ -62,9 +63,12 @@ export function LoginForm({ next }: { next: string }) {
   };
 
   return (
-    <Card className="w-full max-w-md p-6 md:p-8">
-      <h1 className="text-h2 font-semibold">{t('title')}</h1>
-      <p className="mt-1 text-muted">{t('subtitle')}</p>
+    <Card className="w-full max-w-[480px] rounded-modal p-6 shadow-lg md:p-10">
+      <span className="grid size-12 place-items-center rounded-2xl bg-primary-soft text-primary-soft-text">
+        {step === 'phone' ? <Smartphone className="size-6" strokeWidth={2} aria-hidden /> : <KeyRound className="size-6" strokeWidth={2} aria-hidden />}
+      </span>
+      <h1 className="mt-5 text-[30px] font-bold leading-[38px] tracking-tight">{t('title')}</h1>
+      <p className="mt-1.5 text-[16.5px] text-muted">{t('subtitle')}</p>
       {step === 'phone' ? (
         <form onSubmit={request} className="mt-6 flex flex-col gap-4">
           <Field label={t('phone')} error={error}>
@@ -82,9 +86,9 @@ export function LoginForm({ next }: { next: string }) {
       ) : (
         <form onSubmit={verify} className="mt-6 flex flex-col gap-4">
           <p className="text-small text-muted">{t('codeHint', { phone })}</p>
-          {providers?.otpDevCode && <p className="rounded-button border border-accent bg-accent/15 px-3 py-2 text-small">{t('devCode', { code: providers.otpDevCode })}</p>}
+          {providers?.otpDevCode && <p className="rounded-xl bg-accent-soft px-3 py-2 text-small font-medium text-text">{t('devCode', { code: providers.otpDevCode })}</p>}
           <Field label={t('code')} error={error}>
-            <Input ref={codeRef} inputMode="numeric" autoComplete="one-time-code" pattern="\d{6}" maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} className="tabular tracking-[0.3em]" required />
+            <Input ref={codeRef} inputMode="numeric" autoComplete="one-time-code" pattern="\d{6}" maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} className="h-14 text-center text-[22px] font-semibold tabular tracking-[0.4em]" required />
           </Field>
           <Field label={t('name')}>
             <Input autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} />
@@ -92,7 +96,7 @@ export function LoginForm({ next }: { next: string }) {
           <Button type="submit" size="lg" loading={busy} disabled={code.length !== 6}>
             {t('verify')}
           </Button>
-          <div className="flex justify-between text-small">
+          <div className="flex flex-wrap justify-between gap-2 text-small font-medium">
             <button type="button" className="text-link hover:underline" onClick={() => setStep('phone')}>
               {t('changePhone')}
             </button>
@@ -102,10 +106,10 @@ export function LoginForm({ next }: { next: string }) {
           </div>
         </form>
       )}
-      <p className="mt-6 text-small text-muted">{t('consent')}</p>
+      <p className="mt-6 border-t border-border pt-5 text-small text-muted">{t('consent')}</p>
       {providers?.otpDevCode && step === 'phone' && (
-        <details className="mt-6 rounded-card border border-border p-3">
-          <summary className="cursor-pointer text-small font-medium">
+        <details className="mt-5 rounded-2xl border border-border bg-surface-2 p-3">
+          <summary className="cursor-pointer rounded-lg px-1 text-small font-semibold">
             {t('demoAccounts')} · <span className="text-muted">{t('demoHint')}</span>
           </summary>
           <ul className="mt-2 flex flex-col">
@@ -113,7 +117,7 @@ export function LoginForm({ next }: { next: string }) {
               <li key={p}>
                 <button
                   type="button"
-                  className="flex w-full justify-between rounded-[6px] px-2 py-1.5 text-small hover:bg-surface-2"
+                  className="flex w-full justify-between gap-2 rounded-lg px-2 py-2 text-small transition-colors hover:bg-surface"
                   onClick={() => {
                     setPhone(p);
                     void request(undefined, p).then(() => setCode(providers.otpDevCode ?? ''));

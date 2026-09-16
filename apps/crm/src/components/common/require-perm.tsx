@@ -10,6 +10,6 @@ import { useCrm } from '@/lib/crm-context';
 export function RequirePerm({ perm, children }: { perm: CrmPermission; children: React.ReactNode }) {
   const t = useTranslations('shell.common');
   const { can } = useCrm();
-  if (!can(perm)) return <EmptyState icon={<Lock className="size-5" strokeWidth={1.5} aria-hidden />} title={t('noAccess')} />;
+  if (!can(perm)) return <EmptyState icon={<Lock className="size-5" strokeWidth={2} aria-hidden />} title={t('noAccess')} />;
   return <>{children}</>;
 }

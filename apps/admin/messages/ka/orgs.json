@@ -5,7 +5,10 @@
   "searchPlaceholder": "დასახელება ან მისამართი",
   "type": "ტიპი",
   "allTypes": "ყველა ტიპი",
-  "types": { "agency": "აგენტურა", "developer": "დეველოპერი" },
+  "types": {
+    "agency": "აგენტურა",
+    "developer": "დეველოპერი"
+  },
   "colName": "დასახელება",
   "plan": "ტარიფი",
   "colMembers": "წევრები",
@@ -25,10 +28,16 @@
   "member": "წევრი",
   "role": "როლი",
   "state": "სტატუსი",
-  "roles": { "manager": "მენეჯერი", "agent": "აგენტი", "assistant": "ასისტენტი" },
+  "roles": {
+    "manager": "მენეჯერი",
+    "agent": "აგენტი",
+    "assistant": "ასისტენტი"
+  },
   "invited": "მოწვეული",
   "activeMember": "აქტიური",
   "inactiveMember": "გათიშული",
   "subscriptions": "გამოწერები",
-  "noSubscriptions": "გამოწერები არ არის"
+  "noSubscriptions": "გამოწერები არ არის",
+  "open": "გახსნა",
+  "membersCount": "{count} წევრი"
 }

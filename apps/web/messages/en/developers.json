@@ -73,7 +73,11 @@
     "noUsage": "No requests yet.",
     "byEndpoint": "Requests by endpoint",
     "endpoint": "Endpoint",
-    "requests": "Requests"
+    "requests": "Requests",
+    "eyebrow": "Keys",
+    "lead": "Create a separate key for each system and keep an eye on usage.",
+    "avgPerDay": "Average per day",
+    "quotaUsed": "of quota"
   },
   "scopeLabels": {
     "districts:read": "District statistics",
@@ -82,5 +86,13 @@
     "traffic:read": "Foot traffic",
     "scores:read": "Location scores",
     "reports:read": "PDF market reports"
-  }
+  },
+  "eyebrow": "For developers",
+  "heroStatFormat": "format",
+  "heroStatEndpoints": "endpoints",
+  "heroStatScopes": "access scopes",
+  "quickstart": "Quick start",
+  "headerTitle": "Key in the header",
+  "endpointsLead": "Every endpoint returns JSON; amounts are in tetri.",
+  "plansLead": "Pick a limit that matches your request volume."
 }

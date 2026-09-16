@@ -47,5 +47,6 @@
   },
   "hint": "Click a district on the map or in the table for details.",
   "metricTraffic": "Foot traffic",
-  "perDay": "people/day"
+  "perDay": "people/day",
+  "eyebrow": "Market analytics"
 }

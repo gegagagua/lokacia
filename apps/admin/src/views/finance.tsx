@@ -1,11 +1,12 @@
 'use client';
 import * as React from 'react';
-import Link from 'next/link';
 import useSWR from 'swr';
 import { useTranslations } from 'next-intl';
-import { Plus } from 'lucide-react';
+import { CheckCircle2, Coins, FileText, Landmark, Pencil, Plus } from 'lucide-react';
 import { FINANCE_KIND_LABELS_KA, FINANCE_STATUS_LABELS_KA, formatDateKa, formatMoney, type FinanceApplicationDto, type FinanceProductDto } from '@lokacia/contracts';
-import { Badge, Button, Dialog, EmptyState, Field, Input, Select, Switch, Tabs, Textarea } from '@lokacia/ui';
+import { Button, Dialog, EmptyState, Field, Input, Select, Switch, Tabs, Textarea, cn } from '@lokacia/ui';
+import { KpiCard, Person, StatusPill, TableCard, THead, td, th, tr } from '@/components/kit';
+import { OrgMark } from './orgs';
 import { apiFetch, fetcher } from '@/lib/api-client';
 import { useAction } from '@/lib/use-action';
 import { PageHeader } from '@/components/page-header';
@@ -113,62 +114,77 @@ function Products() {
   const [open, setOpen] = React.useState(false);
   if (error) return <ErrorBlock error={error} retry={() => mutate()} />;
   if (!data) return <LoadingBlock />;
+  const openNew = () => {
+    setEditing(undefined);
+    setOpen(true);
+  };
   return (
     <>
-      <div className="mb-3 flex justify-end">
-        <Button
-          size="sm"
-          icon={<Plus className="size-4" strokeWidth={1.5} aria-hidden />}
-          onClick={() => {
-            setEditing(undefined);
-            setOpen(true);
-          }}
-        >
-          {t('newProduct')}
-        </Button>
-      </div>
       {data.length === 0 ? (
-        <EmptyState title={t('noProducts')} />
+        <EmptyState title={t('noProducts')} icon={<Landmark className="size-6" strokeWidth={2} aria-hidden />} action={<Button onClick={openNew} icon={<Plus className="size-4" strokeWidth={2} aria-hidden />}>{t('newProduct')}</Button>} />
       ) : (
-        <div className="overflow-x-auto rounded-card border border-border bg-surface">
-          <table className="w-full min-w-[760px] border-collapse text-left text-[14px] tabular">
-            <thead>
-              <tr className="border-b border-border-strong text-small text-muted">
-                <th scope="col" className="px-3 py-2 font-medium">{t('name')}</th>
-                <th scope="col" className="px-3 py-2 font-medium">{t('kind')}</th>
-                <th scope="col" className="px-3 py-2 font-medium">{t('rateText')}</th>
-                <th scope="col" className="px-3 py-2 text-right font-medium">{t('range')}</th>
-                <th scope="col" className="px-3 py-2 text-right font-medium">{t('commissionPct')}</th>
-                <th scope="col" className="px-3 py-2 font-medium">{t('state')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.map((p) => (
-                <tr key={p.id} className="border-b border-border last:border-b-0 hover:bg-surface-2">
-                  <td className="px-3 py-2">
-                    <button
-                      type="button"
-                      className="text-left font-medium text-link hover:underline"
-                      onClick={() => {
-                        setEditing(p);
-                        setOpen(true);
-                      }}
-                    >
-                      {p.name}
-                    </button>
-                    <div className="text-small text-muted">{p.partner}</div>
-                  </td>
-                  <td className="px-3 py-2">{FINANCE_KIND_LABELS_KA[p.kind]}</td>
-                  <td className="px-3 py-2 text-small">{p.rateText ?? '—'}</td>
-                  <td className="px-3 py-2 text-right text-small">
-                    {p.minAmountMinor != null ? formatMoney(p.minAmountMinor) : '—'} – {p.maxAmountMinor != null ? formatMoney(p.maxAmountMinor) : '—'}
-                  </td>
-                  <td className="px-3 py-2 text-right">{p.commissionPct}%</td>
-                  <td className="px-3 py-2">{p.active ? <Badge tone="success">{t('active')}</Badge> : <Badge>{t('inactive')}</Badge>}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+          {data.map((p) => (
+            <article key={p.id} className={cn('card card-hover flex min-w-0 flex-col overflow-hidden', !p.active && 'opacity-75')}>
+              <div className="flex items-start gap-3 p-5">
+                <OrgMark name={p.partner} />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-[13px] font-semibold text-muted">{p.partner}</div>
+                  <h3 className="text-[17px] font-bold leading-snug">{p.name}</h3>
+                </div>
+                {p.active ? <StatusPill tone="success">{t('active')}</StatusPill> : <StatusPill>{t('inactive')}</StatusPill>}
+              </div>
+              <div className="flex flex-1 flex-col gap-4 px-5 pb-5">
+                <div className="flex flex-wrap gap-1.5">
+                  <span className="rounded-full bg-primary-soft px-2.5 py-1 text-[12.5px] font-semibold text-primary-soft-text">{FINANCE_KIND_LABELS_KA[p.kind]}</span>
+                </div>
+                <p className="line-clamp-3 text-[14.5px] text-muted">{p.description}</p>
+                <dl className="mt-auto grid grid-cols-3 gap-2">
+                  <div className="col-span-3 rounded-xl bg-accent-soft px-3 py-2.5">
+                    <dt className="text-[12px] font-medium text-[#7a5500] dark:text-accent">{t('rateText')}</dt>
+                    <dd className="font-bold tabular">{p.rateText ?? '—'}</dd>
+                  </div>
+                  <div className="col-span-2 min-w-0 rounded-xl bg-surface-2/70 px-3 py-2.5">
+                    <dt className="text-[12px] font-medium text-muted">{t('range')}</dt>
+                    <dd className="truncate text-[14px] font-semibold tabular">
+                      {p.minAmountMinor == null && p.maxAmountMinor == null ? '—' : `${p.minAmountMinor != null ? formatMoney(p.minAmountMinor) : '—'} – ${p.maxAmountMinor != null ? formatMoney(p.maxAmountMinor) : '—'}`}
+                    </dd>
+                  </div>
+                  <div className="rounded-xl bg-surface-2/70 px-3 py-2.5">
+                    <dt className="text-[12px] font-medium text-muted">{t('commissionPct')}</dt>
+                    <dd className="text-[14px] font-semibold tabular">{p.commissionPct}%</dd>
+                  </div>
+                </dl>
+              </div>
+              <div className="border-t border-border bg-surface-2/40 px-5 py-3">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="w-full"
+                  icon={<Pencil className="size-4" strokeWidth={2} aria-hidden />}
+                  aria-label={`${t('editProduct')}: ${p.name}`}
+                  onClick={() => {
+                    setEditing(p);
+                    setOpen(true);
+                  }}
+                >
+                  {t('editProduct')}
+                </Button>
+              </div>
+            </article>
+          ))}
+          <button
+            type="button"
+            onClick={openNew}
+            className="grid min-h-64 place-items-center rounded-card border-2 border-dashed border-border-strong p-6 text-muted transition-colors hover:border-primary hover:bg-primary-soft/40 hover:text-primary-soft-text focus-visible:shadow-ring focus-visible:outline-none"
+          >
+            <span className="flex flex-col items-center gap-3">
+              <span className="grid size-12 place-items-center rounded-2xl bg-surface-2">
+                <Plus className="size-6" strokeWidth={2} aria-hidden />
+              </span>
+              <span className="font-semibold">{t('newProduct')}</span>
+            </span>
+          </button>
         </div>
       )}
       <ProductDialog product={editing} open={open} onOpenChange={setOpen} onDone={() => mutate()} />
@@ -184,7 +200,7 @@ function Applications() {
   const [amount, setAmount] = React.useState('');
   if (error) return <ErrorBlock error={error} retry={() => mutate()} />;
   if (!data) return <LoadingBlock />;
-  if (!data.length) return <EmptyState title={t('noApplications')} />;
+  if (!data.length) return <EmptyState title={t('noApplications')} icon={<FileText className="size-6" strokeWidth={2} aria-hidden />} />;
   const simulate = async (a: FinanceApplicationDto, status: 'approved' | 'rejected', approvedAmountMinor?: number) => {
     if (await run(() => apiFetch(`/admin/finance/applications/${a.id}/simulate`, { method: 'POST', body: { status, approvedAmountMinor } }), status === 'approved' ? t('simApproved') : t('simRejected'))) {
       setTarget(null);
@@ -192,79 +208,76 @@ function Applications() {
     }
   };
   const total = data.reduce((s, a) => s + (a.commissionMinor ?? 0), 0);
+  const approvedCount = data.filter((a) => a.status === 'approved').length;
   return (
     <>
-      <p className="mb-3 text-small text-muted">
-        {t('commissionTotal')}: <span className="font-medium text-text tabular">{formatMoney(total)}</span>
-      </p>
-      <div className="overflow-x-auto rounded-card border border-border bg-surface">
-        <table className="w-full min-w-[860px] border-collapse text-left text-[14px] tabular">
-          <thead>
-            <tr className="border-b border-border-strong text-small text-muted">
-              <th scope="col" className="px-3 py-2 font-medium">{t('applicant')}</th>
-              <th scope="col" className="px-3 py-2 font-medium">{t('product')}</th>
-              <th scope="col" className="px-3 py-2 text-right font-medium">{t('amount')}</th>
-              <th scope="col" className="px-3 py-2 font-medium">{t('status')}</th>
-              <th scope="col" className="px-3 py-2 text-right font-medium">{t('commission')}</th>
-              <th scope="col" className="px-3 py-2 font-medium">{t('date')}</th>
-              <th scope="col" className="px-3 py-2">
-                <span className="sr-only">{t('actions')}</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((a) => (
-              <tr key={a.id} className="border-b border-border align-top last:border-b-0">
-                <td className="px-3 py-2">
-                  {a.applicant ? (
-                    <Link href={`/users/${a.applicant.id}`} className="text-link hover:underline">
-                      {a.applicant.name ?? a.applicant.phone}
-                    </Link>
-                  ) : (
-                    '—'
-                  )}
-                  {a.listing && <div className="max-w-[220px] truncate text-small text-muted">{a.listing.title}</div>}
-                </td>
-                <td className="px-3 py-2">
-                  {a.product.name}
-                  <div className="text-small text-muted">
-                    {a.product.partner} · {FINANCE_KIND_LABELS_KA[a.product.kind]}
-                  </div>
-                </td>
-                <td className="px-3 py-2 text-right">
-                  {formatMoney(a.amountMinor)}
-                  {a.termMonths && <div className="text-small text-muted">{t('months', { count: a.termMonths })}</div>}
-                </td>
-                <td className="px-3 py-2">
-                  <Badge tone={a.status === 'approved' ? 'success' : a.status === 'rejected' ? 'danger' : 'accent'}>{FINANCE_STATUS_LABELS_KA[a.status]}</Badge>
-                  {a.partnerRef && <div className="font-mono text-[11px] text-muted">{a.partnerRef}</div>}
-                </td>
-                <td className="px-3 py-2 text-right">{a.commissionMinor != null ? formatMoney(a.commissionMinor) : '—'}</td>
-                <td className="px-3 py-2 text-small text-muted">{formatDateKa(a.createdAt)}</td>
-                <td className="px-3 py-2 text-right">
-                  {(a.status === 'submitted' || a.status === 'sent') && (
-                    <div className="flex justify-end gap-1">
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => {
-                          setTarget(a);
-                          setAmount(String(a.amountMinor / 100));
-                        }}
-                      >
-                        {t('simApprove')}
-                      </Button>
-                      <Button size="sm" variant="ghost" loading={busy} onClick={() => simulate(a, 'rejected')}>
-                        {t('simReject')}
-                      </Button>
-                    </div>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="mb-4 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+        <KpiCard label={t('commissionTotal')} value={formatMoney(total)} icon={Coins} tone="accent" className="col-span-2 lg:col-span-1" />
+        <KpiCard label={t('tabApplications')} value={data.length} icon={FileText} tone="info" />
+        <KpiCard label={FINANCE_STATUS_LABELS_KA.approved} value={approvedCount} icon={CheckCircle2} tone="success" />
       </div>
+      <TableCard minWidth={940} label={t('tabApplications')}>
+        <THead>
+          <th scope="col" className={th}>{t('applicant')}</th>
+          <th scope="col" className={th}>{t('product')}</th>
+          <th scope="col" className={`${th} text-right`}>{t('amount')}</th>
+          <th scope="col" className={th}>{t('status')}</th>
+          <th scope="col" className={`${th} text-right`}>{t('commission')}</th>
+          <th scope="col" className={th}>{t('date')}</th>
+          <th scope="col" className={th}>
+            <span className="sr-only">{t('actions')}</span>
+          </th>
+        </THead>
+        <tbody>
+          {data.map((a) => (
+            <tr key={a.id} className={tr}>
+              <td className={td}>
+                {a.applicant ? <Person name={a.applicant.name ?? a.applicant.phone} href={`/users/${a.applicant.id}`} sub={a.listing?.title} size={34} className="max-w-[260px]" /> : '—'}
+              </td>
+              <td className={td}>
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <OrgMark name={a.product.partner} />
+                  <div className="min-w-0">
+                    <div className="truncate font-semibold">{a.product.name}</div>
+                    <div className="truncate text-small text-muted">
+                      {a.product.partner} · {FINANCE_KIND_LABELS_KA[a.product.kind]}
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td className={`${td} text-right`}>
+                <div className="font-bold">{formatMoney(a.amountMinor)}</div>
+                {a.termMonths && <div className="text-small text-muted">{t('months', { count: a.termMonths })}</div>}
+              </td>
+              <td className={td}>
+                <StatusPill tone={a.status === 'approved' ? 'success' : a.status === 'rejected' ? 'danger' : 'accent'}>{FINANCE_STATUS_LABELS_KA[a.status]}</StatusPill>
+                {a.partnerRef && <div className="mt-1 font-mono text-[11.5px] text-muted">{a.partnerRef}</div>}
+              </td>
+              <td className={`${td} text-right font-semibold`}>{a.commissionMinor != null ? formatMoney(a.commissionMinor) : '—'}</td>
+              <td className={`${td} text-muted`}>{formatDateKa(a.createdAt)}</td>
+              <td className={`${td} text-right`}>
+                {(a.status === 'submitted' || a.status === 'sent') && (
+                  <div className="flex justify-end gap-1.5">
+                    <Button size="sm" variant="ghost" loading={busy} onClick={() => simulate(a, 'rejected')}>
+                      {t('simReject')}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => {
+                        setTarget(a);
+                        setAmount(String(a.amountMinor / 100));
+                      }}
+                    >
+                      {t('simApprove')}
+                    </Button>
+                  </div>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </TableCard>
       <Dialog
         open={!!target}
         onOpenChange={(o) => !o && setTarget(null)}
@@ -293,7 +306,7 @@ export function FinanceView() {
   const t = useTranslations('finance');
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('subtitle')} />
+      <PageHeader icon={Landmark} title={t('title')} subtitle={t('subtitle')} />
       <Tabs
         tabs={[
           { value: 'products', label: t('tabProducts'), content: <Products /> },

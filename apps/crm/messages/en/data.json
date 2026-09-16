@@ -20,10 +20,38 @@
     "message": "Error",
     "downloadErrors": "Download errors as CSV",
     "restart": "New file",
-    "nameRequired": "Specify which column contains the name"
+    "nameRequired": "Specify which column contains the name",
+    "hint": "Excel, CSV or Google Sheets — columns are matched to fields automatically",
+    "steps": {
+      "upload": "File",
+      "mapping": "Columns",
+      "done": "Import"
+    },
+    "dropTitle": "Drop a file here",
+    "mapped": "Matched {n} / {total}"
   },
-  "history": { "title": "Import history", "empty": "No imports yet", "date": "Date", "rows": "Rows", "imported": "Imported", "errors": "Errors", "status": "Status" },
-  "export": { "title": "Export", "hint": "Agents can export only their own clients and deals.", "contacts": "Contacts", "deals": "Deals", "tasks": "Tasks" },
+  "history": {
+    "title": "Import history",
+    "empty": "No imports yet",
+    "date": "Date",
+    "rows": "Rows",
+    "imported": "Imported",
+    "errors": "Errors",
+    "status": "Status",
+    "statuses": {
+      "pending": "Processing",
+      "done": "Completed",
+      "failed": "Failed"
+    },
+    "errorsCount": "Errors: {n}"
+  },
+  "export": {
+    "title": "Export",
+    "hint": "Agents can export only their own clients and deals.",
+    "contacts": "Contacts",
+    "deals": "Deals",
+    "tasks": "Tasks"
+  },
   "audit": {
     "title": "Activity log",
     "subtitle": "Every change in the organization: who, when and what.",
@@ -36,6 +64,32 @@
     "actionSearch": "Search actions",
     "details": "Details",
     "loadMore": "Show more",
-    "empty": "No log entries found"
+    "empty": "No log entries found",
+    "modules": "Modules",
+    "all": "All",
+    "count": "{n} entries",
+    "moduleNames": {
+      "contacts": "Contacts",
+      "deals": "Deals",
+      "tasks": "Tasks",
+      "viewings": "Viewings",
+      "inbox": "Inbox",
+      "documents": "Documents",
+      "listings": "Listings",
+      "presentations": "Presentations",
+      "sequences": "Sequences",
+      "imports": "Import",
+      "team": "Team",
+      "cobroker": "Co-broking",
+      "competitors": "Competitors",
+      "liveness": "Liveness",
+      "owner_reports": "Owner reports"
+    },
+    "methods": {
+      "post": "Create / action",
+      "patch": "Update",
+      "put": "Update",
+      "delete": "Delete"
+    }
   }
 }

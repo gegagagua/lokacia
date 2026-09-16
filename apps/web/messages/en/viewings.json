@@ -43,7 +43,13 @@
     "ics": "Add to calendar (ICS)",
     "myViewings": "My viewings",
     "makeOffer": "Send an offer",
-    "error": "Couldn't complete the booking"
+    "error": "Couldn't complete the booking",
+    "tips": {
+      "title": "How booking works",
+      "s1": "Choose the format and a free time slot",
+      "s2": "The owner gets a notification with your profile",
+      "s3": "The viewing appears under “My viewings”"
+    }
   },
   "board": {
     "title": "Viewings",

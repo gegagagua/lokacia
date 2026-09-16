@@ -12,5 +12,5 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function NewListingPage({ searchParams }: { searchParams: Promise<{ step?: string }> }) {
   const user = await requireSession('/account/listings/new');
   const [{ step }, types] = await Promise.all([searchParams, getBusinessTypes()]);
-  return <ListingWizard user={user} types={types.map((b) => ({ slug: b.slug, nameKa: b.nameKa, filterConfig: b.filterConfig }))} detail={null} initialStep={step} />;
+  return <ListingWizard user={user} types={types.map((b) => ({ slug: b.slug, nameKa: b.nameKa, nameEn: b.nameEn, nameRu: b.nameRu, icon: b.icon, filterConfig: b.filterConfig }))} detail={null} initialStep={step} />;
 }

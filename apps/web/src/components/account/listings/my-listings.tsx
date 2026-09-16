@@ -1,17 +1,19 @@
 'use client';
 import * as React from 'react';
 import Link, { useLocalizedPath } from '@/i18n/link';
+import { useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import { useTranslations } from 'next-intl';
-import { BarChart3, CalendarClock, CheckCircle2, ExternalLink, Eye, Heart, MoreHorizontal, Pencil, Phone, Plus } from 'lucide-react';
+import { Archive, BarChart3, Building2, CalendarClock, CheckCircle2, ExternalLink, Eye, EyeOff, Heart, ImageOff, MapPin, MoreHorizontal, Pencil, Phone, Plus, RotateCcw, SearchX, ShieldCheck, Trash2, TriangleAlert } from 'lucide-react';
 import type { ListingCard, ListingStatus } from '@lokacia/contracts';
 import { useFormat } from '@/i18n/use-format';
-import { Button, Dialog, Drawer, EmptyState, Popover, Skeleton, VipBadge, cn, useToast } from '@lokacia/ui';
+import { Button, Dialog, Drawer, Popover, Skeleton, VipBadge, cn, useToast } from '@lokacia/ui';
 import { apiFetch, ClientApiError, fetcher } from '@/lib/api-client';
 import { VipPurchaseButton } from '@/components/billing/vip-button';
 import { AccountPageHeader } from '../page-header';
 import { ListingStatusBadge } from '../status-badges';
 import { SlotsManager } from './slots-manager';
+import { AccountEmpty, IconTile, Segmented, Thumb } from '../ui';
 
 export type MyListing = ListingCard & { rejectReason: string | null; vipUntil: string | null; stats30d: { views: number; reveals: number; saves: number } };
 
@@ -26,11 +28,17 @@ const FILTERS: { key: string; statuses: ListingStatus[] | null }[] = [
 
 export function MyListings() {
   const t = useTranslations('myListings');
+  const f = useFormat();
+  const params = useSearchParams();
   const { data, isLoading, mutate } = useSWR<MyListing[]>('/listings/mine', fetcher);
-  const [filter, setFilter] = React.useState('all');
+  const [filter, setFilter] = React.useState(() => {
+    const s = params.get('status');
+    return s === 'rejected' || s === 'stale' ? 'attention' : s === 'draft' ? 'drafts' : s === 'pending_review' ? 'review' : s === 'active' ? 'active' : 'all';
+  });
   const items = data ?? [];
-  const current = FILTERS.find((f) => f.key === filter)!;
+  const current = FILTERS.find((x) => x.key === filter)!;
   const shown = current.statuses ? items.filter((i) => current.statuses!.includes(i.status)) : items;
+  const sum = (k: 'views' | 'reveals' | 'saves') => items.reduce((a, i) => a + (i.stats30d?.[k] ?? 0), 0);
 
   return (
     <div>
@@ -40,52 +48,67 @@ export function MyListings() {
         actions={
           <Button asChild>
             <Link href="/account/listings/new">
-              <Plus className="size-4" strokeWidth={1.5} aria-hidden />
+              <Plus className="size-4" strokeWidth={2.25} aria-hidden />
               {t('publish')}
             </Link>
           </Button>
         }
       />
-      <div role="tablist" aria-label={t('filters.label')} className="-mx-4 mb-5 flex gap-1 overflow-x-auto px-4 pb-1">
-        {FILTERS.map((f) => {
-          const count = f.statuses ? items.filter((i) => f.statuses!.includes(i.status)).length : items.length;
-          const active = f.key === filter;
-          return (
-            <button
-              key={f.key}
-              role="tab"
-              type="button"
-              aria-selected={active}
-              onClick={() => setFilter(f.key)}
-              className={cn('inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-button border px-3 text-small', active ? 'border-primary bg-primary text-primary-contrast' : 'border-border text-muted hover:bg-surface-2 hover:text-text')}
-            >
-              {t(`filters.${f.key}`)}
-              <span className={cn('tabular', active ? 'opacity-80' : '')}>{count}</span>
-            </button>
-          );
-        })}
+
+      {items.length > 0 && (
+        <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+          {[
+            { icon: Building2, tone: 'primary' as const, label: t('summary.active'), value: items.filter((i) => i.status === 'active').length },
+            { icon: Eye, tone: 'link' as const, label: t('summary.views'), value: sum('views') },
+            { icon: Phone, tone: 'success' as const, label: t('summary.reveals'), value: sum('reveals') },
+            { icon: Heart, tone: 'danger' as const, label: t('summary.saves'), value: sum('saves') },
+          ].map((k) => (
+            <div key={k.label} className="card flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center">
+              <IconTile icon={k.icon} tone={k.tone} />
+              <div className="min-w-0">
+                <div className="text-[22px] font-bold leading-7 tabular">{f.number(k.value)}</div>
+                <div className="text-[13px] leading-tight text-muted">{k.label}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="-mx-4 mb-5 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
+        <Segmented
+          role="tablist"
+          label={t('filters.label')}
+          value={filter}
+          onChange={setFilter}
+          options={FILTERS.map((x) => ({ value: x.key, label: t(`filters.${x.key}`), count: x.statuses ? items.filter((i) => x.statuses!.includes(i.status)).length : items.length }))}
+          className="max-w-none"
+        />
       </div>
 
       {isLoading ? (
-        <div className="flex flex-col gap-3" aria-busy>
+        <div className="flex flex-col gap-4" aria-busy>
           {[0, 1, 2].map((i) => (
-            <Skeleton key={i} className="h-40 rounded-card" />
+            <Skeleton key={i} className="h-48 rounded-card" />
           ))}
         </div>
       ) : items.length === 0 ? (
-        <EmptyState
+        <AccountEmpty
+          icon={Building2}
           title={t('empty.title')}
           description={t('empty.description')}
           action={
             <Button asChild>
-              <Link href="/account/listings/new">{t('publish')}</Link>
+              <Link href="/account/listings/new">
+                <Plus className="size-4" strokeWidth={2.25} aria-hidden />
+                {t('publish')}
+              </Link>
             </Button>
           }
         />
       ) : shown.length === 0 ? (
-        <EmptyState title={t('empty.filtered')} />
+        <AccountEmpty icon={SearchX} tone="neutral" title={t('empty.filtered')} />
       ) : (
-        <ul className="flex flex-col gap-3">
+        <ul className="flex flex-col gap-4">
           {shown.map((l) => (
             <li key={l.id}>
               <ListingRow listing={l} onChanged={() => mutate()} />
@@ -135,7 +158,7 @@ function ListingRow({ listing: l, onChanged }: { listing: MyListing; onChanged: 
   const secondary: { key: string; label: string; onClick: () => void; danger?: boolean }[] = [];
   if (s === 'active' || s === 'stale') {
     primary.push(
-      <Button key="confirm" size="sm" variant={s === 'stale' ? 'primary' : 'secondary'} loading={busy === 'confirm'} onClick={confirmOwner} icon={<CheckCircle2 className="size-4" strokeWidth={1.5} aria-hidden />}>
+      <Button key="confirm" size="sm" variant={s === 'stale' ? 'primary' : 'secondary'} loading={busy === 'confirm'} onClick={confirmOwner} icon={<CheckCircle2 className="size-4" strokeWidth={2} aria-hidden />}>
         {t('actions.confirm')}
       </Button>,
     );
@@ -156,99 +179,131 @@ function ListingRow({ listing: l, onChanged }: { listing: MyListing; onChanged: 
   secondary.push({ key: 'delete', label: t('actions.delete'), onClick: () => setConfirmDelete(true), danger: true });
 
   return (
-    <article className={cn('flex flex-col gap-4 rounded-card border bg-surface p-3 sm:flex-row sm:p-4', s === 'stale' || s === 'rejected' ? 'border-accent' : 'border-border')}>
-      <Link href={`/account/listings/${l.id}/edit`} className="relative block aspect-[4/3] w-full shrink-0 overflow-hidden rounded-photo border border-border bg-surface-2 sm:w-44" tabIndex={-1} aria-hidden>
-        {l.cover ? <img src={l.cover} alt="" className="size-full object-cover" loading="lazy" /> : <span className="drawing-grid grid size-full place-items-center text-small text-muted">{t('card.noPhoto')}</span>}
-      </Link>
-      <div className="flex min-w-0 flex-1 flex-col gap-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <ListingStatusBadge status={s} />
-          {l.vip && <VipBadge />}
-          <span className="text-small text-muted">{l.lastConfirmedAt ? t('card.confirmed', { when: f.relativeDays(l.lastConfirmedAt) }) : t('card.notConfirmed')}</span>
-        </div>
-        <h2 className="text-[17px] font-medium leading-snug">
-          <Link href={isPublic ? `/listings/${l.slug}` : `/account/listings/${l.id}/edit`} className="hover:underline">
-            {l.title}
-          </Link>
-        </h2>
-        <p className="truncate text-small text-muted">
-          {[l.districtName, l.address].filter(Boolean).join(' · ')} · {f.area(l.areaM2)}
-        </p>
-        <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-          <span className="compact text-h3 font-semibold tabular">
-            {f.money(l.priceMinor, l.currency)}
-            {l.pricePeriod === 'month' && <span className="text-small font-normal text-muted"> {t('card.perMonth')}</span>}
-          </span>
-          <span className="flex items-center gap-3 text-small text-muted tabular" aria-label={t('card.stats30d')}>
-            <span className="text-[11px] uppercase tracking-wide">{t('card.stats30d')}</span>
-            <span className="inline-flex items-center gap-1" title={t('card.views')}>
-              <Eye className="size-3.5" strokeWidth={1.5} aria-hidden />
-              {l.stats30d.views} <span className="sr-only">{t('card.views')}</span>
+    <article className={cn('card group overflow-hidden transition-shadow duration-200 hover:shadow-md', (s === 'stale' || s === 'rejected') && 'ring-1 ring-inset', s === 'stale' && 'ring-accent/60', s === 'rejected' && 'ring-danger/40')}>
+      <div className="flex flex-col sm:flex-row">
+        <Link href={`/account/listings/${l.id}/edit`} className="relative block shrink-0 p-3 pb-0 sm:w-60 sm:pb-3 sm:pr-0" tabIndex={-1} aria-hidden>
+          <Thumb src={l.cover} className="aspect-[16/10] w-full sm:aspect-[4/3] sm:h-full" />
+          {!l.cover && (
+            <span className="absolute inset-3 grid place-items-center text-small font-medium text-muted sm:right-0">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1 shadow-xs">
+                <ImageOff className="size-4" strokeWidth={2} aria-hidden />
+                {t('card.noPhoto')}
+              </span>
             </span>
-            <span className="inline-flex items-center gap-1" title={t('card.reveals')}>
-              <Phone className="size-3.5" strokeWidth={1.5} aria-hidden />
-              {l.stats30d.reveals} <span className="sr-only">{t('card.reveals')}</span>
+          )}
+          <span className="absolute left-5 top-5 flex gap-1.5">{l.vip && <VipBadge />}</span>
+        </Link>
+        <div className="flex min-w-0 flex-1 flex-col gap-3 p-4 sm:p-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <ListingStatusBadge status={s} />
+            <span className="inline-flex items-center gap-1 text-[13px] text-muted">
+              <ShieldCheck className={cn('size-3.5', l.lastConfirmedAt ? 'text-success' : 'text-muted')} strokeWidth={2} aria-hidden />
+              {l.lastConfirmedAt ? t('card.confirmed', { when: f.relativeDays(l.lastConfirmedAt) }) : t('card.notConfirmed')}
             </span>
-            <span className="inline-flex items-center gap-1" title={t('card.saves')}>
-              <Heart className="size-3.5" strokeWidth={1.5} aria-hidden />
-              {l.stats30d.saves} <span className="sr-only">{t('card.saves')}</span>
-            </span>
-          </span>
-        </div>
-        {s === 'rejected' && l.rejectReason && (
-          <p className="rounded-button border border-danger/30 bg-danger/10 px-3 py-2 text-small text-danger" role="note">
-            <strong>{t('card.rejected')}:</strong> {l.rejectReason}
-          </p>
-        )}
-        {s === 'stale' && <p className="rounded-button border border-accent bg-accent/15 px-3 py-2 text-small">{t('card.stale')}</p>}
-        <div className="mt-auto flex flex-wrap items-center gap-2 pt-1">
-          {primary}
-          <Button asChild size="sm" variant="secondary">
-            <Link href={`/account/listings/${l.id}/edit`}>
-              <Pencil className="size-4" strokeWidth={1.5} aria-hidden />
-              {t('actions.edit')}
-            </Link>
-          </Button>
-          {isPublic && (
-            <Button asChild size="sm" variant="ghost">
-              <Link href={`/account/listings/${l.id}/stats`}>
-                <BarChart3 className="size-4" strokeWidth={1.5} aria-hidden />
-                {t('actions.stats')}
+          </div>
+          <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between lg:gap-6">
+            <div className="min-w-0">
+              <h2 className="text-[18px] font-bold leading-snug tracking-tight">
+                <Link href={isPublic ? `/listings/${l.slug}` : `/account/listings/${l.id}/edit`} className="line-clamp-2 hover:text-link">
+                  {l.title}
+                </Link>
+              </h2>
+              <p className="mt-1 flex items-center gap-1.5 text-small text-muted">
+                <MapPin className="size-3.5 shrink-0" strokeWidth={2} aria-hidden />
+                <span className="truncate">{[l.districtName, l.address].filter(Boolean).join(' · ')}</span>
+                <span aria-hidden>·</span>
+                <span className="shrink-0 tabular">{f.area(l.areaM2)}</span>
+              </p>
+            </div>
+            <div className="shrink-0 whitespace-nowrap text-[22px] font-bold leading-7 tracking-tight tabular lg:text-right">
+              {f.money(l.priceMinor, l.currency)}
+              {l.pricePeriod === 'month' && <span className="text-small font-medium text-muted"> {t('card.perMonth')}</span>}
+            </div>
+          </div>
+
+          <ul className="flex flex-wrap items-center gap-2" aria-label={t('card.stats30d')}>
+            {[
+              { icon: Eye, v: l.stats30d.views, label: t('card.views') },
+              { icon: Phone, v: l.stats30d.reveals, label: t('card.reveals') },
+              { icon: Heart, v: l.stats30d.saves, label: t('card.saves') },
+            ].map((x) => (
+              <li key={x.label} className="inline-flex h-8 items-center gap-1.5 rounded-full bg-surface-2 px-3 text-[13.5px] tabular" title={x.label}>
+                <x.icon className="size-3.5 text-muted" strokeWidth={2} aria-hidden />
+                <span className="font-bold">{f.number(x.v)}</span>
+                <span className="text-muted">{x.label}</span>
+              </li>
+            ))}
+            <li className="text-[12.5px] font-medium text-muted">{t('card.stats30d')}</li>
+          </ul>
+
+          {s === 'rejected' && l.rejectReason && (
+            <p className="flex items-start gap-2 rounded-xl bg-danger/10 px-3.5 py-2.5 text-small text-danger" role="note">
+              <TriangleAlert className="mt-0.5 size-4 shrink-0" strokeWidth={2} aria-hidden />
+              <span>
+                <strong>{t('card.rejected')}:</strong> {l.rejectReason}
+              </span>
+            </p>
+          )}
+          {s === 'stale' && (
+            <p className="flex items-start gap-2 rounded-xl bg-accent-soft px-3.5 py-2.5 text-small">
+              <EyeOff className="mt-0.5 size-4 shrink-0" strokeWidth={2} aria-hidden />
+              {t('card.stale')}
+            </p>
+          )}
+
+          <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-border pt-3">
+            {primary}
+            <Button asChild size="sm" variant="secondary">
+              <Link href={`/account/listings/${l.id}/edit`}>
+                <Pencil className="size-4" strokeWidth={2} aria-hidden />
+                {t('actions.edit')}
               </Link>
             </Button>
-          )}
-          {s === 'active' && <VipPurchaseButton listingId={l.id} vipUntil={l.vipUntil} />}
-          <Popover
-            open={menu}
-            onOpenChange={setMenu}
-            align="end"
-            className="w-60 p-1"
-            trigger={
-              <Button size="sm" variant="ghost" aria-label={t('card.actionsLabel', { title: l.title })} loading={!!busy && !['confirm', 'pending_review'].includes(busy)}>
-                <MoreHorizontal className="size-4" strokeWidth={1.5} aria-hidden />
-                {t('actions.more')}
+            {isPublic && (
+              <Button asChild size="sm" variant="ghost">
+                <Link href={`/account/listings/${l.id}/stats`}>
+                  <BarChart3 className="size-4" strokeWidth={2} aria-hidden />
+                  {t('actions.stats')}
+                </Link>
               </Button>
-            }
-          >
-            <ul className="flex flex-col">
-              {isPublic && (
-                <li>
-                  <Link href={`/listings/${l.slug}`} className="flex items-center gap-2 rounded-[6px] px-3 py-2 text-[15px] hover:bg-surface-2">
-                    <ExternalLink className="size-4" strokeWidth={1.5} aria-hidden />
-                    {t('actions.view')}
-                  </Link>
-                </li>
-              )}
-              {secondary.map((a) => (
-                <li key={a.key}>
-                  <button type="button" onClick={a.onClick} className={cn('flex w-full items-center gap-2 rounded-[6px] px-3 py-2 text-left text-[15px] hover:bg-surface-2', a.danger && 'text-danger')}>
-                    {a.key.toLowerCase().includes('slots') && <CalendarClock className="size-4" strokeWidth={1.5} aria-hidden />}
-                    {a.label}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </Popover>
+            )}
+            {s === 'active' && <VipPurchaseButton listingId={l.id} vipUntil={l.vipUntil} />}
+            <Popover
+              open={menu}
+              onOpenChange={setMenu}
+              align="end"
+              className="w-64 p-1.5"
+              trigger={
+                <Button size="sm" variant="ghost" className="sm:ml-auto" aria-label={t('card.actionsLabel', { title: l.title })} loading={!!busy && !['confirm', 'pending_review'].includes(busy)}>
+                  <MoreHorizontal className="size-4" strokeWidth={2} aria-hidden />
+                  {t('actions.more')}
+                </Button>
+              }
+            >
+              <ul className="flex flex-col">
+                {isPublic && (
+                  <li>
+                    <Link href={`/listings/${l.slug}`} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[15px] hover:bg-surface-2">
+                      <ExternalLink className="size-4 text-muted" strokeWidth={2} aria-hidden />
+                      {t('actions.view')}
+                    </Link>
+                  </li>
+                )}
+                {secondary.map((a) => {
+                  const Icon = a.key === 'delete' ? Trash2 : a.key.toLowerCase().includes('slots') ? CalendarClock : a.key === 'archive' ? Archive : a.key === 'restore' ? RotateCcw : CheckCircle2;
+                  return (
+                    <li key={a.key}>
+                      {a.danger && <div className="my-1 h-px bg-border" aria-hidden />}
+                      <button type="button" onClick={a.onClick} className={cn('flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-[15px] hover:bg-surface-2', a.danger && 'text-danger hover:bg-danger/10')}>
+                        <Icon className={cn('size-4', !a.danger && 'text-muted')} strokeWidth={2} aria-hidden />
+                        {a.label}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </Popover>
+          </div>
         </div>
       </div>
 

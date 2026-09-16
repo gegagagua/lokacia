@@ -2,6 +2,7 @@
 import * as React from 'react';
 import Link from '@/i18n/link';
 import { useTranslations } from 'next-intl';
+import { CheckCircle2 } from 'lucide-react';
 import { Button } from '@lokacia/ui';
 import { apiFetch } from '@/lib/api-client';
 
@@ -12,7 +13,10 @@ export function UnsubscribeButton({ token }: { token: string }) {
     <div aria-live="polite" className="flex flex-col gap-3">
       {state === 'done' ? (
         <>
-          <p className="font-medium text-success">{t('done')}</p>
+          <p className="flex items-center gap-2 rounded-xl bg-success/12 px-3 py-2 font-semibold text-success">
+            <CheckCircle2 className="size-5" strokeWidth={2} aria-hidden />
+            {t('done')}
+          </p>
           <p className="text-small text-muted">{t('doneText')}</p>
           <Button asChild variant="secondary" className="self-start">
             <Link href="/account/saved-searches">{t('manage')}</Link>
@@ -22,6 +26,7 @@ export function UnsubscribeButton({ token }: { token: string }) {
         <>
           <Button
             variant="danger"
+            size="lg"
             className="self-start"
             loading={state === 'busy'}
             onClick={async () => {

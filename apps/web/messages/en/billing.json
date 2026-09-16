@@ -114,7 +114,23 @@
       }
     },
     "needAgency": "This plan is available to agency managers.",
-    "chooseOrg": "Choose organization"
+    "chooseOrg": "Choose organization",
+    "eyebrow": "Pricing and plans",
+    "trustGel": "Prices in GEL, VAT included",
+    "trustCancel": "Cancel anytime",
+    "trustInvoice": "An invoice for every payment",
+    "promoUntilLabel": "Promo valid until",
+    "subscriptionsLead": "Pick a plan for your role — monthly subscription, no commitment.",
+    "recommended": "Recommended",
+    "includes": "What’s included",
+    "oneTimeEyebrow": "One-time",
+    "oneTimeLead": "Pay once — no subscription needed.",
+    "commissionLabel": "commission per order",
+    "compareLead": "Every feature in one table.",
+    "faqEyebrow": "Help",
+    "faqLead": "Answers to the most common questions about payments and plans.",
+    "faqContactTitle": "Have another question?",
+    "faqContactText": "Write to us — we reply within one business day."
   },
   "reports": {
     "metaTitle": "Location reports",
@@ -140,7 +156,14 @@
     "mineEmpty": "You don't have any reports yet.",
     "download": "Download PDF",
     "generating": "Processing",
-    "pending": "Awaiting payment"
+    "pending": "Awaiting payment",
+    "eyebrow": "Market analytics",
+    "hlDistricts": "districts",
+    "hlTypes": "business types",
+    "hlFormat": "format",
+    "stepLocation": "Choose a location",
+    "stepProduct": "Choose a report",
+    "mostDetailed": "Most detailed"
   },
   "mock": {
     "badge": "Test payment",
@@ -156,7 +179,10 @@
     "alreadyPaid": "This payment has already been completed.",
     "pay": "Pay — {amount}",
     "decline": "Decline payment",
-    "error": "Payment failed. Please try again."
+    "error": "Payment failed. Please try again.",
+    "secure": "Secure payment",
+    "summary": "Order details",
+    "secureNote": "Card details are processed on the bank’s secure page — lokacia.ge never stores them."
   },
   "result": {
     "paid": "Payment received",
@@ -215,7 +241,12 @@
     "finance": "Finance applications",
     "financeAll": "Financial products",
     "noFinance": "You don't have any applications yet.",
-    "months": "{n} mo."
+    "months": "{n} mo.",
+    "kpiSubs": "Active subscriptions",
+    "kpiDue": "Amount due",
+    "kpiDueHint": "Open invoices: {n}",
+    "kpiPaid": "Paid in total",
+    "kpiInvoices": "Invoices: {n}"
   },
   "escrow": {
     "empty": "You don't have any deposits yet. A deposit is created from an accepted offer.",

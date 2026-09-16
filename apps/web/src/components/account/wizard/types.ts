@@ -3,6 +3,9 @@ import { PASSPORT_KEYS, type DealType, type ListingDetail, type ListingStatus, t
 export type BusinessTypeOption = {
   slug: string;
   nameKa: string;
+  nameEn?: string | null;
+  nameRu?: string | null;
+  icon?: string;
   filterConfig: { filters: { key: string; kind: 'boolean' | 'min'; labelKa: string; unit?: string }[]; required: string[] };
 };
 

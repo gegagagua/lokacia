@@ -25,3 +25,21 @@ export const dayHeadingKa = (key: string, locale: AppLocale = 'ka') => {
   if (locale !== 'ka') return headingFmt[locale].format(d);
   return `${WEEKDAYS_KA[d.getDay()]}, ${d.getDate()} ${MONTHS_KA[d.getMonth()]}`;
 };
+
+const monthShortFmt = {
+  en: new Intl.DateTimeFormat('en-US', { month: 'short' }),
+  ru: new Intl.DateTimeFormat('ru-RU', { month: 'short' }),
+} as const;
+const weekdayShortFmt = {
+  en: new Intl.DateTimeFormat('en-US', { weekday: 'short' }),
+  ru: new Intl.DateTimeFormat('ru-RU', { weekday: 'short' }),
+} as const;
+/** Date-tile parts for a Tbilisi instant: { day: 16, month: "სექ", weekday: "ოთხ" }. */
+export const tbTileParts = (d: Date | string, locale: AppLocale = 'ka') => {
+  const date = keyToDate(tbDayKey(d));
+  return {
+    day: date.getDate(),
+    month: locale === 'ka' ? MONTHS_KA[date.getMonth()]!.slice(0, 3) : monthShortFmt[locale].format(date).replace('.', ''),
+    weekday: locale === 'ka' ? WEEKDAYS_KA[date.getDay()]!.slice(0, 3) : weekdayShortFmt[locale].format(date),
+  };
+};

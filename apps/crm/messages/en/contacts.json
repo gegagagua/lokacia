@@ -13,7 +13,8 @@
     "allSources": "All sources",
     "allAgents": "All agents",
     "withRequirements": "With requirements",
-    "reset": "Clear filters"
+    "reset": "Clear filters",
+    "more": "Filters"
   },
   "types": {
     "client": "Client",
@@ -46,7 +47,10 @@
     "confirmBody": "Phones, emails, tags, deals, tasks and history from {count} contacts will be moved to “{name}”. The duplicates will be hidden.",
     "merged": "Contacts merged",
     "similarity": "Similarity {pct}%",
-    "selectAtLeastOne": "Select at least one duplicate"
+    "selectAtLeastOne": "Select at least one duplicate",
+    "groupLabel": "Duplicate group",
+    "contactsCount": "{count} contacts",
+    "keepThis": "Primary"
   },
   "form": {
     "createTitle": "New contact",
@@ -85,7 +89,9 @@
       "overview": "Overview",
       "requirements": "Requirements",
       "matches": "Matching spaces",
-      "timeline": "History"
+      "timeline": "History",
+      "activity": "Activity",
+      "tasks": "Tasks & viewings"
     },
     "deals": "Deals",
     "noDeals": "No deals",
@@ -96,7 +102,14 @@
     "noViewings": "No viewings",
     "notes": "Note",
     "done": "Done",
-    "overdue": "Overdue"
+    "overdue": "Overdue",
+    "liked": "Liked",
+    "openTasks": "Open tasks",
+    "email": "Email",
+    "newTask": "Task",
+    "newViewing": "Viewing",
+    "contactInfo": "Contact information",
+    "allTasks": "All tasks"
   },
   "requirements": {
     "title": "Client requirements",
@@ -151,5 +164,17 @@
   },
   "empty": "No contacts found",
   "emptyHint": "Change the filters or add a new contact.",
-  "loadMore": "Show more ({shown} / {total})"
+  "loadMore": "Show more ({shown} / {total})",
+  "views": {
+    "label": "Quick views",
+    "all": "All",
+    "client": "Clients",
+    "owner": "Owners",
+    "partner": "Partners",
+    "mine": "My contacts",
+    "save": "Save view",
+    "namePlaceholder": "e.g. VIP clients in Vake",
+    "saveSubmit": "Save",
+    "remove": "Delete view"
+  }
 }

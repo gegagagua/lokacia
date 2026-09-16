@@ -4,12 +4,28 @@
 @source '../../../../packages/ui/src';
 
 @layer base {
-  .prose-ka h1 { font-size: 28px; line-height: 36px; font-weight: 600; margin: 0 0 12px; }
-  .prose-ka h2 { font-size: 20px; line-height: 28px; font-weight: 600; margin: 24px 0 8px; }
-  .prose-ka p { margin: 8px 0; }
-  .prose-ka ul { list-style: none; padding: 0; margin: 12px 0; }
-  .prose-ka li { padding: 8px 0; border-bottom: 1px solid var(--border); }
-  .prose-ka blockquote { border-left: 3px solid var(--accent); padding: 4px 12px; color: var(--text-muted); margin: 16px 0; }
-  .prose-ka a { color: var(--link); text-decoration: underline; text-underline-offset: 3px; }
+  .prose-ka { line-height: 1.75; }
+  .prose-ka h1 { font-size: 34px; line-height: 42px; font-weight: 700; letter-spacing: -0.015em; margin: 0 0 20px; }
+  .prose-ka h2 { font-size: 22px; line-height: 30px; font-weight: 700; letter-spacing: -0.01em; margin: 36px 0 10px; }
+  .prose-ka h3 { font-size: 18px; line-height: 26px; font-weight: 650; margin: 28px 0 8px; }
+  .prose-ka p { margin: 12px 0; }
+  .prose-ka strong { font-weight: 650; }
+  .prose-ka ul, .prose-ka ol { list-style: none; padding: 0; margin: 16px 0; }
+  .prose-ka ol { counter-reset: prose; }
+  .prose-ka li { position: relative; padding: 10px 0 10px 22px; border-bottom: 1px solid var(--border); }
+  .prose-ka li:last-child { border-bottom: 0; }
+  .prose-ka ul > li::before { content: ''; position: absolute; left: 4px; top: calc(10px + 0.85em - 3px); width: 6px; height: 6px; border-radius: 999px; background: var(--primary-500); }
+  .prose-ka ol > li { counter-increment: prose; padding-left: 32px; }
+  .prose-ka ol > li::before { content: counter(prose); position: absolute; left: 0; top: 11px; width: 22px; height: 22px; border-radius: 999px; background: var(--primary-soft); color: var(--primary-soft-text); font-size: 12px; font-weight: 700; line-height: 22px; text-align: center; }
+  .prose-ka li:has(> input[type='checkbox'])::before, .prose-ka li.task-list-item::before { display: none; }
+  .prose-ka li.task-list-item { padding-left: 0; }
+  .prose-ka blockquote { border-left: 4px solid var(--accent); background: var(--accent-soft); border-radius: 0 12px 12px 0; padding: 12px 16px; color: var(--text); margin: 20px 0; }
+  .prose-ka a { color: var(--link); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  .prose-ka a:hover { text-decoration-thickness: 2px; }
+  .prose-ka code { background: var(--surface-2); border-radius: 6px; padding: 1px 6px; font-size: 0.9em; }
+  .prose-ka hr { border: 0; border-top: 1px solid var(--border); margin: 32px 0; }
+  .prose-ka table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 15px; }
+  .prose-ka th, .prose-ka td { border-bottom: 1px solid var(--border); padding: 10px 8px; text-align: left; }
+  .prose-ka th { font-weight: 650; color: var(--text-muted); }
   .prose-ka input[type='checkbox'] { accent-color: var(--primary); margin-right: 8px; }
 }

@@ -1,6 +1,7 @@
 'use client';
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
+import { AlertCircle, Lock } from 'lucide-react';
 import { Button } from '@lokacia/ui';
 import { apiFetch, ClientApiError } from '@/lib/api-client';
 
@@ -20,15 +21,16 @@ export function MockPayActions({ paymentId, amount }: { paymentId: string; amoun
     }
   };
   return (
-    <div className="mt-5 flex flex-col gap-2">
-      <Button size="lg" onClick={() => complete('succeeded')} loading={busy === 'succeeded'} disabled={!!busy}>
+    <div className="mt-6 flex flex-col gap-2">
+      <Button size="lg" className="w-full" onClick={() => complete('succeeded')} loading={busy === 'succeeded'} disabled={!!busy} icon={<Lock className="size-4" strokeWidth={2} aria-hidden />}>
         {t('pay', { amount })}
       </Button>
-      <Button variant="ghost" onClick={() => complete('failed')} loading={busy === 'failed'} disabled={!!busy}>
+      <Button variant="ghost" className="w-full text-muted hover:text-danger" onClick={() => complete('failed')} loading={busy === 'failed'} disabled={!!busy}>
         {t('decline')}
       </Button>
       {error && (
-        <p role="alert" className="text-small text-danger">
+        <p role="alert" className="flex items-center gap-2 rounded-xl bg-danger/10 px-3 py-2 text-small text-danger">
+          <AlertCircle className="size-4 shrink-0" strokeWidth={2} aria-hidden />
           {error}
         </p>
       )}

@@ -20,8 +20,8 @@ export function LanguageSwitcher() {
       align="end"
       className="w-44 p-1"
       trigger={
-        <IconButton label={t('language')} size="sm">
-          <Languages className="size-4" strokeWidth={1.5} />
+        <IconButton label={t('language')} size="sm" className="rounded-full text-muted hover:text-text">
+          <Languages className="size-4" strokeWidth={2} />
         </IconButton>
       }
     >

@@ -1,9 +1,9 @@
-import Script from 'next/script';
+import { cookies } from 'next/headers';
 import type { Metadata, Viewport } from 'next';
 import localFont from 'next/font/local';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getTranslations } from 'next-intl/server';
-import { ToastProvider } from '@lokacia/ui';
+import { ToastProvider, ThemeSync } from '@lokacia/ui';
 import { SiteHeader } from '@/components/shell/site-header';
 import { SiteFooter } from '@/components/shell/site-footer';
 import { FeedbackWidget } from '@/components/v2/feedback-widget';
@@ -54,21 +54,19 @@ export const viewport: Viewport = {
 };
 
 /** Applies saved theme before paint (no flash). */
-const themeScript = `try{var t=localStorage.getItem('lk-theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t}catch(e){}`;
-
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const themeValue = (await cookies()).get('lk_theme')?.value;
+  const themeCookie = themeValue === 'dark' || themeValue === 'light' ? themeValue : undefined;
   const locale = await getAppLocale();
   const [messages, t] = await Promise.all([getMessages(), getTranslations('meta.a11y')]);
   return (
-    <html
+    <html data-theme={themeCookie}
       lang={HTML_LANG[locale]}
       className={font.variable}
       suppressHydrationWarning
     >
-      <head>
-        <Script id="lk-theme" strategy="beforeInteractive">{themeScript}</Script>
-      </head>
       <body className="flex min-h-dvh flex-col overflow-x-clip bg-bg text-text" suppressHydrationWarning>
+        <ThemeSync />
         <NextIntlClientProvider locale={locale} messages={messages}>
           <ToastProvider>
             <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:rounded-button focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-contrast">

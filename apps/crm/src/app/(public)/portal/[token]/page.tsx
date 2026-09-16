@@ -20,9 +20,9 @@ export default async function ClientPortalPage({ params }: { params: Promise<{ t
   if (!data) {
     return (
       <div className="drawing-grid grid min-h-dvh place-items-center px-4">
-        <div className="flex flex-col items-center gap-4">
+        <div className="flex w-full max-w-md flex-col items-center gap-5">
           <Logo />
-          <EmptyState title={t('notFound')} description={t('notFoundHint')} className="bg-surface" />
+          <EmptyState title={t('notFound')} description={t('notFoundHint')} className="w-full border-solid bg-surface shadow-md" />
         </div>
       </div>
     );

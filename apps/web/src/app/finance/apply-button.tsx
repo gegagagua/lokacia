@@ -25,7 +25,7 @@ export function ApplyButton({ product, loggedIn, listing, defaultOpen }: { produ
 
   if (!loggedIn) {
     return (
-      <Button asChild className="mt-4">
+      <Button asChild size="lg" className="mt-5 w-full">
         <Link href={`/login?next=${encodeURIComponent(`/finance?product=${product.id}${listing ? `&listing=${listing.id}` : ''}`)}`}>{t('loginToApply')}</Link>
       </Button>
     );
@@ -52,11 +52,13 @@ export function ApplyButton({ product, loggedIn, listing, defaultOpen }: { produ
   };
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setResult(null); }} title={product.name} description={product.partner} trigger={<Button className="mt-4">{t('cta')}</Button>}>
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setResult(null); }} title={product.name} description={product.partner} trigger={<Button size="lg" className="mt-5 w-full">{t('cta')}</Button>}>
       {result ? (
         <div className="flex flex-col items-center gap-2 py-4 text-center" role="status">
-          <CheckCircle2 className="size-10 text-success" strokeWidth={1.5} aria-hidden />
-          <p className="font-semibold">{t('sent')}</p>
+          <span className="grid size-16 place-items-center rounded-full bg-success/12 text-success ring-8 ring-success/5">
+            <CheckCircle2 className="size-8" strokeWidth={2} aria-hidden />
+          </span>
+          <p className="mt-2 text-[20px] font-bold">{t('sent')}</p>
           <p className="text-small text-muted">{t('status', { status: tf(`statusLabels.${result.status}`) })}</p>
           <Button asChild variant="secondary" className="mt-2">
             <Link href="/account/billing#finance">{t('myApplications')}</Link>

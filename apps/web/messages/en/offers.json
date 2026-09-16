@@ -46,7 +46,13 @@
     "submitHint": "Once you send the offer, the owner will be notified.",
     "sent": "Offer sent",
     "existing": "You already have an active offer for this space.",
-    "openThread": "Open negotiation"
+    "openThread": "Open negotiation",
+    "tips": {
+      "title": "How offers work",
+      "s1": "Set the price, term and conditions",
+      "s2": "The owner accepts, rejects or sends a counter-offer",
+      "s3": "Once accepted, a draft contract is generated automatically"
+    }
   },
   "inbox": {
     "title": "Offers",
@@ -142,7 +148,8 @@
     },
     "messageTitle": "Message to {name}",
     "messageLabel": "Message text",
-    "messageSubmit": "Send message"
+    "messageSubmit": "Send message",
+    "parties": "Parties"
   },
   "status": {
     "pending": "Pending",

@@ -38,7 +38,8 @@
     "save": "Save",
     "saved": "Saved",
     "end": "End lease",
-    "endConfirm": "The lease will end and no new invoices will be created. Continue?"
+    "endConfirm": "The lease will end and no new invoices will be created. Continue?",
+    "timeline": "Payment history"
   },
   "balance": "Amount due",
   "nextDue": "Next payment",
@@ -85,7 +86,8 @@
     "photoAlt": "Photo {n}",
     "resolvedAt": "Resolved {date}",
     "submit": "Send request",
-    "created": "Request sent"
+    "created": "Request sent",
+    "columnEmpty": "No requests"
   },
   "utilities": {
     "empty": "No meter readings yet.",
@@ -96,7 +98,8 @@
     "kind": "Type",
     "readingLabel": "Meter reading",
     "amount": "Amount",
-    "submit": "Add reading"
+    "submit": "Add reading",
+    "title": "Utility costs"
   },
   "messages": {
     "empty": "No messages yet.",
@@ -127,5 +130,7 @@
       "cleaning": "Cleaning",
       "internet": "Internet"
     }
-  }
+  },
+  "active": "Active",
+  "openListing": "View listing"
 }

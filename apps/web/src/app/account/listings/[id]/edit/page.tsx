@@ -29,5 +29,5 @@ export default async function EditListingPage({ params, searchParams }: { params
     detail.rejectReason = mine.find((m) => m.id === detail.id)?.rejectReason ?? null;
   }
   const types = await getBusinessTypes();
-  return <ListingWizard user={user} types={types.map((b) => ({ slug: b.slug, nameKa: b.nameKa, filterConfig: b.filterConfig }))} detail={detail} initialStep={step} />;
+  return <ListingWizard user={user} types={types.map((b) => ({ slug: b.slug, nameKa: b.nameKa, nameEn: b.nameEn, nameRu: b.nameRu, icon: b.icon, filterConfig: b.filterConfig }))} detail={detail} initialStep={step} />;
 }

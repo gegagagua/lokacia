@@ -3,7 +3,7 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { useTranslations } from 'next-intl';
-import { Building2, ExternalLink, HardHat, Trash2, UserPlus } from 'lucide-react';
+import { Building2, ExternalLink, HardHat, Plus, Trash2, UserPlus, Users } from 'lucide-react';
 import type { OrgRole, SessionUser } from '@lokacia/contracts';
 import { Avatar, Badge, Button, Card, Dialog, Field, IconButton, Input, Select, Skeleton, Textarea, useToast } from '@lokacia/ui';
 import { apiFetch, ClientApiError } from '@/lib/api-client';
@@ -26,10 +26,15 @@ export function OrgManager({ user, crmUrl }: { user: SessionUser; crmUrl: string
         <OrgSwitch orgs={user.orgs} value={orgId} onChange={setOrgId} />
       )}
       <OrgDetails key={orgId} orgId={orgId} userId={user.id} crmUrl={crmUrl} />
-      <div className="border-t border-border pt-6">
-        <details>
-          <summary className="cursor-pointer text-link">+ {t('createTitle')}</summary>
-          <div className="mt-4">
+      <div>
+        <details className="group card overflow-hidden">
+          <summary className="flex cursor-pointer list-none items-center gap-3 p-5 font-semibold transition-colors hover:bg-surface-2/60 [&::-webkit-details-marker]:hidden">
+            <span className="grid size-9 place-items-center rounded-xl bg-primary-soft text-primary-soft-text" aria-hidden>
+              <Plus className="size-4 transition-transform group-open:rotate-45" strokeWidth={2.25} />
+            </span>
+            {t('createTitle')}
+          </summary>
+          <div className="border-t border-border p-4 sm:p-5">
             <CreateOrg />
           </div>
         </details>
@@ -71,9 +76,16 @@ function CreateOrg() {
     }
   };
   return (
-    <Card className="max-w-2xl p-5">
-      <h2 className="text-h3 font-semibold">{t('createTitle')}</h2>
-      <p className="mt-1 text-muted">{t('createIntro')}</p>
+    <Card className="max-w-3xl p-5 sm:p-7">
+      <div className="flex items-start gap-4">
+        <span className="hidden size-12 shrink-0 place-items-center rounded-2xl bg-primary text-primary-contrast shadow-md sm:grid" aria-hidden>
+          <Building2 className="size-6" strokeWidth={2} />
+        </span>
+        <div>
+          <h2 className="text-[20px] font-bold tracking-tight">{t('createTitle')}</h2>
+          <p className="mt-1 text-muted">{t('createIntro')}</p>
+        </div>
+      </div>
       <form onSubmit={submit} className="mt-4 flex flex-col gap-4">
         <fieldset>
           <legend className="mb-2 text-small font-medium">{t('type')}</legend>
@@ -81,11 +93,13 @@ function CreateOrg() {
             {(['agency', 'developer'] as const).map((k) => {
               const Icon = k === 'agency' ? Building2 : HardHat;
               return (
-                <label key={k} className={`flex cursor-pointer gap-3 rounded-card border p-3 ${type === k ? 'border-primary bg-primary/5' : 'border-border hover:border-border-strong'}`}>
+                <label key={k} className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-4 transition-all duration-200 has-[:focus-visible]:shadow-ring ${type === k ? 'border-primary bg-primary-soft/60 ring-1 ring-primary' : 'border-border shadow-xs hover:-translate-y-0.5 hover:shadow-md'}`}>
                   <input type="radio" name="org-type" value={k} checked={type === k} onChange={() => setType(k)} className="sr-only" />
-                  <Icon className="mt-0.5 size-5 shrink-0 text-primary" strokeWidth={1.5} aria-hidden />
+                  <span className={`grid size-11 shrink-0 place-items-center rounded-xl ${type === k ? 'bg-primary text-primary-contrast' : 'bg-surface-2 text-primary-soft-text'}`} aria-hidden>
+                    <Icon className="size-5" strokeWidth={2} />
+                  </span>
                   <span>
-                    <span className="block font-medium">{k === 'agency' ? t('typeAgency') : t('typeDeveloper')}</span>
+                    <span className="block font-semibold">{k === 'agency' ? t('typeAgency') : t('typeDeveloper')}</span>
                     <span className="block text-small text-muted">{k === 'agency' ? t('typeAgencyHint') : t('typeDeveloperHint')}</span>
                   </span>
                 </label>
@@ -183,11 +197,16 @@ function OrgDetails({ orgId, userId, crmUrl }: { orgId: string; userId: string; 
 
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-      <Card className="p-5">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <h2 className="text-h3 font-semibold">{org.name}</h2>
-            <Badge tone="outline">{org.type === 'agency' ? t('typeAgency') : t('typeDeveloper')}</Badge>
+      <Card className="p-5 sm:p-6">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-primary text-[18px] font-bold text-primary-contrast shadow-md" aria-hidden>
+              {org.name.slice(0, 1)}
+            </span>
+            <div className="min-w-0">
+              <h2 className="truncate text-[20px] font-bold tracking-tight">{org.name}</h2>
+              <Badge tone="primary" icon={org.type === 'agency' ? <Building2 className="size-3.5" strokeWidth={2} aria-hidden /> : <HardHat className="size-3.5" strokeWidth={2} aria-hidden />}>{org.type === 'agency' ? t('typeAgency') : t('typeDeveloper')}</Badge>
+            </div>
           </div>
           {org.type === 'agency' && (
             <Button asChild size="sm" variant="secondary">
@@ -233,13 +252,18 @@ function OrgDetails({ orgId, userId, crmUrl }: { orgId: string; userId: string; 
       </Card>
 
       <Card className="p-0">
-        <div className="flex items-center justify-between border-b border-border px-5 py-4">
-          <h2 className="text-h3 font-semibold">{t('members')}</h2>
-          <span className="text-small text-muted">{t('membersCount', { count: members?.length ?? 0 })}</span>
+        <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
+          <div className="flex items-center gap-3">
+            <span className="grid size-9 place-items-center rounded-xl bg-link/12 text-link" aria-hidden>
+              <Users className="size-4" strokeWidth={2} />
+            </span>
+            <h2 className="text-[18px] font-bold tracking-tight">{t('members')}</h2>
+          </div>
+          <span className="inline-flex h-7 items-center rounded-full bg-surface-2 px-2.5 text-[12.5px] font-semibold text-muted tabular">{t('membersCount', { count: members?.length ?? 0 })}</span>
         </div>
         {isManager && (
-          <form onSubmit={sendInvite} className="grid gap-3 border-b border-border px-5 py-4 sm:grid-cols-[minmax(0,1fr)_140px_auto] sm:items-end">
-            <Field label={t('invitePhone')}>
+          <form onSubmit={sendInvite} className="grid gap-3 border-b border-border bg-surface-2/50 px-5 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+            <Field label={t('invitePhone')} className="sm:col-span-2">
               <Input type="tel" inputMode="tel" required value={invite.phone} onChange={(e) => setInvite({ ...invite, phone: e.target.value })} placeholder={t('invitePhonePlaceholder')} />
             </Field>
             <Field label={t('inviteRole')}>
@@ -256,18 +280,18 @@ function OrgDetails({ orgId, userId, crmUrl }: { orgId: string; userId: string; 
         ) : (
           <ul>
             {members.map((m) => (
-              <li key={m.id} className="flex flex-wrap items-center gap-3 border-b border-border px-5 py-3 last:border-b-0">
-                <Avatar src={m.avatarUrl} name={m.name ?? m.invitedPhone} size={36} />
+              <li key={m.id} className="flex flex-wrap items-center gap-3 border-b border-border px-5 py-3.5 transition-colors last:border-b-0 hover:bg-surface-2/40">
+                <Avatar src={m.avatarUrl} name={m.name ?? m.invitedPhone} size={42} />
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-medium">
-                    {m.name ?? m.invitedPhone ?? '—'} {m.userId === userId && <span className="text-small text-muted">({t('you')})</span>}
+                    {m.name ?? m.invitedPhone ?? '—'} {m.userId === userId && <span className="ml-1 inline-flex h-5 items-center rounded-full bg-primary-soft px-2 text-[11.5px] font-semibold text-primary-soft-text">{t('you')}</span>}
                   </div>
                   <div className="text-small text-muted tabular">{m.phone ?? m.invitedPhone}</div>
                   {!m.userId && <Badge tone="accent" className="mt-1">{t('pending')}</Badge>}
                 </div>
                 {isManager && m.userId !== userId ? (
                   <div className="flex items-center gap-1">
-                    <Select aria-label={t('changeRole')} value={m.role} onChange={(e) => void changeRole(m, e.target.value as OrgRole)} options={ROLES.map((r) => ({ value: r, label: t(`roles.${r}`) }))} className="h-8 w-36 text-small" />
+                    <Select aria-label={t('changeRole')} value={m.role} onChange={(e) => void changeRole(m, e.target.value as OrgRole)} options={ROLES.map((r) => ({ value: r, label: t(`roles.${r}`) }))} className="h-9 w-36 rounded-full text-small" />
                     <IconButton label={t('remove')} size="sm" onClick={() => setRemoving(m)}>
                       <Trash2 className="size-4 text-danger" strokeWidth={1.5} />
                     </IconButton>

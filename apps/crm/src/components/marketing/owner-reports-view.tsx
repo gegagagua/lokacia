@@ -2,13 +2,22 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { FileChartColumn, Send } from 'lucide-react';
-import { formatDateKa, formatDateTimeKa, formatNumber, type OwnerReportRow } from '@lokacia/contracts';
-import { Badge, Button, Drawer, EmptyState, Skeleton, SpecRow, Table, useToast, type Column } from '@lokacia/ui';
+import { Bookmark, Building2, CalendarCheck, CheckCheck, Clock, Eye, FileChartColumn, Phone, Send, type LucideIcon } from 'lucide-react';
+import { formatDateKa, formatDateTimeKa, formatNumber, type CrmListingRow, type OwnerReportRow } from '@lokacia/contracts';
+import { Button, Drawer, EmptyState, Skeleton, useToast } from '@lokacia/ui';
 import { PageHeader } from '@/components/common/page-header';
+import { ChipGroup, IconTile, Pill, StatCard, toneClass, type Tone } from '@/components/common/ui';
 import { errorMessage } from '@/lib/api-client';
 import { useCrm } from '@/lib/crm-context';
 import { useApi, useApiMutation } from '@/lib/swr';
+
+type MetricKey = 'views' | 'reveals' | 'saves' | 'viewings';
+const METRICS: { key: MetricKey; icon: LucideIcon; tone: Tone }[] = [
+  { key: 'views', icon: Eye, tone: 2 },
+  { key: 'reveals', icon: Phone, tone: 1 },
+  { key: 'saves', icon: Bookmark, tone: 5 },
+  { key: 'viewings', icon: CalendarCheck, tone: 7 },
+];
 
 export function OwnerReportsView() {
   const t = useTranslations('marketing.ownerReports');
@@ -16,16 +25,19 @@ export function OwnerReportsView() {
   const { can } = useCrm();
   const mutateApi = useApiMutation();
   const { data, isLoading, mutate } = useApi<OwnerReportRow[]>('/crm/owner-reports');
+  const { data: listings } = useApi<CrmListingRow[]>('/crm/listings');
   const [week, setWeek] = React.useState('');
   const [open, setOpen] = React.useState<OwnerReportRow | null>(null);
   const [busy, setBusy] = React.useState(false);
 
+  const coverById = React.useMemo(() => new Map((listings ?? []).map((l) => [l.id, l.cover])), [listings]);
   const weeks = React.useMemo(() => [...new Set((data ?? []).map((r) => r.weekStart))].sort().reverse(), [data]);
   React.useEffect(() => {
     if (!week && weeks[0]) setWeek(weeks[0]);
   }, [weeks, week]);
-  const rows = (data ?? []).filter((r) => !week || r.weekStart === week);
-  const total = rows.reduce((a, r) => ({ views: a.views + r.payload.views, reveals: a.reveals + r.payload.reveals, viewings: a.viewings + r.payload.viewings }), { views: 0, reveals: 0, viewings: 0 });
+  const rows = (data ?? []).filter((r) => !week || r.weekStart === week).sort((a, b) => b.payload.views - a.payload.views);
+  const total = rows.reduce((a, r) => ({ views: a.views + r.payload.views, reveals: a.reveals + r.payload.reveals, saves: a.saves + r.payload.saves, viewings: a.viewings + r.payload.viewings }), { views: 0, reveals: 0, saves: 0, viewings: 0 });
+  const sent = rows.filter((r) => r.sentAt).length;
 
   const run = async () => {
     setBusy(true);
@@ -41,71 +53,109 @@ export function OwnerReportsView() {
     }
   };
 
-  const columns: Column<OwnerReportRow>[] = [
-    {
-      key: 'listing',
-      header: t('columns.listing'),
-      sortValue: (r) => r.listingTitle,
-      cell: (r) => (
-        <Link href={`/listings/${r.listingId}`} onClick={(e) => e.stopPropagation()} className="line-clamp-1 min-w-[200px] font-medium hover:underline">
-          {r.listingTitle}
-        </Link>
-      ),
-    },
-    { key: 'views', header: t('columns.views'), align: 'right', sortValue: (r) => r.payload.views, cell: (r) => formatNumber(r.payload.views) },
-    { key: 'reveals', header: t('columns.reveals'), align: 'right', sortValue: (r) => r.payload.reveals, cell: (r) => formatNumber(r.payload.reveals) },
-    { key: 'saves', header: t('columns.saves'), align: 'right', sortValue: (r) => r.payload.saves, cell: (r) => formatNumber(r.payload.saves) },
-    { key: 'viewings', header: t('columns.viewings'), align: 'right', sortValue: (r) => r.payload.viewings, cell: (r) => formatNumber(r.payload.viewings) },
-    { key: 'sent', header: t('columns.sent'), sortValue: (r) => r.sentAt, cell: (r) => (r.sentAt ? <span className="whitespace-nowrap text-small text-muted">{formatDateTimeKa(r.sentAt)}</span> : <Badge tone="outline">{t('notSent')}</Badge>) },
-  ];
-
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       <PageHeader
+        className="mb-0"
         title={t('title')}
         subtitle={t('subtitle')}
         actions={
           can('settings.manage') && (
-            <Button size="sm" onClick={run} loading={busy} icon={<Send className="size-3.5" strokeWidth={1.5} aria-hidden />}>
+            <Button size="sm" onClick={run} loading={busy} icon={<Send className="size-4" strokeWidth={2} aria-hidden />}>
               {t('run')}
             </Button>
           )
         }
       />
-      {weeks.length > 0 && (
-        <div className="flex flex-wrap gap-1.5" role="group" aria-label={t('columns.week')}>
-          {weeks.slice(0, 12).map((w) => (
-            <button key={w} type="button" aria-pressed={week === w} onClick={() => setWeek(w)} className={`h-8 rounded-button border px-3 text-small tabular ${week === w ? 'border-primary bg-primary text-primary-contrast' : 'border-border bg-surface hover:bg-surface-2'}`}>
-              {t('week', { date: formatDateKa(w) })}
-            </button>
+      {weeks.length > 0 && <ChipGroup label={t('columns.week')} value={week} onChange={setWeek} options={weeks.slice(0, 12).map((w) => ({ value: w, label: t('week', { date: formatDateKa(w) }) }))} />}
+      {rows.length > 0 && (
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4" aria-label={t('total')}>
+          {METRICS.map((m) => (
+            <StatCard key={m.key} label={t(`columns.${m.key}`)} value={formatNumber(total[m.key])} icon={m.icon} tone={m.tone} hint={m.key === 'viewings' ? t('sentOf', { sent, total: rows.length }) : undefined} />
           ))}
         </div>
       )}
-      {rows.length > 0 && (
-        <p className="text-small text-muted tabular">
-          {t('total')}: {formatNumber(total.views)} · {formatNumber(total.reveals)} · {formatNumber(total.viewings)}
-        </p>
-      )}
       {isLoading ? (
-        <Skeleton className="h-64" />
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} className="h-56 rounded-card" />
+          ))}
+        </div>
       ) : !rows.length ? (
-        <EmptyState icon={<FileChartColumn className="size-5" strokeWidth={1.5} aria-hidden />} title={t('empty')} description={t('emptyHint')} />
+        <EmptyState icon={<FileChartColumn className="size-6" strokeWidth={2} aria-hidden />} title={t('empty')} description={t('emptyHint')} />
       ) : (
-        <Table columns={columns} rows={rows} rowKey={(r) => r.id} onRowClick={setOpen} initialSort={{ key: 'views', dir: 'desc' }} />
+        <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3" aria-label={t('title')}>
+          {rows.map((r) => {
+            const cover = coverById.get(r.listingId);
+            return (
+              <li key={r.id} className="card card-hover relative flex flex-col gap-4 p-4">
+                <div className="flex items-center gap-3">
+                  <div className="size-12 shrink-0 overflow-hidden rounded-xl bg-surface-2">
+                    {cover ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={cover} alt="" className="size-full object-cover" loading="lazy" />
+                    ) : (
+                      <Building2 className="m-3.5 size-5 text-muted" strokeWidth={2} aria-hidden />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <button type="button" onClick={() => setOpen(r)} className="line-clamp-2 text-left text-[14.5px] font-semibold leading-5 after:absolute after:inset-0 after:content-[''] hover:text-primary-soft-text focus-visible:outline-none">
+                      {r.listingTitle}
+                    </button>
+                    <div className="mt-0.5 text-[12.5px] text-muted">{t('week', { date: formatDateKa(r.weekStart) })}</div>
+                  </div>
+                </div>
+                <dl className="grid grid-cols-4 gap-2">
+                  {METRICS.map((m) => {
+                    const Icon = m.icon;
+                    return (
+                      <div key={m.key} className={`rounded-xl bg-tone-faint px-2 py-2 text-center ${toneClass(m.tone)}`}>
+                        <dt className="flex justify-center text-tone-ink" title={t(`columns.${m.key}`)}>
+                          <Icon className="size-4" strokeWidth={2} aria-hidden />
+                          <span className="sr-only">{t(`columns.${m.key}`)}</span>
+                        </dt>
+                        <dd className="mt-0.5 text-[16px] font-bold tabular">{formatNumber(r.payload[m.key])}</dd>
+                      </div>
+                    );
+                  })}
+                </dl>
+                <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
+                  {r.sentAt ? (
+                    <Pill tone="success" icon={CheckCheck}>
+                      {formatDateTimeKa(r.sentAt)}
+                    </Pill>
+                  ) : (
+                    <Pill tone="neutral" icon={Clock}>
+                      {t('notSent')}
+                    </Pill>
+                  )}
+                  <Link href={`/listings/${r.listingId}`} className="relative z-10 text-[13px] font-semibold text-link hover:underline">
+                    {t('openListing')}
+                  </Link>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
       )}
       <Drawer open={!!open} onOpenChange={(o) => !o && setOpen(null)} title={t('detail')}>
         {open && (
-          <div className="flex flex-col gap-3">
-            <div>
-              <div className="font-semibold">{open.listingTitle}</div>
-              <div className="text-small text-muted">{t('week', { date: formatDateKa(open.weekStart) })}</div>
+          <div className="flex flex-col gap-4">
+            <div className="flex items-start gap-3">
+              <IconTile icon={FileChartColumn} tone={2} />
+              <div className="min-w-0">
+                <div className="font-semibold">{open.listingTitle}</div>
+                <div className="text-small text-muted">{t('week', { date: formatDateKa(open.weekStart) })}</div>
+              </div>
             </div>
-            <div>
-              <SpecRow label={t('columns.views')} value={formatNumber(open.payload.views)} />
-              <SpecRow label={t('columns.reveals')} value={formatNumber(open.payload.reveals)} />
-              <SpecRow label={t('columns.saves')} value={formatNumber(open.payload.saves)} />
-              <SpecRow label={t('columns.viewings')} value={formatNumber(open.payload.viewings)} />
-              <SpecRow label={t('columns.sent')} value={open.sentAt ? formatDateTimeKa(open.sentAt) : t('notSent')} />
+            <div className="grid grid-cols-2 gap-3">
+              {METRICS.map((m) => (
+                <StatCard key={m.key} label={t(`columns.${m.key}`)} value={formatNumber(open.payload[m.key])} icon={m.icon} tone={m.tone} className="shadow-none" />
+              ))}
+            </div>
+            <div className="flex items-center justify-between rounded-2xl bg-surface-2 p-3 text-[14px]">
+              <span className="text-muted">{t('columns.sent')}</span>
+              <span className="font-semibold tabular">{open.sentAt ? formatDateTimeKa(open.sentAt) : t('notSent')}</span>
             </div>
           </div>
         )}

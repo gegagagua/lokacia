@@ -37,5 +37,7 @@
   "activeMember": "Active",
   "inactiveMember": "Deactivated",
   "subscriptions": "Subscriptions",
-  "noSubscriptions": "No subscriptions"
+  "noSubscriptions": "No subscriptions",
+  "open": "Open",
+  "membersCount": "{count} members"
 }

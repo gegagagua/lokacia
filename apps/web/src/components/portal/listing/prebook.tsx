@@ -37,17 +37,19 @@ export function ProjectBlock({ listingId, project }: { listingId: string; projec
   }
 
   return (
-    <section aria-labelledby="project-title" className="flex flex-col gap-3 rounded-card border border-primary/40 bg-surface p-5 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex items-start gap-3">
-        <Building className="mt-1 size-6 shrink-0 text-primary" strokeWidth={1.5} aria-hidden />
-        <div>
-          <h2 id="project-title" className="text-small font-medium uppercase tracking-wide text-muted">
+    <section aria-labelledby="project-title" className="card flex flex-col gap-4 border-primary/30 bg-gradient-to-br from-primary-soft/70 to-surface p-5 sm:flex-row sm:items-center sm:justify-between md:p-6">
+      <div className="flex items-start gap-3.5">
+        <span aria-hidden className="grid size-11 shrink-0 place-items-center rounded-2xl bg-primary text-primary-contrast shadow-sm">
+          <Building className="size-5" strokeWidth={2} />
+        </span>
+        <div className="min-w-0">
+          <h2 id="project-title" className="eyebrow">
             {t('title')}
           </h2>
-          <Link href={`/projects/${project.slug}`} className="text-h3 font-semibold hover:text-link hover:underline">
+          <Link href={`/projects/${project.slug}`} className="mt-1.5 block text-[20px] font-bold leading-tight tracking-tight hover:text-link hover:underline">
             {project.name}
           </Link>
-          <p className="text-small text-muted tabular">{t('completion', { date: fmt.date(project.completionDate) })}</p>
+          <p className="mt-0.5 text-small text-muted tabular">{t('completion', { date: fmt.date(project.completionDate) })}</p>
         </div>
       </div>
       <div className="flex flex-wrap gap-2">
@@ -66,7 +68,7 @@ export function ProjectBlock({ listingId, project }: { listingId: string; projec
         >
           {state.done ? (
             <p role="status" className="flex items-start gap-2 text-[15px]">
-              <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-success" strokeWidth={1.5} aria-hidden />
+              <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-success" strokeWidth={2} aria-hidden />
               {state.done === 'ok' ? t('success') : t('duplicate')}
             </p>
           ) : (

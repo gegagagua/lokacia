@@ -196,10 +196,12 @@
   }
 }
 
+/* Animates the standalone `translate` property: map markers are positioned by MapLibre via inline `transform`,
+   which a transform keyframe would override (stacking every pin in the top-left corner). */
 @keyframes pin-drop {
-  0% { transform: translateY(-28px); opacity: 0; }
-  60% { transform: translateY(2px); opacity: 1; }
-  100% { transform: translateY(0); opacity: 1; }
+  0% { translate: 0 -28px; opacity: 0; }
+  60% { translate: 0 2px; opacity: 1; }
+  100% { translate: 0 0; opacity: 1; }
 }
 .animate-pin-drop {
   animation: pin-drop 420ms var(--ease-out) both;

@@ -18,5 +18,6 @@
   "to": "To date",
   "apply": "Apply filter",
   "reset": "Clear filter",
-  "loadMore": "Show more"
+  "loadMore": "Show more",
+  "filters": "Filters"
 }

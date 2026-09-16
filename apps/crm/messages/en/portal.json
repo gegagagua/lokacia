@@ -17,5 +17,17 @@
   "notFound": "The link is invalid or has expired",
   "notFoundHint": "Ask your broker for a new link.",
   "counts": "{liked} liked · {disliked} disliked · {total} total",
-  "poweredBy": "Portal by lokacia.ge"
+  "poweredBy": "Portal by lokacia.ge",
+  "eyebrow": "Spaces selected for you",
+  "statLiked": "Liked",
+  "statDisliked": "Not for me",
+  "statTotal": "Options in total",
+  "statusLiked": "You liked this",
+  "statusDisliked": "Not for you",
+  "area": "Area",
+  "listTitle": "Options",
+  "listHint": "Rate each space so your broker can pick better options next time.",
+  "callAgent": "Call your broker",
+  "contactOrg": "Agency phone",
+  "home": "Home"
 }

@@ -10,7 +10,8 @@ const tones: Record<BadgeTone, string> = {
   accent: 'bg-accent text-accent-contrast shadow-xs',
   link: 'bg-link/10 text-link',
   danger: 'bg-danger/10 text-danger',
-  success: 'bg-success/12 text-success',
+  // Pure --success on its own 12% tint is ~4.2:1 on light bg; nudging toward --text keeps AA in both themes.
+  success: 'bg-success/12 text-[color-mix(in_srgb,var(--success)_85%,var(--text))]',
   outline: 'bg-transparent text-muted ring-1 ring-inset ring-border-strong',
 };
 
@@ -43,7 +44,9 @@ export function Avatar({ src, name, size = 40, className }: { src?: string | nul
   return (
     <RAvatar.Root className={cn('inline-grid shrink-0 place-items-center overflow-hidden rounded-full bg-primary-soft text-primary-soft-text ring-2 ring-surface', className)} style={{ width: size, height: size }}>
       {src && <RAvatar.Image src={src} alt={name ?? ''} className="size-full object-cover" />}
-      <RAvatar.Fallback className="text-small font-medium">{initials}</RAvatar.Fallback>
+      <RAvatar.Fallback className="font-semibold" style={{ fontSize: Math.max(12, Math.round(size * 0.38)) }}>
+        {initials}
+      </RAvatar.Fallback>
     </RAvatar.Root>
   );
 }

@@ -1,12 +1,14 @@
 'use client';
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
-import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, Clock, Plus, Trash2 } from 'lucide-react';
 import { renderSequenceTemplate, SEQUENCE_CHANNELS, SEQUENCE_TRIGGERS, type CrmSequence, type SequenceInput } from '@lokacia/contracts';
-import { Button, Dialog, Field, IconButton, Input, Select, Switch, Textarea, useToast } from '@lokacia/ui';
+import { Button, cn, Dialog, Field, IconButton, Input, Select, Switch, Textarea, useToast } from '@lokacia/ui';
+import { toneClass } from '@/components/common/ui';
 import { errorMessage } from '@/lib/api-client';
 import { useCrm } from '@/lib/crm-context';
 import { useApiMutation } from '@/lib/swr';
+import { CHANNEL_META } from './channel';
 
 type Step = SequenceInput['steps'][number] & { key: string };
 const newKey = () => Math.random().toString(36).slice(2);
@@ -82,66 +84,117 @@ export function SequenceEditor({ open, onOpenChange, sequence, onSaved }: { open
         </Button>
       }
     >
-      <div className="flex flex-col gap-4">
-        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_220px_auto] sm:items-end">
+      <div className="flex flex-col gap-5">
+        <div className="grid gap-3 rounded-card border border-border bg-surface-2/60 p-4 sm:grid-cols-[minmax(0,1fr)_220px_auto] sm:items-end">
           <Field label={t('editor.name')} required>
             <Input value={name} onChange={(e) => setName(e.target.value)} maxLength={120} />
           </Field>
           <Field label={t('trigger.label')}>
             <Select value={trigger} onChange={(e) => setTrigger(e.target.value as typeof trigger)} options={SEQUENCE_TRIGGERS.map((x) => ({ value: x, label: t(`trigger.${x}`) }))} />
           </Field>
-          <div className="pb-2">
+          <div className="pb-3">
             <Switch checked={active} onCheckedChange={setActive} label={active ? t('active') : t('inactive')} />
           </div>
         </div>
         <div>
-          <h3 className="mb-2 text-small font-medium">{t('editor.steps')}</h3>
-          <ol className="flex flex-col gap-3">
-            {steps.map((s, i) => (
-              <li key={s.key} className="rounded-card border border-border bg-bg p-3">
-                <div className="mb-2 flex flex-wrap items-center gap-2">
-                  <span className="grid size-6 place-items-center rounded-full bg-primary text-[12px] font-semibold text-primary-contrast tabular">{i + 1}</span>
-                  <label className="flex items-center gap-2 text-small">
-                    <span className="text-muted">{t('editor.delay')}</span>
-                    <Input type="number" min={0} max={365} value={s.delayDays} onChange={(e) => patch(s.key, { delayDays: Number(e.target.value) })} className="h-8 w-20 tabular" />
-                  </label>
-                  <Select aria-label={t('editor.channel')} value={s.channel} onChange={(e) => patch(s.key, { channel: e.target.value as Step['channel'] })} options={SEQUENCE_CHANNELS.map((c) => ({ value: c, label: t(`channels.${c}`) }))} className="h-8 w-36" />
-                  <div className="ml-auto flex gap-1">
-                    <IconButton size="sm" label={t('editor.moveUp')} disabled={i === 0} onClick={() => move(i, -1)}>
-                      <ArrowUp className="size-4" strokeWidth={1.5} />
-                    </IconButton>
-                    <IconButton size="sm" label={t('editor.moveDown')} disabled={i === steps.length - 1} onClick={() => move(i, 1)}>
-                      <ArrowDown className="size-4" strokeWidth={1.5} />
-                    </IconButton>
-                    <IconButton size="sm" label={t('editor.removeStep')} disabled={steps.length === 1} onClick={() => setSteps((x) => x.filter((y) => y.key !== s.key))}>
-                      <Trash2 className="size-4 text-danger" strokeWidth={1.5} />
-                    </IconButton>
+          <h3 className="mb-3 text-[15px] font-semibold">{t('editor.steps')}</h3>
+          <div className="mb-1 flex items-center gap-3">
+            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary text-primary-contrast shadow-sm" aria-hidden>
+              <Clock className="size-4" strokeWidth={2.2} />
+            </span>
+            <span className="rounded-full bg-primary-soft px-3 py-1 text-[13px] font-semibold text-primary-soft-text">{t(`trigger.${trigger}`)}</span>
+          </div>
+          <ol className="flex flex-col">
+            {steps.map((s, i) => {
+              const meta = CHANNEL_META[s.channel];
+              const Icon = meta.icon;
+              return (
+                <li key={s.key} className="relative pl-12">
+                  <span aria-hidden className="absolute bottom-0 left-[17px] top-0 w-0.5 bg-border" />
+                  <div className="relative flex items-center gap-2 py-2.5">
+                    <span aria-hidden className="absolute -left-[35px] size-2 rounded-full bg-border-strong ring-4 ring-surface" />
+                    <label className="inline-flex h-8 items-center gap-1.5 rounded-full border border-dashed border-border-strong bg-surface pl-3 pr-1 text-[13px] text-muted">
+                      <span>+</span>
+                      <Input type="number" min={0} max={365} value={s.delayDays} onChange={(e) => patch(s.key, { delayDays: Number(e.target.value) })} className="h-6 w-14 rounded-full border-0 bg-surface-2 px-2 text-center text-[13px] font-semibold tabular text-text" aria-label={`${t('editor.delay')} ${i + 1}`} />
+                      <span className="pr-2">{t('editor.delay')}</span>
+                    </label>
                   </div>
-                </div>
-                <Textarea ref={(el) => { areas.current[s.key] = el; }} aria-label={`${t('editor.template')} ${i + 1}`} value={s.template} onChange={(e) => patch(s.key, { template: e.target.value })} maxLength={1000} className="min-h-20" />
-                <div className="mt-2 flex flex-wrap items-center gap-1.5 text-small">
-                  <span className="text-muted">{t('editor.variables')}:</span>
-                  {(['name', 'agent', 'org'] as const).map((v) => (
-                    <button key={v} type="button" onClick={() => insertVar(s.key, v)} className="rounded-[4px] border border-border-strong px-1.5 py-0.5 text-[12px] hover:bg-surface-2">
-                      {`{${v}}`} · {t(`editor.vars.${v}`)}
-                    </button>
-                  ))}
-                </div>
-                <p className="mt-2 border-l-2 border-link pl-2 text-small text-muted">
-                  {t('editor.preview')}: {renderSequenceTemplate(s.template, sampleVars)}
-                </p>
-              </li>
-            ))}
+                  <div className="relative mb-1 rounded-card border border-border bg-surface p-3.5 shadow-xs">
+                    <span className={cn('absolute -left-[46px] top-3 grid size-9 place-items-center rounded-full bg-tone text-white shadow-sm ring-4 ring-surface', toneClass(meta.tone))} aria-hidden>
+                      <Icon className="size-4" strokeWidth={2.2} />
+                    </span>
+                    <div className="mb-3 flex flex-wrap items-center gap-2">
+                      <span className="text-[14px] font-semibold">{t('editor.step', { n: i + 1 })}</span>
+                      <div role="radiogroup" aria-label={t('editor.channel')} className="inline-flex gap-0.5 rounded-full bg-surface-2 p-0.5">
+                        {SEQUENCE_CHANNELS.map((c) => {
+                          const M = CHANNEL_META[c];
+                          const CIcon = M.icon;
+                          const on = c === s.channel;
+                          return (
+                            <button
+                              key={c}
+                              type="button"
+                              role="radio"
+                              aria-checked={on}
+                              onClick={() => patch(s.key, { channel: c })}
+                              className={cn('inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[12.5px] font-semibold transition-all', on ? cn('bg-surface text-tone-ink shadow-sm', toneClass(M.tone)) : 'text-muted hover:text-text')}
+                            >
+                              <CIcon className="size-3.5" strokeWidth={2} aria-hidden />
+                              {t(`channels.${c}`)}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div className="ml-auto flex gap-0.5">
+                        <IconButton size="sm" label={t('editor.moveUp')} disabled={i === 0} onClick={() => move(i, -1)}>
+                          <ArrowUp className="size-4" strokeWidth={2} />
+                        </IconButton>
+                        <IconButton size="sm" label={t('editor.moveDown')} disabled={i === steps.length - 1} onClick={() => move(i, 1)}>
+                          <ArrowDown className="size-4" strokeWidth={2} />
+                        </IconButton>
+                        <IconButton size="sm" label={t('editor.removeStep')} disabled={steps.length === 1} onClick={() => setSteps((x) => x.filter((y) => y.key !== s.key))}>
+                          <Trash2 className="size-4 text-danger" strokeWidth={2} />
+                        </IconButton>
+                      </div>
+                    </div>
+                    <Textarea
+                      ref={(el) => {
+                        areas.current[s.key] = el;
+                      }}
+                      aria-label={`${t('editor.template')} ${i + 1}`}
+                      value={s.template}
+                      onChange={(e) => patch(s.key, { template: e.target.value })}
+                      maxLength={1000}
+                      className="min-h-20"
+                    />
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[13px]">
+                      <span className="text-muted">{t('editor.variables')}:</span>
+                      {(['name', 'agent', 'org'] as const).map((v) => (
+                        <button key={v} type="button" onClick={() => insertVar(s.key, v)} className="inline-flex h-7 items-center gap-1 rounded-full bg-primary-soft px-2.5 text-[12.5px] font-medium text-primary-soft-text transition-colors hover:bg-primary-soft/70">
+                          <code className="font-semibold">{`{${v}}`}</code> · {t(`editor.vars.${v}`)}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="mt-3 flex gap-2">
+                      <span className="shrink-0 pt-1.5 text-[12px] font-semibold uppercase tracking-wide text-muted">{t('editor.preview')}</span>
+                      <p className="rounded-2xl rounded-tl-md bg-surface-2 px-3 py-2 text-[13.5px] leading-5">{renderSequenceTemplate(s.template, sampleVars) || '—'}</p>
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
           </ol>
-          <Button
-            variant="secondary"
-            size="sm"
-            className="mt-3"
-            icon={<Plus className="size-4" strokeWidth={1.5} aria-hidden />}
-            onClick={() => setSteps((x) => [...x, { key: newKey(), delayDays: (x.at(-1)?.delayDays ?? 0) + 3, channel: 'sms', template: '' }])}
-          >
-            {t('editor.addStep')}
-          </Button>
+          <div className="relative pl-12 pt-3">
+            <span aria-hidden className="absolute left-[17px] top-0 h-3 w-0.5 bg-border" />
+            <button
+              type="button"
+              onClick={() => setSteps((x) => [...x, { key: newKey(), delayDays: (x.at(-1)?.delayDays ?? 0) + 3, channel: 'sms', template: '' }])}
+              className="flex w-full items-center justify-center gap-2 rounded-card border-2 border-dashed border-border-strong py-3 text-[14px] font-semibold text-muted transition-colors hover:border-primary hover:bg-primary-soft/40 hover:text-primary-soft-text"
+            >
+              <Plus className="size-4" strokeWidth={2.4} aria-hidden />
+              {t('editor.addStep')}
+            </button>
+          </div>
         </div>
       </div>
     </Dialog>

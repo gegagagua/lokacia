@@ -3,10 +3,11 @@ import * as React from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { Camera, CloudUpload, LocateFixed, Mic, Square, Trash2, X } from 'lucide-react';
+import { Camera, Check, CloudUpload, FileText, LocateFixed, MapPin, Mic, Square, Trash2, X, type LucideIcon } from 'lucide-react';
 import { BUSINESS_TYPES, DEAL_TYPE_LABELS_KA, DEAL_TYPES, formatDateTimeKa } from '@lokacia/contracts';
-import { Badge, Button, Card, Field, Input, Select, Textarea, useToast } from '@lokacia/ui';
+import { Button, cn, Field, Input, Select, Textarea, useToast } from '@lokacia/ui';
 import { PageHeader } from '@/components/common/page-header';
+import { Pill, Progress, toneClass, type Tone } from '@/components/common/ui';
 import { useOnline } from '@/components/shell/offline-banner';
 import { useCrm } from '@/lib/crm-context';
 import { enqueue, flushQueue, installQueueAutoFlush, listQueue, onQueueChanged, removeCapture, sendCapture, type CaptureFields, type QueuedCapture } from '@/lib/offline-queue';
@@ -14,6 +15,22 @@ import { enqueue, flushQueue, installQueueAutoFlush, listQueue, onQueueChanged, 
 const MapView = dynamic(() => import('@lokacia/ui/map').then((m) => m.MapView), { ssr: false });
 const TBILISI = { lat: 41.7151, lng: 44.8271 };
 const MAX_AUDIO_MS = 120_000;
+
+function StepCard({ n, icon: Icon, tone, title, done, aside, children, className }: { n: number; icon: LucideIcon; tone: Tone; title: React.ReactNode; done: boolean; aside?: React.ReactNode; children: React.ReactNode; className?: string }) {
+  return (
+    <section className={cn('card flex flex-col gap-4 p-4 md:p-5', className)}>
+      <header className="flex flex-wrap items-center gap-3">
+        <span className={cn('relative grid size-11 shrink-0 place-items-center rounded-2xl bg-tone-soft text-tone-ink', toneClass(tone))} aria-hidden>
+          <Icon className="size-5" strokeWidth={2} />
+          <span className={cn('absolute -right-1.5 -top-1.5 grid size-5 place-items-center rounded-full text-[11px] font-bold ring-2 ring-surface tabular', done ? 'bg-success text-white' : 'bg-surface-3 text-muted')}>{done ? <Check className="size-3" strokeWidth={3} /> : n}</span>
+        </span>
+        <h2 className="min-w-[7rem] flex-1 text-[16px] font-semibold leading-6">{title}</h2>
+        {aside}
+      </header>
+      {children}
+    </section>
+  );
+}
 
 type Photo = { id: string; blob: Blob; name: string; url: string };
 
@@ -148,18 +165,24 @@ export function CaptureView() {
     }
   };
 
+  const fieldsDone = fields.title.trim().length >= 5 && fields.areaM2 > 0 && fields.priceGel > 0 && fields.address.trim().length >= 3;
+  const doneCount = [photos.length > 0, !!pos, !!audio, fieldsDone].filter(Boolean).length;
   const set = <K extends keyof CaptureFields>(k: K, v: CaptureFields[K]) => setFields((f) => ({ ...f, [k]: v }));
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4">
       <PageHeader title={t('title')} subtitle={t('subtitle')} className="mb-1" />
+      <div className="card flex items-center gap-3 p-3.5">
+        <span className="text-[13px] font-semibold tabular text-muted">{doneCount}/4</span>
+        <Progress value={(doneCount / 4) * 100} tone="primary" label={t('title')} className="h-2" />
+      </div>
 
       {queue.length > 0 && (
-        <Card className="flex flex-col gap-2 border-accent p-3" aria-live="polite">
+        <section className="card flex flex-col gap-2 border-accent/50 bg-accent-soft p-4" aria-live="polite">
           <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-2 font-medium">
-              <CloudUpload className="size-4" strokeWidth={1.5} aria-hidden />
-              {t('queue.title')} <Badge tone="accent">{queue.length}</Badge>
+            <h2 className="flex items-center gap-2 font-semibold">
+              <CloudUpload className="size-5" strokeWidth={2} aria-hidden />
+              {t('queue.title')} <Pill tone="accent">{queue.length}</Pill>
             </h2>
             <Button size="sm" variant="secondary" disabled={!online} onClick={() => void flushQueue().then(refreshQueue)}>
               {t('queue.sync')}
@@ -175,57 +198,61 @@ export function CaptureView() {
                   </span>
                   {q.error && <span className="block text-danger">{q.error}</span>}
                 </span>
-                <Badge tone={q.status === 'error' ? 'danger' : q.status === 'syncing' ? 'link' : 'outline'}>{t(`queue.${q.status === 'done' ? 'syncing' : q.status}`)}</Badge>
+                <Pill tone={q.status === 'error' ? 'danger' : q.status === 'syncing' ? 2 : 'neutral'} dot>{t(`queue.${q.status === 'done' ? 'syncing' : q.status}`)}</Pill>
                 <button type="button" aria-label={t('queue.remove')} className="grid size-9 place-items-center rounded-button text-muted hover:bg-surface-2" onClick={() => void removeCapture(q.id)}>
-                  <X className="size-4" strokeWidth={1.5} />
+                  <X className="size-4" strokeWidth={2} />
                 </button>
               </li>
             ))}
           </ul>
-        </Card>
+        </section>
       )}
 
       {saved && (
-        <Card role="status" className="flex flex-wrap items-center justify-between gap-2 border-success p-3">
-          <span>{saved.offline ? t('savedOffline') : t('savedOnline')}</span>
+        <div role="status" className="card flex flex-wrap items-center justify-between gap-2 border-success/40 bg-success/10 p-4">
+          <span className="flex items-center gap-2 font-medium">
+            <Check className="size-5 text-success" strokeWidth={2.4} aria-hidden />
+            {saved.offline ? t('savedOffline') : t('savedOnline')}
+          </span>
           {saved.listingId && (
             <Button asChild size="sm" variant="secondary">
               <Link href={`/listings/${saved.listingId}`}>{t('openListing')}</Link>
             </Button>
           )}
-        </Card>
+        </div>
       )}
 
-      <Card className="flex flex-col gap-3 p-4">
-        <div className="flex items-center justify-between">
-          <h2 className="font-medium">{t('photos.title')}</h2>
-          <span className="text-small text-muted tabular">{t('photos.count', { n: photos.length })}</span>
-        </div>
-        <Button size="lg" icon={<Camera className="size-5" strokeWidth={1.5} />} onClick={() => fileRef.current?.click()}>
+      <StepCard n={1} icon={Camera} tone={2} title={t('photos.title')} done={photos.length > 0} aside={<Pill tone="neutral">{t('photos.count', { n: photos.length })}</Pill>}>
+        <Button size="lg" icon={<Camera className="size-5" strokeWidth={2} />} onClick={() => fileRef.current?.click()}>
           {t('photos.take')}
         </Button>
         <input ref={fileRef} type="file" accept="image/*" capture="environment" multiple className="sr-only" onChange={(e) => { addPhotos(e.target.files); e.target.value = ''; }} />
         {photos.length > 0 && (
           <ul className="grid grid-cols-3 gap-2">
             {photos.map((p) => (
-              <li key={p.id} className="relative aspect-square overflow-hidden rounded-photo border border-border">
+              <li key={p.id} className="relative aspect-square overflow-hidden rounded-photo border border-border shadow-xs">
                 <img src={p.url} alt="" className="size-full object-cover" />
-                <button type="button" aria-label={t('photos.remove')} onClick={() => setPhotos((ps) => ps.filter((x) => x.id !== p.id))} className="absolute right-1 top-1 grid size-8 place-items-center rounded-[4px] bg-surface/90 text-danger">
-                  <Trash2 className="size-4" strokeWidth={1.5} />
+                <button type="button" aria-label={t('photos.remove')} onClick={() => setPhotos((ps) => ps.filter((x) => x.id !== p.id))} className="absolute right-1.5 top-1.5 grid size-8 place-items-center rounded-full bg-surface/95 text-danger shadow-sm">
+                  <Trash2 className="size-4" strokeWidth={2} />
                 </button>
               </li>
             ))}
           </ul>
         )}
-      </Card>
+      </StepCard>
 
-      <Card className="flex flex-col gap-3 p-4">
-        <div className="flex items-center justify-between gap-2">
-          <h2 className="font-medium">{t('gps.title')}</h2>
-          <Button size="sm" variant="secondary" loading={locating} icon={<LocateFixed className="size-4" strokeWidth={1.5} />} onClick={locate}>
+      <StepCard
+        n={2}
+        icon={MapPin}
+        tone={7}
+        title={t('gps.title')}
+        done={!!pos}
+        aside={
+          <Button size="sm" variant="secondary" loading={locating} icon={<LocateFixed className="size-4" strokeWidth={2} />} onClick={locate}>
             {locating ? t('gps.detecting') : t('gps.detect')}
           </Button>
-        </div>
+        }
+      >
         {pos && (
           <p className="text-small text-muted tabular">
             {pos.lat.toFixed(5)}, {pos.lng.toFixed(5)}
@@ -234,37 +261,36 @@ export function CaptureView() {
         )}
         {errors.location && <p className="text-small text-danger">{errors.location}</p>}
         {online && (
-          <div className="h-56">
+          <div className="h-56 overflow-hidden rounded-2xl border border-border">
             <MapView center={pos ? [pos.lng, pos.lat] : [TBILISI.lng, TBILISI.lat]} zoom={15} draggablePin={pos} onPinMove={(p) => setPos({ ...p })} onMapClick={(p) => setPos({ ...p })} ariaLabel={t('gps.mapHint')} />
           </div>
         )}
         {online && <p className="text-small text-muted">{t('gps.mapHint')}</p>}
-      </Card>
+      </StepCard>
 
-      <Card className="flex flex-col gap-3 p-4">
-        <h2 className="font-medium">{t('voice.title')}</h2>
+      <StepCard n={3} icon={Mic} tone={5} title={t('voice.title')} done={!!audio}>
         <div className="flex flex-wrap items-center gap-2">
           {recording ? (
-            <Button size="lg" variant="danger" icon={<Square className="size-4" strokeWidth={1.5} />} onClick={() => recorder.current?.stop()}>
+            <Button size="lg" variant="danger" icon={<Square className="size-4" strokeWidth={2} />} onClick={() => recorder.current?.stop()}>
               {t('voice.stop')} <span className="tabular">{Math.floor(elapsed / 1000)}″</span>
             </Button>
           ) : (
-            <Button size="lg" variant="secondary" icon={<Mic className="size-5" strokeWidth={1.5} />} onClick={startRecording}>
+            <Button size="lg" variant="secondary" icon={<Mic className="size-5" strokeWidth={2} />} onClick={startRecording}>
               {t('voice.record')}
             </Button>
           )}
           {audio && !recording && (
             <>
               <audio controls src={audio.url} className="h-10 max-w-full" />
-              <Button size="sm" variant="ghost" icon={<Trash2 className="size-4" strokeWidth={1.5} />} onClick={() => setAudio(null)}>
+              <Button size="sm" variant="ghost" icon={<Trash2 className="size-4" strokeWidth={2} />} onClick={() => setAudio(null)}>
                 {t('voice.remove')}
               </Button>
             </>
           )}
         </div>
-      </Card>
+      </StepCard>
 
-      <Card className="flex flex-col gap-3 p-4">
+      <StepCard n={4} icon={FileText} tone={1} title={t('detailsTitle')} done={fieldsDone}>
         <Field label={t('fields.title')} error={errors.title} required>
           <Input value={fields.title} onChange={(e) => set('title', e.target.value)} placeholder={t('fields.titlePlaceholder')} className="h-12" />
         </Field>
@@ -288,10 +314,10 @@ export function CaptureView() {
         <Field label={t('fields.note')}>
           <Textarea value={fields.note} onChange={(e) => set('note', e.target.value)} />
         </Field>
-      </Card>
+      </StepCard>
 
       <div className="sticky bottom-16 z-10 md:bottom-4">
-        <Button size="lg" className="w-full" onClick={save} loading={saving}>
+        <Button size="lg" className="w-full shadow-lg" onClick={save} loading={saving}>
           {saving ? t('saving') : t('save')}
         </Button>
       </div>

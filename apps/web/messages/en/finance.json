@@ -37,5 +37,19 @@
     "sent": "Under partner review",
     "approved": "Approved",
     "rejected": "Rejected"
+  },
+  "eyebrow": "Financial partners",
+  "partner": "Partner",
+  "how": {
+    "title": "How it works",
+    "step": "Step {n}",
+    "s1": "Choose a product and amount",
+    "s2": "Your application goes to the partner",
+    "s3": "The partner contacts you"
+  },
+  "kindLead": {
+    "fitout_loan": "Renovation and equipment — with a grace period.",
+    "leasing": "Equipment on lease with monthly payments.",
+    "insurance": "Property and liability insurance."
   }
 }

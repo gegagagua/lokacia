@@ -1,9 +1,10 @@
+import { getSession } from '@/lib/session';
 import Link from '@/i18n/link';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { BadgeCheck, CalendarClock, Globe, MapPin } from 'lucide-react';
-import { Avatar, Badge, EmptyState, Stat } from '@lokacia/ui';
+import { BadgeCheck, Building2, CalendarClock, Globe, Handshake, MapPin, Users } from 'lucide-react';
+import { Avatar, Badge, EmptyState } from '@lokacia/ui';
 import { getAgency, getNames } from '@/components/portal/data';
 import { FavoritesProvider } from '@/components/portal/favorites';
 import { ListingGrid } from '@/components/portal/listing-card-link';
@@ -11,6 +12,7 @@ import { ReviewForm } from '@/components/portal/profiles/review-form';
 import { ReviewsList } from '@/components/portal/profiles/reviews';
 import { Stars } from '@/components/portal/profiles/stars';
 import { Breadcrumbs, JsonLd, pageMetadata } from '@/components/portal/seo';
+import { HeroGlow, IconTile, SectionHead, StatTile } from '@/components/portal/page-hero';
 import { absUrl } from '@/lib/site';
 import { getFormat } from '@/i18n/server';
 
@@ -32,64 +34,68 @@ export default async function AgencyPage({ params }: Props) {
   if (!a) notFound();
   const website = a.website ? (a.website.startsWith('http') ? a.website : `https://${a.website}`) : null;
   return (
-    <div className="container-page py-8 md:py-12">
-      <Breadcrumbs items={[{ name: t('breadcrumbHome'), href: '/' }, { name: a.name, href: `/agency/${a.slug}` }]} className="mb-4" />
-      <section className="drawing-grid flex flex-col gap-5 rounded-card border border-border bg-bg p-5 sm:flex-row sm:items-start md:p-8">
-        <Avatar src={a.logoUrl} name={a.name} size={96} className="bg-surface" />
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge tone="outline">{t(`orgType.${a.type}`)}</Badge>
-            {a.verified && (
-              <Badge tone="success" icon={<BadgeCheck className="size-3.5" strokeWidth={1.5} aria-hidden />}>
-                {t('verified')}
-              </Badge>
-            )}
+    <>
+      <section className="relative isolate overflow-hidden border-b border-border bg-surface">
+        <HeroGlow />
+        <div className="container-page relative pb-10 pt-6 md:pb-12 md:pt-8">
+          <Breadcrumbs items={[{ name: t('breadcrumbHome'), href: '/' }, { name: a.name, href: `/agency/${a.slug}` }]} className="mb-6 md:mb-8" />
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+            <Avatar src={a.logoUrl} name={a.name} size={112} className="rounded-[28px] shadow-md ring-4 ring-surface" />
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge tone="primary">{t(`orgType.${a.type}`)}</Badge>
+                {a.verified && (
+                  <Badge tone="success" icon={<BadgeCheck className="size-3.5" strokeWidth={2} aria-hidden />}>
+                    {t('verified')}
+                  </Badge>
+                )}
+              </div>
+              <h1 className="mt-3 text-[32px] font-bold leading-[40px] tracking-tight md:text-h1">{a.name}</h1>
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-[15px] text-muted">
+                {a.rating != null ? (
+                  <>
+                    <Stars value={a.rating} label={t('review.stars', { n: a.rating })} />
+                    <span className="font-semibold tabular text-text">{a.rating.toFixed(1).replace('.', f.locale === 'en' ? '.' : ',')}</span>
+                    <span>· {t('reviewsCount', { n: a.reviewsCount })}</span>
+                  </>
+                ) : (
+                  <span>{t('noRating')}</span>
+                )}
+                <span>· {t('memberSince', { date: f.date(a.memberSince) })}</span>
+              </div>
+              {a.about && <p className="mt-3 max-w-2xl text-[16.5px]">{a.about}</p>}
+              <ul className="mt-4 flex flex-wrap gap-2 text-[15px]">
+                {a.address && (
+                  <li className="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1 shadow-xs ring-1 ring-border">
+                    <MapPin className="size-4 text-primary-500" strokeWidth={2} aria-hidden />
+                    <span className="sr-only">{t('address')}: </span>
+                    {a.address}
+                  </li>
+                )}
+                {website && (
+                  <li className="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1 shadow-xs ring-1 ring-border">
+                    <Globe className="size-4 text-link" strokeWidth={2} aria-hidden />
+                    <a href={website} rel="noopener nofollow" target="_blank" className="font-medium text-link hover:underline">
+                      {a.website}
+                    </a>
+                  </li>
+                )}
+              </ul>
+            </div>
           </div>
-          <h1 className="mt-2 text-h2 font-semibold md:text-h1">{a.name}</h1>
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-small text-muted">
-            {a.rating != null ? (
-              <>
-                <Stars value={a.rating} label={t('review.stars', { n: a.rating })} />
-                <span className="tabular text-text">{a.rating.toFixed(1).replace('.', f.locale === 'en' ? '.' : ',')}</span>
-                <span>· {t('reviewsCount', { n: a.reviewsCount })}</span>
-              </>
-            ) : (
-              <span>{t('noRating')}</span>
-            )}
-            <span>· {t('memberSince', { date: f.date(a.memberSince) })}</span>
-          </div>
-          {a.about && <p className="mt-3 max-w-2xl">{a.about}</p>}
-          <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-[15px]">
-            {a.address && (
-              <li className="flex items-center gap-1.5">
-                <MapPin className="size-4 text-muted" strokeWidth={1.5} aria-hidden />
-                <span className="sr-only">{t('address')}: </span>
-                {a.address}
-              </li>
-            )}
-            {website && (
-              <li className="flex items-center gap-1.5">
-                <Globe className="size-4 text-muted" strokeWidth={1.5} aria-hidden />
-                <a href={website} rel="noopener nofollow" target="_blank" className="text-link hover:underline">
-                  {a.website}
-                </a>
-              </li>
-            )}
-          </ul>
         </div>
       </section>
 
-      <dl className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <Stat label={t('stats.active')} value={a.stats.active} />
-        <Stat label={t('stats.closed')} value={a.stats.closed} />
-        <Stat label={t('team')} value={a.team.length} className="col-span-2 sm:col-span-1" />
+      <div className="container-page py-10 md:py-12">
+      <dl className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <StatTile icon={<Building2 className="size-5" strokeWidth={2} aria-hidden />} label={t('stats.active')} value={a.stats.active} />
+        <StatTile icon={<Handshake className="size-5" strokeWidth={2} aria-hidden />} label={t('stats.closed')} value={a.stats.closed} tone="accent" />
+        <StatTile icon={<Users className="size-5" strokeWidth={2} aria-hidden />} label={t('team')} value={a.team.length} tone="link" />
       </dl>
 
       {a.team.length > 0 && (
-        <section className="mt-10" aria-labelledby="team">
-          <h2 id="team" className="mb-4 text-h3 font-semibold md:text-h2">
-            {t('team')}
-          </h2>
+        <section className="mt-12 md:mt-16" aria-labelledby="team">
+          <SectionHead id="team" title={t('team')} />
           <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {a.team.map((m) => {
               const inner = (
@@ -106,11 +112,11 @@ export default async function AgencyPage({ params }: Props) {
               return (
                 <li key={m.id}>
                   {m.slug ? (
-                    <Link href={`/broker/${m.slug}`} className="flex items-center gap-3 rounded-card border border-border bg-surface p-3 hover:border-border-strong">
+                    <Link href={`/broker/${m.slug}`} className="card card-hover flex items-center gap-3 p-4">
                       {inner}
                     </Link>
                   ) : (
-                    <div className="flex items-center gap-3 rounded-card border border-border bg-surface p-3">{inner}</div>
+                    <div className="card flex items-center gap-3 p-4">{inner}</div>
                   )}
                 </li>
               );
@@ -120,18 +126,21 @@ export default async function AgencyPage({ params }: Props) {
       )}
 
       {a.projects.length > 0 && (
-        <section className="mt-10" aria-labelledby="projects">
-          <h2 id="projects" className="mb-4 text-h3 font-semibold md:text-h2">
-            {t('projects')}
-          </h2>
+        <section className="mt-12 md:mt-16" aria-labelledby="projects">
+          <SectionHead id="projects" title={t('projects')} />
           <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {a.projects.map((p) => (
               <li key={p.slug}>
-                <Link href={`/projects/${p.slug}`} className="flex flex-col gap-1 rounded-card border border-border bg-surface p-4 hover:border-border-strong">
-                  <span className="font-medium">{p.name}</span>
+                <Link href={`/projects/${p.slug}`} className="card card-hover flex items-center gap-3 p-4">
+                  <IconTile>
+                    <Building2 className="size-5" strokeWidth={2} aria-hidden />
+                  </IconTile>
+                  <span className="flex min-w-0 flex-col gap-0.5">
+                  <span className="truncate font-semibold">{p.name}</span>
                   <span className="flex items-center gap-1.5 text-small text-muted">
                     <CalendarClock className="size-3.5" strokeWidth={1.5} aria-hidden />
                     {t('completion', { date: f.date(p.completionDate) })}
+                  </span>
                   </span>
                 </Link>
               </li>
@@ -140,12 +149,17 @@ export default async function AgencyPage({ params }: Props) {
         </section>
       )}
 
-      <section className="mt-10" aria-labelledby="listings">
-        <h2 id="listings" className="mb-4 text-h3 font-semibold md:text-h2">
-          {t('listings')} <span className="tabular text-muted">({a.stats.active})</span>
-        </h2>
+      <section className="mt-12 md:mt-16" aria-labelledby="listings">
+        <SectionHead
+          id="listings"
+          title={
+            <>
+              {t('listings')} <span className="tabular text-muted">({a.stats.active})</span>
+            </>
+          }
+        />
         {a.listings.length ? (
-          <FavoritesProvider>
+          <FavoritesProvider loggedIn={!!(await getSession())}>
             <ListingGrid listings={a.listings} typeNames={names.typeNames} />
           </FavoritesProvider>
         ) : (
@@ -153,17 +167,23 @@ export default async function AgencyPage({ params }: Props) {
         )}
       </section>
 
-      <section className="mt-10 grid gap-6 lg:grid-cols-[1.5fr_1fr]" aria-labelledby="reviews">
+      <section className="mt-12 grid gap-6 md:mt-16 lg:grid-cols-[1.5fr_1fr]" aria-labelledby="reviews">
         <div>
-          <h2 id="reviews" className="mb-4 text-h3 font-semibold md:text-h2">
-            {t('reviews')} <span className="tabular text-muted">({a.reviewsCount})</span>
-          </h2>
+          <SectionHead
+            id="reviews"
+            title={
+              <>
+                {t('reviews')} <span className="tabular text-muted">({a.reviewsCount})</span>
+              </>
+            }
+          />
           <ReviewsList reviews={a.reviews} />
         </div>
-        <div className="lg:pt-12">
+        <div className="lg:pt-[72px]">
           <ReviewForm endpoint={`/profiles/agencies/${a.slug}/reviews`} />
         </div>
       </section>
+      </div>
 
       <JsonLd
         data={{
@@ -179,6 +199,6 @@ export default async function AgencyPage({ params }: Props) {
           ...(a.rating != null && a.reviewsCount ? { aggregateRating: { '@type': 'AggregateRating', ratingValue: a.rating, reviewCount: a.reviewsCount, bestRating: 5, worstRating: 1 } } : {}),
         }}
       />
-    </div>
+    </>
   );
 }

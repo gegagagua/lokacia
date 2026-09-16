@@ -59,5 +59,6 @@
   "completion": "დასრულება: {date}",
   "breadcrumbHome": "მთავარი",
   "brokerNotFound": "ბროკერი ვერ მოიძებნა",
-  "orgNotFound": "ორგანიზაცია ვერ მოიძებნა"
+  "orgNotFound": "ორგანიზაცია ვერ მოიძებნა",
+  "brokersEyebrow": "ვერიფიცირებული პროფესიონალები"
 }

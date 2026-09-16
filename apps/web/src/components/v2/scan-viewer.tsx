@@ -115,7 +115,7 @@ export default function ScanViewer({ scan, onError }: { scan: ScanDto; onError: 
   }, [scan, onError]);
 
   return (
-    <div ref={ref} className="relative h-[320px] w-full overflow-hidden rounded-photo border border-border bg-surface-2 md:h-[420px]" role="img" aria-label={t('viewerLabel')}>
+    <div ref={ref} className="relative h-[320px] w-full overflow-hidden rounded-photo border border-border bg-[radial-gradient(ellipse_at_center,var(--surface),var(--surface-2))] md:h-[440px]" role="img" aria-label={t('viewerLabel')}>
       {loading && <p className="absolute inset-0 grid place-items-center text-small text-muted">{t('loading')}</p>}
     </div>
   );

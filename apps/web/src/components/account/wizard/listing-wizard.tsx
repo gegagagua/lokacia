@@ -3,7 +3,7 @@ import * as React from 'react';
 import Link, { useLocalizedPath } from '@/i18n/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Check } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Banknote, Check, ClipboardCheck, ClipboardList, CloudCheck, ExternalLink, HardDrive, History, Images, LayoutGrid, Loader2, MapPin, PenLine, Save, Send, TriangleAlert } from 'lucide-react';
 import { PASSPORT_FIELD_BY_KEY, type ListingDetail, type PassportKey, type SessionUser } from '@lokacia/contracts';
 import { Button, cn, useToast } from '@lokacia/ui';
 import { apiFetch, ClientApiError } from '@/lib/api-client';
@@ -22,6 +22,8 @@ import {
   type BusinessTypeOption, type ExistingListing, type ListingPayload, type StepKey, type WizardForm,
 } from './types';
 import { OwnerVerification } from './verification';
+
+const STEP_ICONS: Record<StepKey, typeof Check> = { type: LayoutGrid, location: MapPin, passport: ClipboardList, media: Images, price: Banknote, describe: PenLine, review: ClipboardCheck };
 
 type SaveState = { kind: 'idle' } | { kind: 'saving' } | { kind: 'saved'; at: Date } | { kind: 'local' } | { kind: 'error'; message: string };
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -297,11 +299,13 @@ export function ListingWizard({ user, types, detail, initialStep }: { user: Sess
   const saveText =
     save.kind === 'saving' ? t('save.saving') : save.kind === 'saved' ? t('save.saved', { time: `${pad(save.at.getHours())}:${pad(save.at.getMinutes())}` }) : save.kind === 'local' ? t('save.local') : save.kind === 'error' ? t('save.error', { message: save.message }) : '';
 
+  const progress = Math.round(((step + 1) / STEP_KEYS.length) * 100);
+
   return (
     <div>
       <AccountPageHeader
         back={
-          <Link href="/account/listings" className="text-link underline-offset-4 hover:underline">
+          <Link href="/account/listings" className="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-muted shadow-xs ring-1 ring-border transition-colors hover:text-text">
             {t('backToListings')}
           </Link>
         }
@@ -310,7 +314,10 @@ export function ListingWizard({ user, types, detail, initialStep }: { user: Sess
         actions={
           existing && status && status !== 'draft' ? (
             <Button asChild variant="secondary" size="sm">
-              <Link href={`/listings/${existing.slug}`}>{t('actions.viewListing')}</Link>
+              <Link href={`/listings/${existing.slug}`}>
+                <ExternalLink className="size-4" strokeWidth={2} aria-hidden />
+                {t('actions.viewListing')}
+              </Link>
             </Button>
           ) : undefined
         }
@@ -319,16 +326,22 @@ export function ListingWizard({ user, types, detail, initialStep }: { user: Sess
       {(status || restored) && (
         <div className="mb-4 flex flex-wrap items-center gap-2 text-small">
           {status && (
-            <>
-              <span className="text-muted">{t('status.label')}:</span>
+            <span className="inline-flex items-center gap-2 rounded-full bg-surface py-1 pl-3 pr-1 shadow-xs ring-1 ring-border">
+              <span className="text-muted">{t('status.label')}</span>
               <ListingStatusBadge status={status} />
-            </>
+            </span>
           )}
-          {existing?.rejectReason && status === 'rejected' && <span className="w-full text-danger">{t('status.rejectReason', { reason: existing.rejectReason })}</span>}
+          {existing?.rejectReason && status === 'rejected' && (
+            <p className="flex w-full items-start gap-2 rounded-2xl bg-danger/10 px-4 py-3 font-medium text-danger">
+              <TriangleAlert className="mt-0.5 size-4 shrink-0" strokeWidth={2} aria-hidden />
+              {t('status.rejectReason', { reason: existing.rejectReason })}
+            </p>
+          )}
           {restored && !existing && (
-            <span className="flex items-center gap-2 text-muted">
+            <span className="inline-flex flex-wrap items-center gap-2 rounded-full bg-link/10 py-1 pl-3 pr-1 text-link">
+              <History className="size-4" strokeWidth={2} aria-hidden />
               {t('save.restored')}
-              <Button variant="link" size="sm" onClick={discardLocal}>
+              <Button variant="ghost" size="sm" className="h-7 rounded-full bg-surface px-3 text-text" onClick={discardLocal}>
                 {t('save.discard')}
               </Button>
             </span>
@@ -336,25 +349,35 @@ export function ListingWizard({ user, types, detail, initialStep }: { user: Sess
         </div>
       )}
 
-      <nav aria-label={t('stepNav')} className="-mx-4 mb-6 overflow-x-auto px-4">
-        <ol className="flex min-w-max items-center gap-1.5 sm:min-w-0">
+      <nav aria-label={t('stepNav')} className="card mb-6 p-3 sm:p-4">
+        <div className="mb-3 flex items-center justify-between gap-3 px-1">
+          <span className="text-[13px] font-semibold text-muted">{t('stepOf', { current: step + 1, total: STEP_KEYS.length })}</span>
+          <span className="text-[13px] font-bold tabular text-primary-soft-text">{progress}%</span>
+        </div>
+        <div className="mx-1 mb-3 h-1.5 overflow-hidden rounded-full bg-surface-2" aria-hidden>
+          <div className="h-full rounded-full bg-[linear-gradient(90deg,var(--primary),var(--primary-500))] transition-all duration-500 ease-out" style={{ width: `${progress}%` }} />
+        </div>
+        <ol className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none]">
           {STEP_KEYS.map((s, i) => {
             const state = i === step ? 'current' : i <= reached ? 'done' : 'todo';
+            const Icon = STEP_ICONS[s];
             return (
-              <li key={s} className="flex items-center gap-1.5">
+              <li key={s} className="min-w-0 shrink-0 md:flex-1">
                 <button
                   type="button"
                   disabled={i > reached}
                   onClick={() => goTo(i)}
                   aria-current={state === 'current' ? 'step' : undefined}
-                  className={cn('flex h-9 items-center gap-2 whitespace-nowrap rounded-button px-2 text-small transition-colors disabled:cursor-not-allowed', state === 'current' ? 'bg-surface-2 font-medium' : 'hover:bg-surface-2', state === 'todo' && 'text-muted')}
+                  className={cn(
+                    'flex h-11 w-full items-center gap-2 rounded-xl px-2.5 text-[14px] font-semibold transition-all duration-200 focus-visible:shadow-ring focus-visible:outline-none disabled:cursor-not-allowed md:h-auto md:flex-col md:gap-1.5 md:px-1 md:py-2 md:text-[12.5px] md:leading-tight',
+                    state === 'current' ? 'bg-primary-soft text-primary-soft-text' : state === 'done' ? 'text-text hover:bg-surface-2' : 'text-muted',
+                  )}
                 >
-                  <span className={cn('grid size-6 shrink-0 place-items-center rounded-full border text-[12px] tabular', state === 'current' && 'border-primary text-primary', state === 'done' && 'border-primary bg-primary text-primary-contrast', state === 'todo' && 'border-border-strong')}>
-                    {state === 'done' ? <Check className="size-3.5" strokeWidth={2} aria-hidden /> : i + 1}
+                  <span className={cn('grid size-7 shrink-0 place-items-center rounded-full text-[12px] tabular transition-colors md:size-8', state === 'current' && 'bg-primary text-primary-contrast shadow-sm', state === 'done' && 'bg-success/15 text-success', state === 'todo' && 'bg-surface-2 text-muted')}>
+                    {state === 'done' ? <Check className="size-3.5" strokeWidth={3} aria-hidden /> : state === 'current' ? <Icon className="size-3.5" strokeWidth={2.25} aria-hidden /> : i + 1}
                   </span>
-                  <span className={cn(state === 'current' ? 'inline' : 'hidden md:inline')}>{ts(s)}</span>
+                  <span className={cn(state === 'current' ? 'inline whitespace-nowrap' : 'hidden', 'md:line-clamp-2 md:block md:whitespace-normal md:text-center')}>{ts(s)}</span>
                 </button>
-                {i < STEP_KEYS.length - 1 && <span aria-hidden className={cn('h-px w-3 sm:w-5', i < reached ? 'bg-primary' : 'bg-border-strong')} />}
               </li>
             );
           })}
@@ -362,7 +385,6 @@ export function ListingWizard({ user, types, detail, initialStep }: { user: Sess
       </nav>
 
       <div ref={headingRef} tabIndex={-1} className="scroll-mt-24 outline-none">
-        <p className="mb-3 text-small text-muted">{t('stepOf', { current: step + 1, total: STEP_KEYS.length })}</p>
         {key === 'type' && <StepType form={form} set={set} types={types} user={user} isEdit={isEdit} errors={errors} />}
         {key === 'location' && <StepLocation form={form} set={set} errors={errors} />}
         {key === 'passport' && <StepPassport form={form} update={update} types={types} errors={errors} />}
@@ -376,23 +398,29 @@ export function ListingWizard({ user, types, detail, initialStep }: { user: Sess
         )}
       </div>
 
-      <div className="sticky bottom-0 z-10 -mx-4 mt-6 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-bg/85">
-        <div className="flex flex-wrap items-center gap-2">
+      <div className="sticky bottom-3 z-20 mt-6">
+        <div className="flex flex-wrap items-center gap-2 rounded-card border border-border bg-surface/95 p-2.5 shadow-lg backdrop-blur-xl sm:p-3">
           {step > 0 && (
-            <Button variant="ghost" onClick={() => goTo(step - 1)}>
-              {t('actions.back')}
+            <Button variant="ghost" onClick={() => goTo(step - 1)} icon={<ArrowLeft className="size-4" strokeWidth={2} aria-hidden />}>
+              <span className="hidden sm:inline">{t('actions.back')}</span>
+              <span className="sr-only sm:hidden">{t('actions.back')}</span>
             </Button>
           )}
-          <span className={cn('order-last w-full text-small sm:order-none sm:w-auto sm:flex-1', save.kind === 'error' ? 'text-danger' : 'text-muted')} aria-live="polite">
-            {saveText}
+          <span className={cn('order-last flex w-full items-center gap-2 px-2 text-[13px] sm:order-none sm:w-auto sm:flex-1', save.kind === 'error' ? 'text-danger' : 'text-muted')} aria-live="polite">
+            {save.kind === 'saving' ? <Loader2 className="size-3.5 animate-spin" strokeWidth={2} aria-hidden /> : save.kind === 'saved' ? <CloudCheck className="size-4 text-success" strokeWidth={2} aria-hidden /> : save.kind === 'error' ? <TriangleAlert className="size-4" strokeWidth={2} aria-hidden /> : save.kind === 'local' ? <HardDrive className="size-4" strokeWidth={2} aria-hidden /> : null}
+            <span className="line-clamp-2">{saveText}</span>
           </span>
-          <Button variant="secondary" onClick={() => void saveNow()} className="ml-auto sm:ml-0">
-            {isEdit && status !== 'draft' ? t('actions.saveChanges') : t('actions.saveDraft')}
+          <Button variant="secondary" onClick={() => void saveNow()} className="ml-auto sm:ml-0" icon={<Save className="size-4" strokeWidth={2} aria-hidden />}>
+            <span className="hidden sm:inline">{isEdit && status !== 'draft' ? t('actions.saveChanges') : t('actions.saveDraft')}</span>
+            <span className="sr-only sm:hidden">{isEdit && status !== 'draft' ? t('actions.saveChanges') : t('actions.saveDraft')}</span>
           </Button>
           {key !== 'review' ? (
-            <Button onClick={next}>{t('actions.next')}</Button>
+            <Button onClick={next}>
+              {t('actions.next')}
+              <ArrowRight className="size-4" strokeWidth={2} aria-hidden />
+            </Button>
           ) : (
-            <Button onClick={() => void submit()} loading={submitting}>
+            <Button variant="accent" onClick={() => void submit()} loading={submitting} icon={<Send className="size-4" strokeWidth={2} aria-hidden />}>
               {canResubmit ? (status === 'rejected' ? t('actions.resubmit') : t('actions.publish')) : t('actions.saveChanges')}
             </Button>
           )}

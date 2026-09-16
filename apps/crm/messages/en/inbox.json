@@ -2,7 +2,9 @@
   "title": "Messages",
   "subtitle": "lokacia.ge chat, WhatsApp, Viber and Telegram in one window",
   "search": "Search conversations",
-  "channels": { "all": "All channels" },
+  "channels": {
+    "all": "All channels"
+  },
   "empty": "No conversations yet",
   "emptyHint": "Messages from lokacia.ge and messengers will appear here.",
   "select": "Select a conversation",
@@ -30,5 +32,6 @@
     "text": "Text",
     "submit": "Receive message",
     "done": "Message received"
-  }
+  },
+  "conversations": "Conversations"
 }

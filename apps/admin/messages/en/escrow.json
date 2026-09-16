@@ -26,5 +26,7 @@
   "recheck": "Check again",
   "balanced": "All {count} transactions are balanced",
   "unbalanced": "Imbalance: {count} transactions",
-  "balances": "Account balances"
+  "balances": "Account balances",
+  "signed": "Signed",
+  "notSigned": "Awaiting signature"
 }

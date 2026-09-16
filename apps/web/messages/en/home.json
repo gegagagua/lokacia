@@ -9,12 +9,19 @@
     "lead": "Describe what you need — we'll fill in the filters. Every space comes with a technical passport, location analytics and a last-confirmed date.",
     "publish": "List your space",
     "browse": "All spaces",
-    "planCaption": "Every space has a floor plan: dimensions, ceiling, power capacity"
+    "planCaption": "Every space has a floor plan: dimensions, ceiling, power capacity",
+    "titleA": "Will",
+    "titleB": "my business",
+    "titleC": "work here?",
+    "live": "{count} active spaces",
+    "collageCaption": "Floor plan, dimensions and power",
+    "confirmedToday": "Availability confirmed"
   },
   "types": {
     "title": "By business type",
     "subtitle": "Each type has its own filters: extraction hood, gas, gate width, shop window.",
-    "count": "Spaces: {count}"
+    "count": "Spaces: {count}",
+    "eyebrow": "Categories"
   },
   "stats": {
     "title": "Numbers in real time",
@@ -27,7 +34,9 @@
   },
   "fresh": {
     "title": "New and VIP spaces",
-    "all": "View all"
+    "all": "View all",
+    "eyebrow": "New listings",
+    "subtitle": "Recently added and VIP spaces — with photos, a floor plan and a technical passport."
   },
   "districts": {
     "title": "Prices by district",
@@ -35,7 +44,10 @@
     "district": "District",
     "price": "Price per m²",
     "active": "Spaces",
-    "map": "Price map"
+    "map": "Price map",
+    "eyebrow": "Market analytics",
+    "count": "{count} spaces",
+    "perM2": "/ m²"
   },
   "how": {
     "title": "How it works",
@@ -53,7 +65,9 @@
     "b3": "Public profile, reviews and presentations for clients",
     "tenantsCta": "Start searching",
     "ownersCta": "List your space",
-    "brokersCta": "CRM pricing"
+    "brokersCta": "CRM pricing",
+    "eyebrow": "Three steps",
+    "subtitle": "One platform for businesses, owners and brokers."
   },
   "demand": {
     "title": "Businesses looking for space",
@@ -62,7 +76,9 @@
     "add": "Add a request",
     "budget": "Budget up to {amount}",
     "area": "{min}–{max} m²",
-    "empty": "No active requests right now"
+    "empty": "No active requests right now",
+    "eyebrow": "Demand board",
+    "active": "{count} active requests"
   },
   "cta": {
     "ownerTitle": "Is your space vacant?",
@@ -70,7 +86,9 @@
     "ownerCta": "List your space",
     "brokerTitle": "Broker or agency?",
     "brokerLead": "CRM with a kanban board, viewing calendar, XML feed and client portal.",
-    "brokerCta": "View pricing"
+    "brokerCta": "View pricing",
+    "ownerEyebrow": "For owners",
+    "brokerEyebrow": "For brokers and agencies"
   },
   "errors": {
     "notFoundTitle": "Page not found",
@@ -81,5 +99,20 @@
     "errorLead": "We couldn't display the page. Please try again — if the error persists, come back later.",
     "retry": "Try again",
     "code": "Error code: {digest}"
+  },
+  "faq": {
+    "eyebrow": "FAQ",
+    "title": "Questions and answers",
+    "subtitle": "Can't find an answer? Write to us — we're happy to help.",
+    "q1": "What is a technical passport?",
+    "a1": "All technical specs of a space in one place: area, ceiling height, power capacity, shop window, hood, gas and more — so you know whether it fits your business before the viewing.",
+    "q2": "How up to date are the listings?",
+    "a2": "Every listing shows its last-confirmed date. Owners and brokers confirm with one click that the space is still available.",
+    "q3": "How does text search work?",
+    "a3": "Describe what you need, e.g. “café in Vake, 80 m², up to 3,000 ₾”. We turn the text into filters you can adjust before searching.",
+    "q4": "How do I list a space?",
+    "a4": "Sign in with your phone number, upload photos, fill in the technical passport and set a price. You'll get a price recommendation based on the district average.",
+    "q5": "What does lokacia.ge offer brokers?",
+    "a5": "A CRM with a kanban board, a viewings calendar, an XML feed, a public profile with reviews and a client portal."
   }
 }

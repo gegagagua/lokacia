@@ -2,7 +2,9 @@
   "title": "Сообщения",
   "subtitle": "Чат lokacia.ge, WhatsApp, Viber и Telegram в одном окне",
   "search": "Поиск разговоров",
-  "channels": { "all": "Все каналы" },
+  "channels": {
+    "all": "Все каналы"
+  },
   "empty": "Разговоров пока нет",
   "emptyHint": "Здесь появятся сообщения с lokacia.ge и из мессенджеров.",
   "select": "Выберите разговор",
@@ -30,5 +32,6 @@
     "text": "Текст",
     "submit": "Получить сообщение",
     "done": "Сообщение получено"
-  }
+  },
+  "conversations": "Диалоги"
 }

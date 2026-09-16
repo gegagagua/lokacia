@@ -2,12 +2,42 @@
   "title": "Co-brokerage",
   "subtitle": "Share a space with another agency with a pre-agreed commission split.",
   "share": "Share space",
-  "tabs": { "incoming": "Incoming", "outgoing": "Shared by you", "shared": "Available spaces" },
-  "empty": { "incoming": "No incoming offers", "outgoing": "You haven't shared any spaces yet", "shared": "No shares received" },
-  "cols": { "listing": "Space", "partner": "Partner", "split": "Split", "status": "Status", "date": "Date", "actions": "Actions" },
+  "tabs": {
+    "incoming": "Incoming",
+    "outgoing": "Shared by you",
+    "shared": "Available spaces"
+  },
+  "empty": {
+    "incoming": "No incoming offers",
+    "outgoing": "You haven't shared any spaces yet",
+    "shared": "No shares received"
+  },
+  "cols": {
+    "listing": "Space",
+    "partner": "Partner",
+    "split": "Split",
+    "status": "Status",
+    "date": "Date",
+    "actions": "Actions"
+  },
   "accept": "Accept",
   "decline": "Decline",
   "revoke": "Revoke",
   "createDeal": "Create deal",
-  "form": { "listing": "Your space", "org": "Agency", "orgSearch": "Search agencies…", "split": "Partner's share, %", "preview": "You {mine}% · partner {theirs}%", "note": "Note", "submit": "Send offer", "sent": "Offer sent" }
+  "form": {
+    "listing": "Your space",
+    "org": "Agency",
+    "orgSearch": "Search agencies…",
+    "split": "Partner's share, %",
+    "preview": "You {mine}% · partner {theirs}%",
+    "note": "Note",
+    "submit": "Send offer",
+    "sent": "Offer sent"
+  },
+  "us": "Us",
+  "partner": "Partner",
+  "kpi": {
+    "accepted": "Accepted offers",
+    "awaiting": "{count} awaiting reply"
+  }
 }

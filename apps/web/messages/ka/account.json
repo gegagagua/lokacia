@@ -1,7 +1,7 @@
 {
   "nav": {
     "label": "კაბინეტის ნავიგაცია",
-    "groupMain": "მუშავება",
+    "groupMain": "მართვა",
     "groupSearch": "ძებნა",
     "groupSettings": "პარამეტრები",
     "dashboard": "მიმოხილვა",
@@ -17,7 +17,8 @@
     "billing": "გადახდები",
     "property": "ჩემი ქონება",
     "crm": "CRM-ში გადასვლა",
-    "countLabel": "{count} ახალი"
+    "countLabel": "{count} ახალი",
+    "noName": "ჩემი პროფილი"
   },
   "dashboard": {
     "title": "ჩემი კაბინეტი",
@@ -59,7 +60,17 @@
     "tenantProfileAction": "პროფილის შევსება",
     "statsAction": "სტატისტიკა",
     "myListings": "ჩემი განცხადებები",
-    "error": "შეცდომა"
+    "error": "შეცდომა",
+    "attention": "{count} საქმე ელის თქვენ ყურადღებას",
+    "allClear": "ყველაფერი რიგზეია — ახალი საქმე არ არის",
+    "offersAwaitingHint": "ნახეთ პირობები და უპასუხეთ",
+    "unreadHint": "თქვენ პასუხს ელიან",
+    "rejectedHint": "შეასწორეთ და ხელახლა გაგზავნეთ მოდერაციაზე",
+    "draftsHint": "შავი ვერსიები ძებნაში არ ჩანს",
+    "reply": "პასუხი",
+    "continue": "გაგრძელება",
+    "portfolioTitle": "განცხადებები სტატუსების მიხედვით",
+    "manageListings": "მართვა"
   },
   "profile": {
     "title": "პროფილი",

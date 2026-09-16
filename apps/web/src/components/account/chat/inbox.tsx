@@ -4,13 +4,14 @@ import Link from '@/i18n/link';
 import { usePathname, useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, ExternalLink, Search } from 'lucide-react';
+import { ArrowLeft, ExternalLink, MessagesSquare, Search } from 'lucide-react';
 import { formatDateFor, type AppLocale, type ConversationDto, type MessageDto } from '@lokacia/contracts';
 import { useFormat } from '@/i18n/use-format';
-import { Avatar, Button, ChatThread, cn, EmptyState, Input, Skeleton, useToast, type ChatMessage } from '@lokacia/ui';
+import { Avatar, Button, ChatThread, cn, Input, Skeleton, useToast, type ChatMessage } from '@lokacia/ui';
 import { apiFetch, fetcher, uploadFile } from '@/lib/api-client';
 import { useRealtime } from '../realtime';
 import { tbilisi } from '../format';
+import { AccountEmpty } from '../ui';
 
 type Page = { items: MessageDto[]; nextCursor: string | null };
 
@@ -55,7 +56,8 @@ export function Inbox({ me, initialId }: { me: string; initialId: string | null 
 
   if (list && list.length === 0)
     return (
-      <EmptyState
+      <AccountEmpty
+        icon={MessagesSquare}
         title={t('empty')}
         description={t('emptyHint')}
         action={
@@ -66,53 +68,72 @@ export function Inbox({ me, initialId }: { me: string; initialId: string | null 
       />
     );
 
+  const totalUnread = (list ?? []).reduce((a, c) => a + c.unread, 0);
+
   return (
-    <div className="grid h-[calc(100dvh-230px)] min-h-[480px] grid-cols-1 gap-4 md:grid-cols-[300px_minmax(0,1fr)]">
-      <aside className={cn('flex min-h-0 min-w-0 flex-col rounded-card border border-border bg-surface', activeId && 'hidden md:flex')} aria-label={t('title')}>
-        <div className="border-b border-border p-3">
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('search')} aria-label={t('search')} prefixIcon={<Search className="size-4" strokeWidth={1.5} aria-hidden />} />
+    <div className="card grid h-[calc(100dvh-220px)] min-h-[520px] grid-cols-1 overflow-hidden p-0 md:grid-cols-[320px_minmax(0,1fr)] lg:h-[calc(100dvh-260px)]">
+      <aside className={cn('flex min-h-0 min-w-0 flex-col border-border md:border-r', activeId && 'hidden md:flex')} aria-label={t('title')}>
+        <div className="flex flex-col gap-3 border-b border-border p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-[17px] font-bold">{t('title')}</span>
+            {totalUnread > 0 && <span className="inline-grid h-6 min-w-6 place-items-center rounded-full bg-accent px-2 text-[12px] font-bold text-accent-contrast tabular">{totalUnread}</span>}
+          </div>
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('search')} aria-label={t('search')} className="h-10 rounded-full bg-surface-2" prefixIcon={<Search className="size-4" strokeWidth={2} aria-hidden />} />
         </div>
-        <ul className="min-h-0 flex-1 overflow-y-auto">
-          {!list && [0, 1, 2].map((i) => <li key={i} className="p-3"><Skeleton className="h-12" /></li>)}
-          {filtered.map((c) => (
-            <li key={c.id}>
-              <button
-                type="button"
-                onClick={() => open(c.id)}
-                aria-current={c.id === activeId ? 'true' : undefined}
-                className={cn('flex w-full gap-3 border-b border-border px-3 py-3 text-left hover:bg-surface-2', c.id === activeId && 'bg-surface-2')}
-              >
-                <Avatar src={c.other?.avatarUrl} name={c.other?.name ?? '?'} size={40} />
-                <span className="min-w-0 flex-1">
-                  <span className="flex items-baseline justify-between gap-2">
-                    <span className={cn('truncate', c.unread ? 'font-semibold' : 'font-medium')}>{c.other?.name ?? t('unknown')}</span>
-                    {c.lastMessageAt && <span className="shrink-0 text-[11px] text-muted tabular">{timeLabel(c.lastMessageAt, f.locale)}</span>}
+        <ul className="min-h-0 flex-1 overflow-y-auto p-2">
+          {!list && [0, 1, 2, 3].map((i) => <li key={i} className="flex gap-3 p-3"><Skeleton className="size-12 rounded-full" /><div className="flex flex-1 flex-col gap-2"><Skeleton className="h-4 w-2/3" /><Skeleton className="h-3 w-full" /></div></li>)}
+          {filtered.map((c) => {
+            const on = c.id === activeId;
+            return (
+              <li key={c.id}>
+                <button
+                  type="button"
+                  onClick={() => open(c.id)}
+                  aria-current={on ? 'true' : undefined}
+                  className={cn('flex w-full gap-3 rounded-2xl px-3 py-3 text-left transition-colors duration-150', on ? 'bg-primary-soft' : 'hover:bg-surface-2')}
+                >
+                  <span className="relative shrink-0">
+                    <Avatar src={c.other?.avatarUrl} name={c.other?.name ?? '?'} size={48} />
+                    {c.listing?.cover && <img src={c.listing.cover} alt="" className="absolute -bottom-1 -right-1 size-6 rounded-lg border-2 border-surface object-cover shadow-xs" />}
+                    {c.unread > 0 && !c.listing?.cover && <span className="absolute right-0 top-0 size-3 rounded-full border-2 border-surface bg-accent" aria-hidden />}
                   </span>
-                  <span className="block truncate text-[12px] text-muted">{c.listing?.title ?? c.subject}</span>
-                  <span className="flex items-center justify-between gap-2">
-                    <span className={cn('truncate text-small', c.unread ? 'text-text' : 'text-muted')}>
-                      {c.lastMessage ? `${c.lastMessage.mine ? `${t('you')}: ` : ''}${c.lastMessage.body}` : ''}
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-baseline justify-between gap-2">
+                      <span className={cn('truncate text-[15px]', c.unread ? 'font-bold' : 'font-semibold')}>{c.other?.name ?? t('unknown')}</span>
+                      {c.lastMessageAt && <span className={cn('shrink-0 text-[12px] tabular', c.unread ? 'font-semibold text-text' : 'text-muted')}>{timeLabel(c.lastMessageAt, f.locale)}</span>}
                     </span>
-                    {c.unread > 0 && (
-                      <span className="shrink-0 rounded-full bg-accent px-1.5 text-[11px] font-medium text-accent-contrast tabular" aria-label={t('unread', { count: c.unread })}>
-                        {c.unread}
+                    <span className={cn('block truncate text-[12.5px]', on ? 'text-primary-soft-text' : 'text-muted')}>{c.listing?.title ?? c.subject}</span>
+                    <span className="mt-0.5 flex items-center justify-between gap-2">
+                      <span className={cn('truncate text-small', c.unread ? 'font-medium text-text' : 'text-muted')}>
+                        {c.lastMessage ? `${c.lastMessage.mine ? `${t('you')}: ` : ''}${c.lastMessage.body}` : ''}
                       </span>
-                    )}
+                      {c.unread > 0 && (
+                        <span className="inline-grid h-5 min-w-5 shrink-0 place-items-center rounded-full bg-accent px-1.5 text-[11.5px] font-bold text-accent-contrast tabular" aria-label={t('unread', { count: c.unread })}>
+                          {c.unread}
+                        </span>
+                      )}
+                    </span>
                   </span>
-                </span>
-              </button>
-            </li>
-          ))}
+                </button>
+              </li>
+            );
+          })}
         </ul>
       </aside>
-      <section className={cn('min-h-0 min-w-0', !activeId && 'hidden md:block')}>
+      <section className={cn('min-h-0 min-w-0 bg-bg/40', !activeId && 'hidden md:block')}>
         {active ? (
           <Conversation key={active.id} conv={active} me={me} live={live} onBack={() => open(null)} onChanged={() => void mutateList()} />
         ) : activeId && !list ? (
-          <Skeleton className="h-full" />
+          <Skeleton className="h-full rounded-none" />
         ) : (
-          <div className="grid h-full place-items-center rounded-card border border-dashed border-border-strong p-6">
-            <EmptyState title={t('select')} description={t('selectHint')} />
+          <div className="grid h-full place-items-center p-6 text-center">
+            <div className="flex flex-col items-center gap-3">
+              <span className="grid size-16 place-items-center rounded-[22px] bg-primary-soft text-primary-soft-text" aria-hidden>
+                <MessagesSquare className="size-7" strokeWidth={2} />
+              </span>
+              <h2 className="text-h3 font-bold">{t('select')}</h2>
+              <p className="max-w-sm text-muted">{t('selectHint')}</p>
+            </div>
           </div>
         )}
       </section>
@@ -216,7 +237,7 @@ function Conversation({ conv, me, live, onBack, onChanged }: { conv: Conversatio
 
   return (
     <ChatThread
-      className="h-full"
+      className="h-full rounded-none border-0 shadow-none"
       messages={messages}
       onSend={(b) => send(b)}
       onAttach={(f) => void attach(f)}
@@ -224,14 +245,14 @@ function Conversation({ conv, me, live, onBack, onChanged }: { conv: Conversatio
       placeholder={attaching ? t('attaching') : t('placeholder')}
       header={
         <div className="flex items-center gap-3">
-          <button type="button" onClick={onBack} className="grid size-8 place-items-center rounded-button hover:bg-surface-2 md:hidden" aria-label={t('back')}>
-            <ArrowLeft className="size-4" strokeWidth={1.5} />
+          <button type="button" onClick={onBack} className="grid size-10 place-items-center rounded-full hover:bg-surface-2 md:hidden" aria-label={t('back')}>
+            <ArrowLeft className="size-5" strokeWidth={2} />
           </button>
-          <Avatar src={conv.other?.avatarUrl} name={conv.other?.name ?? '?'} size={36} />
+          <Avatar src={conv.other?.avatarUrl} name={conv.other?.name ?? '?'} size={42} />
           <div className="min-w-0 flex-1">
-            <div className="truncate font-medium">{conv.other?.name ?? t('unknown')}</div>
+            <div className="truncate font-bold">{conv.other?.name ?? t('unknown')}</div>
             {conv.listing ? (
-              <Link href={`/listings/${conv.listing.slug}`} className="flex items-center gap-1 truncate text-small text-link hover:underline">
+              <Link href={`/listings/${conv.listing.slug}`} className="flex items-center gap-1 truncate text-small font-medium text-link hover:underline">
                 <span className="truncate">{conv.listing.title}</span>
                 <ExternalLink className="size-3 shrink-0" strokeWidth={1.5} aria-hidden />
               </Link>
@@ -239,7 +260,8 @@ function Conversation({ conv, me, live, onBack, onChanged }: { conv: Conversatio
               <div className="truncate text-small text-muted">{conv.subject}</div>
             )}
           </div>
-          <span className={cn('hidden items-center gap-1.5 text-[11px] text-muted sm:inline-flex')} aria-live="polite">
+          {conv.listing?.cover && <img src={conv.listing.cover} alt="" className="hidden size-11 rounded-xl object-cover shadow-xs lg:block" />}
+          <span className={cn('hidden h-7 items-center gap-1.5 rounded-full bg-surface-2 px-2.5 text-[12px] font-medium text-muted sm:inline-flex')} aria-live="polite">
             <span className={cn('size-1.5 rounded-full', live ? 'bg-success' : 'bg-border-strong')} aria-hidden />
             {live ? t('live') : t('polling')}
           </span>

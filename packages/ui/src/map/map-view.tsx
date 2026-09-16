@@ -67,13 +67,16 @@ export function MapView(props: MapViewProps) {
     void import('maplibre-gl').then((ml) => {
       if (cancelled || !el.current) return;
       lib.current = ml;
+      // MapLibre v6 module worker must be served from public/ (see scripts/copy-maplibre-worker.mjs).
+      if (!ml.getWorkerUrl?.()?.includes('/maplibre/')) ml.setWorkerUrl(`${window.location.origin}/maplibre/maplibre-gl-worker.mjs`);
       const m = new ml.Map({ container: el.current, style: mapStyle({ dark: isDark(), maptilerKey }), center: center ?? TBILISI_CENTER, zoom, attributionControl: { compact: true }, cooperativeGestures: false });
       m.addControl(new ml.NavigationControl({ showCompass: false }), 'top-right');
+      const dark = isDark();
       m.on('load', () => {
         m.addSource('points', { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, cluster: true, clusterRadius: 44, clusterMaxZoom: 14 });
-        m.addLayer({ id: 'clusters', type: 'circle', source: 'points', filter: ['has', 'point_count'], paint: { 'circle-color': '#1E4A42', 'circle-radius': ['step', ['get', 'point_count'], 16, 20, 22, 100, 30], 'circle-stroke-color': '#EDF0EB', 'circle-stroke-width': 2 } });
-        m.addLayer({ id: 'cluster-count', type: 'symbol', source: 'points', filter: ['has', 'point_count'], layout: { 'text-field': ['get', 'point_count_abbreviated'], 'text-size': 12, 'text-font': ['Open Sans Semibold'] }, paint: { 'text-color': '#F7F9F5' } });
-        m.addLayer({ id: 'point', type: 'circle', source: 'points', filter: ['!', ['has', 'point_count']], paint: { 'circle-color': ['case', ['get', 'vip'], '#D8A31A', '#1E4A42'], 'circle-radius': 7, 'circle-stroke-color': '#EDF0EB', 'circle-stroke-width': 2 } });
+        m.addLayer({ id: 'clusters', type: 'circle', source: 'points', filter: ['has', 'point_count'], paint: { 'circle-color': dark ? '#4CC3A2' : '#1E4A42', 'circle-radius': ['step', ['get', 'point_count'], 18, 20, 24, 100, 32], 'circle-stroke-color': dark ? 'rgba(76,195,162,0.28)' : 'rgba(30,74,66,0.22)', 'circle-stroke-width': 7 } });
+        m.addLayer({ id: 'cluster-count', type: 'symbol', source: 'points', filter: ['has', 'point_count'], layout: { 'text-field': ['get', 'point_count_abbreviated'], 'text-size': 13, 'text-font': ['Open Sans Semibold'] }, paint: { 'text-color': dark ? '#06120E' : '#FFFFFF' } });
+        m.addLayer({ id: 'point', type: 'circle', source: 'points', filter: ['!', ['has', 'point_count']], paint: { 'circle-color': ['case', ['get', 'vip'], dark ? '#F0BD3A' : '#E2AA1C', dark ? '#4CC3A2' : '#1E4A42'], 'circle-radius': 7, 'circle-stroke-color': dark ? '#111A17' : '#FFFFFF', 'circle-stroke-width': 2.5 } });
         m.on('click', 'point', (e) => {
           const id = e.features?.[0]?.properties?.id as string | undefined;
           if (id) cb.current.onPointClick?.(id);
@@ -92,7 +95,7 @@ export function MapView(props: MapViewProps) {
         m.addLayer({ id: 'radius-fill', type: 'fill', source: 'radius', paint: { 'fill-color': '#2F5FB8', 'fill-opacity': 0.06 } });
         m.addLayer({ id: 'radius-line', type: 'line', source: 'radius', paint: { 'line-color': '#2F5FB8', 'line-width': 1.5, 'line-dasharray': [3, 2] } });
         m.addSource('pois', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
-        m.addLayer({ id: 'pois', type: 'circle', source: 'pois', paint: { 'circle-color': ['get', 'color'], 'circle-radius': 5, 'circle-stroke-color': '#F7F9F5', 'circle-stroke-width': 1.5 } });
+        m.addLayer({ id: 'pois', type: 'circle', source: 'pois', paint: { 'circle-color': ['get', 'color'], 'circle-radius': 6, 'circle-stroke-color': dark ? '#111A17' : '#FFFFFF', 'circle-stroke-width': 2 } });
         setReady(true);
       });
       m.on('moveend', () => {
@@ -104,6 +107,7 @@ export function MapView(props: MapViewProps) {
         cb.current.onMapClick?.({ lat: e.lngLat.lat, lng: e.lngLat.lng });
       });
       map.current = m;
+      (el.current as HTMLDivElement & { __lkMap?: MlMap }).__lkMap = m;
     });
     return () => {
       cancelled = true;
@@ -144,6 +148,7 @@ export function MapView(props: MapViewProps) {
     if (fitToPoints && points.length) {
       const b = new ml.LngLatBounds();
       points.forEach((p) => b.extend([p.lng, p.lat]));
+      m.resize(); // container may have changed size since init (sticky/split layouts) — fit against the real viewport
       m.fitBounds(b, { padding: 60, maxZoom: 15, duration: 0 });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -199,7 +204,7 @@ export function MapView(props: MapViewProps) {
     const [lo, hi] = valueStops;
     if (m.getSource('polys')) (m.getSource('polys') as GeoJSONSource).setData(polygons);
     else {
-      m.addSource('polys', { type: 'geojson', data: polygons, promoteId: 'id' });
+      m.addSource('polys', { type: 'geojson', data: polygons, generateId: true });
       m.addLayer(
         { id: 'polys-fill', type: 'fill', source: 'polys', paint: { 'fill-color': valueProperty ? ['interpolate', ['linear'], ['coalesce', ['get', valueProperty], lo], lo, '#EDF0EB', (lo + hi) / 2, '#8FB8A8', hi, '#1E4A42'] : '#1E4A42', 'fill-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 0.85, 0.62] } },
         'clusters',
@@ -224,5 +229,5 @@ export function MapView(props: MapViewProps) {
     }
   }, [ready, polygons, valueProperty, valueStops]);
 
-  return <div ref={el} role="region" aria-label={ariaLabel} className={cn('lk-map relative h-full min-h-64 w-full overflow-hidden rounded-card border border-border bg-surface-2', className)} />;
+  return <div ref={el} data-ready={ready ? "true" : "false"} role="region" aria-label={ariaLabel} className={cn('lk-map relative h-full min-h-64 w-full overflow-hidden rounded-card border border-border bg-surface-2', className)} />;
 }

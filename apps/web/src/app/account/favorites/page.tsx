@@ -5,6 +5,7 @@ import { localizePath } from '@/i18n/locale';
 import { getTranslations } from 'next-intl/server';
 import { getSession } from '@/lib/session';
 import { getNames } from '@/components/portal/data';
+import { AccountPageHeader } from '@/components/account/page-header';
 import { FavoritesBoard } from '@/components/portal/favorites/favorites-board';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -19,9 +20,10 @@ export default async function FavoritesPage() {
   const { typeNames } = await getNames();
   return (
     <div>
-      <h1 className="text-h2 font-semibold md:text-h1">{t('title')}</h1>
-      <p className="mt-1 text-muted">{t('subtitle')}</p>
-      <FavoritesBoard typeNames={typeNames} />
+      <AccountPageHeader title={t('title')} description={t('subtitle')} />
+      <div className="[&>*:first-child]:mt-0">
+        <FavoritesBoard typeNames={typeNames} />
+      </div>
     </div>
   );
 }

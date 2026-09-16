@@ -16,7 +16,8 @@
     "empty": "No providers found",
     "emptyHint": "Change the category or city.",
     "myServices": "My orders",
-    "loadMore": "Show more"
+    "loadMore": "Show more",
+    "eyebrow": "Fit-out & services"
   },
   "provider": {
     "verified": "Verified",
@@ -35,7 +36,8 @@
     "yours": "This is your profile",
     "dashboard": "Provider dashboard",
     "back": "All services",
-    "city": "City"
+    "city": "City",
+    "eyebrow": "Service provider"
   },
   "quote": {
     "title": "Request a quote",

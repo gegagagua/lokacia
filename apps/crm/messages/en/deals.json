@@ -69,7 +69,8 @@
     "createDocument": "Create document",
     "createPresentation": "Create presentation",
     "won": "Won",
-    "lost": "Lost"
+    "lost": "Lost",
+    "details": "Details"
   },
   "finance": {
     "calculator": "Commission calculator",
@@ -81,5 +82,17 @@
     "expected": "Expected revenue",
     "save": "Save finances",
     "hidden": "Financial information is hidden for your role"
+  },
+  "daysShort": "{days}d",
+  "viewLabel": "View",
+  "found": "Found: {count}",
+  "due": {
+    "overdue": "Overdue"
+  },
+  "summary": {
+    "open": "Open deals",
+    "pipeline": "Pipeline value",
+    "won": "Won",
+    "wonValue": "Won value"
   }
 }

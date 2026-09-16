@@ -60,7 +60,9 @@
     "address": "Address",
     "dealType": "Deal type",
     "commission": "Commission",
-    "notFound": "Space not found"
+    "notFound": "Space not found",
+    "allPhotos": "All photos ({count})",
+    "businessTypes": "Suitable businesses"
   },
   "ai": {
     "generate": "Generate AI description",
@@ -85,5 +87,17 @@
     "after": "After",
     "hint": "Normalizes brightness and contrast, sharpens and corrects slight tilt.",
     "placeholder": "Demo sketch — enhancement is available for uploaded photos"
+  },
+  "kpi": {
+    "total": "All listings",
+    "active": "Active",
+    "review": "Drafts and in review",
+    "views": "Views, 30 days"
+  },
+  "grid": {
+    "perMonth": "mo",
+    "view": "View format",
+    "cards": "Cards",
+    "table": "Table"
   }
 }

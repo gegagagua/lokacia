@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
 import Link from '@/i18n/link';
 import { getTranslations } from 'next-intl/server';
-import { Hammer, Package, PenTool, Scale, Search, Signpost, Sparkles } from 'lucide-react';
+import { Hammer, Package, PenTool, Scale, Search, Signpost, Sparkles, Wrench } from 'lucide-react';
 import { Button, EmptyState, Input, Select } from '@lokacia/ui';
 import { getProviders, getServiceCategories } from '@/components/portal/data';
-import { Breadcrumbs, pageMetadata } from '@/components/portal/seo';
+import { pageMetadata } from '@/components/portal/seo';
+import { PageHero, SectionHead } from '@/components/portal/page-hero';
 import { ProviderCard } from '@/components/portal/services/provider-card';
 import { ProvidersLoadMore } from '@/components/portal/services/providers-load-more';
 import { CITY_NAMES_KA } from '@/lib/site';
@@ -42,68 +43,72 @@ export default async function ServicesPage({ searchParams }: { searchParams: SP 
     return s ? `/services?${s}` : '/services';
   };
 
-  return (
-    <div>
-      <section className="drawing-grid border-b border-border">
-        <div className="container-page py-10 md:py-14">
-          <Breadcrumbs items={[{ name: 'lokacia.ge', href: '/' }, { name: t('providers'), href: '/services' }]} />
-          <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
-            <div className="max-w-2xl">
-              <h1 className="text-h2 font-semibold md:text-h1">{t('title')}</h1>
-              <p className="mt-2 text-[17px] text-muted">{t('subtitle')}</p>
-            </div>
-            <Button asChild variant="secondary">
-              <Link href="/account/services">{t('myServices')}</Link>
-            </Button>
-          </div>
-          <nav aria-label={t('categories')} className="mt-8">
-            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-              {cats.map((c) => {
-                const Icon = CAT_ICONS[c.slug] ?? Hammer;
-                const on = active === c.slug;
-                return (
-                  <li key={c.slug}>
-                    <Link
-                      href={catHref(on ? '' : c.slug)}
-                      aria-current={on ? 'page' : undefined}
-                      className={`flex h-full flex-col gap-2 rounded-card border p-4 transition-colors duration-150 ${on ? 'border-primary bg-primary/10' : 'border-border bg-surface hover:border-border-strong'}`}
-                    >
-                      <Icon className="size-5 text-primary" strokeWidth={1.5} aria-hidden />
-                      <span className="font-medium leading-snug">{catName(c)}</span>
-                      <span className="text-small text-muted tabular">{t('count', { count: c.count })}</span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </nav>
-        </div>
-      </section>
+  const TONES = ['bg-primary-soft text-primary-soft-text', 'bg-accent-soft text-text', 'bg-link/10 text-link', 'bg-success/12 text-success', 'bg-danger/10 text-danger', 'bg-surface-3 text-text'];
 
-      <div className="container-page py-8">
-        <form method="get" action="/services" className="flex flex-wrap items-end gap-3" role="search">
+  return (
+    <>
+      <PageHero
+        crumbs={[{ name: 'lokacia.ge', href: '/' }, { name: t('providers'), href: '/services' }]}
+        eyebrow={t('eyebrow')}
+        eyebrowIcon={<Wrench className="size-3.5" strokeWidth={2} aria-hidden />}
+        title={t('title')}
+        lead={t('subtitle')}
+        actions={
+          <Button asChild variant="secondary" size="lg">
+            <Link href="/account/services">{t('myServices')}</Link>
+          </Button>
+        }
+      >
+        <nav aria-label={t('categories')}>
+          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+            {cats.map((c, i) => {
+              const Icon = CAT_ICONS[c.slug] ?? Hammer;
+              const on = active === c.slug;
+              return (
+                <li key={c.slug}>
+                  <Link
+                    href={catHref(on ? '' : c.slug)}
+                    aria-current={on ? 'page' : undefined}
+                    className={`group flex h-full flex-col gap-3 rounded-card border p-4 shadow-xs transition-all duration-200 hover:-translate-y-1 hover:shadow-md ${on ? 'border-primary bg-primary-soft ring-2 ring-primary/30' : 'border-border bg-surface hover:border-border-strong'}`}
+                  >
+                    <span className={`grid size-11 place-items-center rounded-2xl transition-transform duration-300 group-hover:scale-105 ${TONES[i % TONES.length]}`}>
+                      <Icon className="size-5" strokeWidth={2} aria-hidden />
+                    </span>
+                    <span className="font-semibold leading-snug">{catName(c)}</span>
+                    <span className="mt-auto text-small text-muted tabular">{t('count', { count: c.count })}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+      </PageHero>
+
+      <div className="container-page py-10 md:py-14">
+        <form method="get" action="/services" className="card flex flex-wrap items-end gap-3 p-4 md:p-5" role="search">
           {active && <input type="hidden" name="category" value={active} />}
-          <label className="flex min-w-56 flex-1 flex-col gap-1.5 text-small font-medium">
+          <label className="flex min-w-0 flex-[2_1_240px] flex-col gap-1.5 text-small font-medium">
             {t('search')}
-            <Input name="q" defaultValue={val('q')} placeholder={t('searchPlaceholder')} />
+            <Input name="q" defaultValue={val('q')} placeholder={t('searchPlaceholder')} prefixIcon={<Search className="size-4" strokeWidth={2} aria-hidden />} />
           </label>
-          <label className="flex w-48 flex-col gap-1.5 text-small font-medium">
+          <label className="flex min-w-0 flex-[1_1_180px] flex-col gap-1.5 text-small font-medium">
             {t('city')}
             <Select name="city" defaultValue={val('city')} placeholder={t('anyCity')} options={Object.keys(CITY_NAMES_KA).map((value) => ({ value, label: f.city(value) }))} />
           </label>
-          <Button type="submit" icon={<Search className="size-4" strokeWidth={1.5} aria-hidden />}>
+          <Button type="submit" className="w-full sm:w-auto" icon={<Search className="size-4" strokeWidth={2} aria-hidden />}>
             {t('apply')}
           </Button>
         </form>
 
-        <div className="mb-4 mt-8 flex items-end justify-between gap-3">
-          <h2 className="text-h3 font-semibold">
-            {active ? (cats.find((c) => c.slug === active)?.nameKa ?? t('providers')) : t('providers')}
-          </h2>
-          <span className="text-small text-muted tabular" aria-live="polite">
-            {t('count', { count: data.total })}
-          </span>
-        </div>
+        <SectionHead
+          className="mb-6 mt-10"
+          title={active ? (cats.find((c) => c.slug === active) ? catName(cats.find((c) => c.slug === active)!) : t('providers')) : t('providers')}
+          action={
+            <span className="inline-flex items-center gap-2 rounded-full bg-primary-soft px-3 py-1 text-small font-semibold text-primary-soft-text tabular" aria-live="polite">
+              {t('count', { count: data.total })}
+            </span>
+          }
+        />
         {data.items.length === 0 ? (
           <EmptyState
             title={t('empty')}
@@ -116,7 +121,7 @@ export default async function ServicesPage({ searchParams }: { searchParams: SP 
           />
         ) : (
           <>
-            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {data.items.map((p) => (
                 <li key={p.id}>
                   <ProviderCard p={p} />
@@ -127,6 +132,6 @@ export default async function ServicesPage({ searchParams }: { searchParams: SP 
           </>
         )}
       </div>
-    </div>
+    </>
   );
 }

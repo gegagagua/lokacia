@@ -38,7 +38,7 @@ export function ListingActions({ id, status, onChanged, size = 'sm', compact }: 
   return (
     <div className="flex flex-wrap items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
       {(status === 'draft' || status === 'rejected') && (
-        <Button size={size} loading={busy === 'pending_review'} icon={<Send className="size-3.5" strokeWidth={1.5} aria-hidden />} onClick={() => change('pending_review', t('published'))}>
+        <Button size={size} loading={busy === 'pending_review'} icon={<Send className="size-4" strokeWidth={2} aria-hidden />} onClick={() => change('pending_review', t('published'))}>
           {t('publish')}
         </Button>
       )}
@@ -49,7 +49,7 @@ export function ListingActions({ id, status, onChanged, size = 'sm', compact }: 
           loading={busy === 'archived'}
           aria-label={t('archive')}
           title={t('archive')}
-          icon={<Archive className="size-3.5" strokeWidth={1.5} aria-hidden />}
+          icon={<Archive className="size-4" strokeWidth={2} aria-hidden />}
           onClick={() => {
             if (window.confirm(t('archiveConfirm'))) void change('archived', t('archived'));
           }}
@@ -58,7 +58,7 @@ export function ListingActions({ id, status, onChanged, size = 'sm', compact }: 
         </Button>
       )}
       {status === 'archived' && (
-        <Button size={size} variant="secondary" loading={busy === 'draft'} icon={<RotateCcw className="size-3.5" strokeWidth={1.5} aria-hidden />} onClick={() => change('draft', t('restore'))}>
+        <Button size={size} variant="secondary" loading={busy === 'draft'} icon={<RotateCcw className="size-4" strokeWidth={2} aria-hidden />} onClick={() => change('draft', t('restore'))}>
           {t('restore')}
         </Button>
       )}

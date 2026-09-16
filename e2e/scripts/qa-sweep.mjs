@@ -1,4 +1,4 @@
-import { chromium, request } from '@playwright/test';
+import { chromium } from '@playwright/test';
 import fs from 'node:fs';
 const OUT = process.env.QA_OUT;
 const ids = Object.fromEntries(fs.readFileSync(process.env.QA_IDS, 'utf8').trim().split('\n').map((l) => l.split(/=(.*)/s).slice(0, 2)));

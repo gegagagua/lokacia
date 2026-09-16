@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { BadgeCheck, Building2, Camera, Clock, Heart, Layers, MapPin, Maximize2, MoveVertical, Zap } from 'lucide-react';
-import { areaUnit, DEAL_TYPE_LABELS, formatMoneyFor, formatMonthYearFor, localizedText, pricePeriodSuffix, relativeDaysFor, type AppLocale, type ListingCard as Card } from '@lokacia/contracts';
+import { areaUnit, DEAL_TYPE_LABELS, formatMoneyFor, formatNumberFor, formatMonthYearFor, localizedText, pricePeriodSuffix, relativeDaysFor, type AppLocale, type ListingCard as Card } from '@lokacia/contracts';
 import { cn } from '../lib/cn';
 import { Badge, VipBadge } from './display';
 import { SpacePlan } from './space-plan';
@@ -39,8 +39,9 @@ export type ListingCardProps = {
   locale?: AppLocale;
 };
 
+/** Deterministic (server == browser) number formatting — `toLocaleString` differs between Node and Chromium ICU and broke hydration. */
 function fmt(n: number, locale: AppLocale, digits = 0) {
-  return n.toLocaleString(locale === 'en' ? 'en-US' : locale === 'ru' ? 'ru-RU' : 'ka-GE', { maximumFractionDigits: digits });
+  return formatNumberFor(n, locale, digits);
 }
 
 /** Listing card v2: photo-first, glass badges, bold price, spec pills; mini SpacePlan kept as the signature detail. */
@@ -64,7 +65,7 @@ export function ListingCard({ listing: l, href, businessTypeName, onFavorite, fa
         className,
       )}
     >
-      <div className={cn('relative shrink-0 overflow-hidden bg-surface-2', layout === 'row' ? 'aspect-[4/3] sm:aspect-auto sm:w-[340px]' : 'aspect-[4/3]')}>
+      <div className={cn('relative shrink-0 overflow-hidden bg-surface-2', layout === 'row' ? 'aspect-[4/3] sm:aspect-auto sm:w-[280px]' : 'aspect-[4/3]')}>
         {l.cover ? (
           <img src={l.cover} alt="" loading={priority ? 'eager' : 'lazy'} decoding="async" {...(priority ? { fetchPriority: 'high' as const } : {})} className="absolute inset-0 size-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]" />
         ) : (
@@ -87,7 +88,7 @@ export function ListingCard({ listing: l, href, businessTypeName, onFavorite, fa
           <SpacePlan compact areaM2={l.areaM2} widthM={l.passport.widthM} depthM={l.passport.depthM} locale={locale} className="text-basalt" />
         </div>
       </div>
-      <div className="flex flex-1 flex-col gap-2.5 p-5">
+      <div className="flex min-w-0 flex-1 flex-col gap-2.5 p-5">
         <div className="flex items-start justify-between gap-3">
           <PriceTag priceMinor={l.priceMinor} currency={l.currency} period={l.pricePeriod} areaM2={l.pricePeriod === 'month' ? l.areaM2 : undefined} locale={locale} />
           {l.locationScore != null && (
@@ -95,7 +96,7 @@ export function ListingCard({ listing: l, href, businessTypeName, onFavorite, fa
               title={`${L.score} (0–100)`}
               className={cn(
                 'inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-[13px] font-bold tabular',
-                l.locationScore >= 70 ? 'bg-success/12 text-success' : l.locationScore >= 50 ? 'bg-accent-soft text-accent-contrast dark:text-accent' : 'bg-surface-2 text-muted',
+                l.locationScore >= 70 ? 'bg-success/12 text-success' : l.locationScore >= 50 ? 'bg-accent-soft text-text' : 'bg-surface-2 text-muted',
               )}
             >
               <span aria-hidden>◎</span>
@@ -129,15 +130,15 @@ export function ListingCard({ listing: l, href, businessTypeName, onFavorite, fa
         </div>
         <div className="mt-auto flex items-center justify-between gap-3 border-t border-border pt-3 text-[12.5px] text-muted">
           {l.isOwner ? (
-            <span className={cn('inline-flex items-center gap-1 font-medium', l.verifiedOwner && 'text-success')}>
+            <span className={cn('inline-flex min-w-0 items-center gap-1 truncate whitespace-nowrap font-medium', l.verifiedOwner && 'text-success')}>
               {l.verifiedOwner && <BadgeCheck className="size-4" strokeWidth={2} aria-hidden />}
               {l.verifiedOwner ? L.verifiedOwner : L.owner}
             </span>
           ) : (
-            <span className="font-medium">{L.broker}{l.commissionPct ? ` · ${l.commissionPct}%` : ''}</span>
+            <span className="truncate whitespace-nowrap font-medium">{L.broker}{l.commissionPct ? ` · ${l.commissionPct}%` : ''}</span>
           )}
           {l.lastConfirmedAt && (
-            <span className="inline-flex items-center gap-1">
+            <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
               <Clock className="size-3.5" strokeWidth={2} aria-hidden />
               {L.confirmed(relativeDaysFor(l.lastConfirmedAt, locale))}
             </span>
@@ -145,7 +146,7 @@ export function ListingCard({ listing: l, href, businessTypeName, onFavorite, fa
         </div>
       </div>
       {onFavorite && (
-        <button type="button" onClick={onFavorite} aria-pressed={favorite} aria-label={favorite ? L.favRemove : L.favAdd} className="absolute right-3 top-3 z-10 grid size-10 place-items-center rounded-full bg-white/90 text-basalt shadow-sm backdrop-blur transition-transform hover:scale-110 active:scale-95">
+        <button type="button" onClick={onFavorite} aria-pressed={favorite} aria-label={favorite ? L.favRemove : L.favAdd} className={cn('absolute right-3 top-3 z-10 grid size-10 place-items-center rounded-full bg-white/90 text-basalt shadow-sm backdrop-blur transition-transform hover:scale-110 active:scale-95', layout === 'row' && 'sm:left-[228px] sm:right-auto')}>
           <Heart className={cn('size-[18px]', favorite && 'fill-danger text-danger')} strokeWidth={2} />
         </button>
       )}
