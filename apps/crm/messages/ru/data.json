@@ -1,0 +1,55 @@
+{
+  "title": "",
+  "subtitle": "",
+  "import": {
+    "title": "",
+    "upload": "",
+    "uploadHint": "",
+    "sheets": "",
+    "sheetsLoad": "",
+    "mapping": "",
+    "skip": "",
+    "preview": "",
+    "rows": "",
+    "check": "",
+    "run": "",
+    "result": "",
+    "dryResult": "",
+    "errors": "",
+    "row": "",
+    "message": "",
+    "downloadErrors": "",
+    "restart": "",
+    "nameRequired": ""
+  },
+  "history": {
+    "title": "",
+    "empty": "",
+    "date": "",
+    "rows": "",
+    "imported": "",
+    "errors": "",
+    "status": ""
+  },
+  "export": {
+    "title": "",
+    "hint": "",
+    "contacts": "",
+    "deals": "",
+    "tasks": ""
+  },
+  "audit": {
+    "title": "",
+    "subtitle": "",
+    "actor": "",
+    "action": "",
+    "entity": "",
+    "when": "",
+    "from": "",
+    "to": "",
+    "actionSearch": "",
+    "details": "",
+    "loadMore": "",
+    "empty": ""
+  }
+}

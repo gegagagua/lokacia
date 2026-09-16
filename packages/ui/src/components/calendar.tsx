@@ -37,12 +37,12 @@ export function Calendar({ value, onChange, events = [], minDate, className, ren
           <ChevronRight className="size-4" strokeWidth={1.5} />
         </button>
       </div>
-      <div className="grid grid-cols-7 gap-1 text-center text-[12px] text-muted">
+      <div className="grid grid-cols-7 gap-1 text-center text-[12px] text-muted" aria-hidden>
         {WD.map((w) => (
           <div key={w}>{w}</div>
         ))}
       </div>
-      <div className="mt-1 grid grid-cols-7 gap-1" role="grid">
+      <div className="mt-1 grid grid-cols-7 gap-1" role="group" aria-label={`${MONTHS_KA[month.getMonth()]} ${month.getFullYear()}`}>
         {days.map((d) => {
           const k = key(d);
           const ev = byDay.get(k) ?? [];
@@ -58,7 +58,7 @@ export function Calendar({ value, onChange, events = [], minDate, className, ren
               aria-label={`${d.getDate()} ${MONTHS_KA[d.getMonth()]}${ev.length ? `, ${ev.length} ღონისძიება` : ''}`}
               className={cn(
                 'relative flex min-h-10 flex-col items-center justify-start rounded-[6px] border px-0.5 pt-1 text-small tabular transition-colors',
-                d.getMonth() !== month.getMonth() ? 'text-muted/60' : 'text-text',
+                d.getMonth() !== month.getMonth() ? 'text-muted' : 'text-text',
                 selected ? 'border-primary bg-primary text-primary-contrast' : 'border-transparent hover:bg-surface-2',
                 k === today && !selected && 'border-border-strong',
                 disabled && 'opacity-40',

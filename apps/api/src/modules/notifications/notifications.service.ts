@@ -8,6 +8,7 @@ import { ENV, type Env } from '../../config/env';
 import { TEMPLATES, type TemplateVars } from './templates';
 
 export type Channel = 'in_app' | 'sms' | 'email' | 'telegram' | 'viber' | 'whatsapp' | 'push';
+export type InAppEvent = { id: string; userId: string; title: string; body: string; link?: string; template: string };
 export type NotifyInput = { userId?: string | null; template: string; vars?: TemplateVars; link?: string; channels?: Channel[]; to?: Partial<Record<Channel, string>>; category?: string };
 
 const DEFAULT_CHANNELS: Record<string, Channel[]> = {
@@ -15,6 +16,7 @@ const DEFAULT_CHANNELS: Record<string, Channel[]> = {
   offers: ['in_app', 'sms'],
   listing_alert: ['in_app', 'email'],
   messages: ['in_app'],
+  viewings: ['in_app', 'sms', 'email'],
   crm: ['in_app', 'telegram'],
   billing: ['in_app', 'email'],
 };
@@ -23,6 +25,7 @@ const DEFAULT_CHANNELS: Record<string, Channel[]> = {
 @Injectable()
 export class NotificationsService implements OnModuleInit {
   private readonly logger = new Logger('Notifications');
+  private readonly inAppListeners: ((n: InAppEvent) => void)[] = [];
   constructor(
     private readonly dbs: DbService,
     private readonly queue: QueueService,
@@ -63,10 +66,16 @@ export class NotificationsService implements OnModuleInit {
         .values({ userId: user?.id ?? null, channel, template: input.template, to, title, body, link: input.link, payload: vars as object, status: channel === 'in_app' ? 'sent' : 'queued', sentAt: channel === 'in_app' ? new Date() : null })
         .returning({ id: notifications.id });
       created.push(row!.id);
+      if (channel === 'in_app' && user) for (const fn of this.inAppListeners) fn({ id: row!.id, userId: user.id, title, body, link: input.link, template: input.template });
       if (channel !== 'in_app') await this.queue.add('notifications.send', { id: row!.id });
     }
     void link;
     return created;
+  }
+
+  /** Realtime push hook (WebSocket gateway subscribes to in-app notifications). */
+  onInApp(fn: (n: InAppEvent) => void) {
+    this.inAppListeners.push(fn);
   }
 
   async deliver(id: string) {

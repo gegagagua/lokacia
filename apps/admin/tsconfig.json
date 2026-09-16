@@ -1,0 +1,6 @@
+{
+  "extends": "@lokacia/config/tsconfig/next.json",
+  "compilerOptions": { "module": "ESNext", "moduleResolution": "Bundler", "paths": { "@/*": ["./src/*"] }, "types": ["node"] },
+  "include": ["next-env.d.ts", "src", ".next/types/**/*.ts", "messages"],
+  "exclude": ["node_modules"]
+}

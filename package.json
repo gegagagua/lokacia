@@ -2,7 +2,9 @@
   "name": "lokacia",
   "private": true,
   "packageManager": "pnpm@10.34.5",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "turbo run dev --parallel",
     "build": "turbo run build",
@@ -15,7 +17,13 @@
     "db:seed": "pnpm --filter @lokacia/db seed",
     "db:reset": "pnpm --filter @lokacia/db reset",
     "check:ka": "node scripts/check-ka.mjs",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "load:seed": "node -e \"if(!process.env.SEED_DATABASE_URL){console.error('load:seed: set SEED_DATABASE_URL to a dedicated load-test database (never the shared lokacia DB) — see docs/OPERATIONS.md');process.exit(1)}\" && DATABASE_URL=$SEED_DATABASE_URL pnpm --filter @lokacia/db migrate && DATABASE_URL=$SEED_DATABASE_URL SEED_LISTINGS=${SEED_LISTINGS:-50000} pnpm --filter @lokacia/db seed",
+    "load:search": "k6 run infra/k6/search.js",
+    "load:listing": "k6 run infra/k6/listing.js",
+    "storybook": "pnpm --filter @lokacia/ui storybook",
+    "build-storybook": "pnpm --filter @lokacia/ui build-storybook",
+    "test:a11y": "pnpm --filter @lokacia/ui build-storybook && pnpm --filter @lokacia/ui test:a11y"
   },
   "devDependencies": {
     "prettier": "^3.6.2",

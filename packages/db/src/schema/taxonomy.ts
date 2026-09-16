@@ -50,6 +50,8 @@ export const districts = pgTable(
     centerLng: doublePrecision('center_lng').notNull(),
     /** Average monthly rent per m², in tetri. Recomputed by district stats job. */
     avgPriceM2Minor: integer('avg_price_m2_minor').notNull().default(0),
+    /** Admin override for the district average rent per m² (tetri); wins over the computed value. */
+    avgPriceM2OverrideMinor: integer('avg_price_m2_override_minor'),
     avgSalePriceM2Minor: integer('avg_sale_price_m2_minor').notNull().default(0),
     activeCount: integer('active_count').notNull().default(0),
     vacancyCount: integer('vacancy_count').notNull().default(0),

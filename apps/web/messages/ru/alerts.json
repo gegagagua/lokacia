@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "title": "",
+    "unsubscribeTitle": ""
+  },
+  "heading": "",
+  "subtitle": "",
+  "newSearch": "",
+  "emptyTitle": "",
+  "emptyText": "",
+  "goSearch": "",
+  "active": "",
+  "paused": "",
+  "toggle": "",
+  "channels": "",
+  "channelsError": "",
+  "matches": "",
+  "newMatches": "",
+  "lastNotified": "",
+  "never": "",
+  "open": "",
+  "delete": "",
+  "confirmDelete": "",
+  "deleted": "",
+  "updated": "",
+  "failed": "",
+  "telegramHint": "",
+  "unsubscribe": {
+    "heading": "",
+    "text": "",
+    "button": "",
+    "done": "",
+    "doneText": "",
+    "already": "",
+    "notFound": "",
+    "manage": "",
+    "failed": ""
+  }
+}

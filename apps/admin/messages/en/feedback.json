@@ -1,0 +1,22 @@
+{
+  "title": "",
+  "subtitle": "",
+  "tabs": {
+    "new": "",
+    "seen": "",
+    "done": "",
+    "all": ""
+  },
+  "status": {
+    "new": "",
+    "seen": "",
+    "done": ""
+  },
+  "changeStatus": "",
+  "updated": "",
+  "rating": "",
+  "user": "",
+  "guest": "",
+  "emptyTitle": "",
+  "emptyText": ""
+}

@@ -1,0 +1,68 @@
+{
+  "title": "",
+  "back": "",
+  "period": {
+    "label": "",
+    "d7": "",
+    "d30": "",
+    "d90": ""
+  },
+  "tiles": {
+    "views": "",
+    "reveals": "",
+    "saves": "",
+    "revealRate": "",
+    "offers": "",
+    "viewings": "",
+    "delta": "",
+    "deltaNew": "",
+    "noData": ""
+  },
+  "charts": {
+    "title": "",
+    "views": "",
+    "reveals": "",
+    "saves": "",
+    "tableCaption": "",
+    "day": "",
+    "value": "",
+    "empty": ""
+  },
+  "district": {
+    "title": "",
+    "subtitle": "",
+    "unknownDistrict": "",
+    "you": "",
+    "avg": "",
+    "none": ""
+  },
+  "price": {
+    "title": "",
+    "perM2": "",
+    "avgM2": "",
+    "recommended": "",
+    "none": "",
+    "change": ""
+  },
+  "passport": {
+    "title": "",
+    "filled": "",
+    "fill": ""
+  },
+  "advice": {
+    "title": "",
+    "empty": "",
+    "high": "",
+    "medium": "",
+    "low": "",
+    "explain": "",
+    "explaining": "",
+    "explainAi": "",
+    "explainRules": "",
+    "explainError": ""
+  },
+  "listing": {
+    "open": "",
+    "edit": ""
+  }
+}

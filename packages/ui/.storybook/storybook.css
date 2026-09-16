@@ -1,0 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wdth,wght@62.5..100,300..700&display=swap');
+@import 'tailwindcss';
+@import '../theme.css';
+
+@source '../src';
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}

@@ -89,7 +89,7 @@ export class AuthController {
   @Get('google')
   google(@Res() res: Response) {
     const state = randomBytes(16).toString('base64url');
-    res.cookie('lk_oauth_state', state, { httpOnly: true, sameSite: 'lax', maxAge: 600_000, path: '/' });
+    res.cookie('lk_oauth_state', state, { httpOnly: true, sameSite: 'lax', secure: this.env.NODE_ENV === 'production', maxAge: 600_000, path: '/' });
     res.redirect(this.auth.googleAuthUrl(state));
   }
 

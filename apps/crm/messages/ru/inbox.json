@@ -1,0 +1,36 @@
+{
+  "title": "",
+  "subtitle": "",
+  "search": "",
+  "channels": {
+    "all": ""
+  },
+  "empty": "",
+  "emptyHint": "",
+  "select": "",
+  "selectHint": "",
+  "unread": "",
+  "reply": "",
+  "sent": "",
+  "back": "",
+  "about": "",
+  "contact": {
+    "title": "",
+    "none": "",
+    "link": "",
+    "linked": "",
+    "unlink": "",
+    "open": ""
+  },
+  "simulate": {
+    "button": "",
+    "title": "",
+    "description": "",
+    "channel": "",
+    "from": "",
+    "name": "",
+    "text": "",
+    "submit": "",
+    "done": ""
+  }
+}

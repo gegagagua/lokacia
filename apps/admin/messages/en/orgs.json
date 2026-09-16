@@ -1,0 +1,41 @@
+{
+  "title": "",
+  "total": "",
+  "search": "",
+  "searchPlaceholder": "",
+  "type": "",
+  "allTypes": "",
+  "types": {
+    "agency": "",
+    "developer": ""
+  },
+  "colName": "",
+  "plan": "",
+  "colMembers": "",
+  "colListings": "",
+  "colCreated": "",
+  "verified": "",
+  "empty": "",
+  "loadMore": "",
+  "info": "",
+  "phone": "",
+  "email": "",
+  "verifiedToggle": "",
+  "freePlan": "",
+  "savePlan": "",
+  "saved": "",
+  "members": "",
+  "member": "",
+  "role": "",
+  "state": "",
+  "roles": {
+    "manager": "",
+    "agent": "",
+    "assistant": ""
+  },
+  "invited": "",
+  "activeMember": "",
+  "inactiveMember": "",
+  "subscriptions": "",
+  "noSubscriptions": ""
+}

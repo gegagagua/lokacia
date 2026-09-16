@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  lokacia.ge listings feed, version 1.0 (C9).
+  GET https://api.lokacia.ge/v1/feeds/{organizationId}.xml — active listings of one agency.
+  Prices are decimal amounts in the stated currency (GEL = lari); area in square metres.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+  <xs:simpleType name="uuid">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="dealType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="rent"/>
+      <xs:enumeration value="sale"/>
+      <xs:enumeration value="transfer"/>
+      <xs:enumeration value="short_term"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="pricePeriod">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="month"/>
+      <xs:enumeration value="total"/>
+      <xs:enumeration value="day"/>
+      <xs:enumeration value="hour"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="lang">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="ka"/>
+      <xs:enumeration value="en"/>
+      <xs:enumeration value="ru"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="localizedText">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="lang" type="lang" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:complexType name="price">
+    <xs:simpleContent>
+      <xs:extension base="xs:decimal">
+        <xs:attribute name="currency" use="required">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="[A-Z]{3}"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="period" type="pricePeriod" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:complexType name="passportField">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="key" type="xs:string" use="required"/>
+        <xs:attribute name="unit" type="xs:string" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:complexType name="listing">
+    <xs:sequence>
+      <xs:element name="url" type="xs:anyURI"/>
+      <xs:element name="dealType" type="dealType"/>
+      <xs:element name="status" type="xs:string"/>
+      <xs:element name="title" type="localizedText" minOccurs="1" maxOccurs="3"/>
+      <xs:element name="description" type="localizedText" minOccurs="0" maxOccurs="3"/>
+      <xs:element name="price" type="price"/>
+      <xs:element name="areaM2" type="xs:decimal"/>
+      <xs:element name="floor" type="xs:integer" minOccurs="0"/>
+      <xs:element name="commissionPct" type="xs:decimal" minOccurs="0"/>
+      <xs:element name="location">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="city" type="xs:string"/>
+            <xs:element name="district" type="xs:string" minOccurs="0"/>
+            <xs:element name="address" type="xs:string"/>
+            <xs:element name="lat" type="xs:double" minOccurs="0"/>
+            <xs:element name="lng" type="xs:double" minOccurs="0"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="businessTypes">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="businessType" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="passport" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="field" type="passportField" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="photos">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="photo" type="xs:anyURI" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="contact">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="name" type="xs:string" minOccurs="0"/>
+            <xs:element name="phone" type="xs:string" minOccurs="0"/>
+            <xs:element name="email" type="xs:string" minOccurs="0"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="id" type="uuid" use="required"/>
+    <xs:attribute name="updatedAt" type="xs:dateTime" use="required"/>
+  </xs:complexType>
+
+  <xs:element name="feed">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="agency">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="name" type="xs:string"/>
+              <xs:element name="url" type="xs:anyURI"/>
+              <xs:element name="phone" type="xs:string" minOccurs="0"/>
+              <xs:element name="email" type="xs:string" minOccurs="0"/>
+              <xs:element name="website" type="xs:anyURI" minOccurs="0"/>
+            </xs:sequence>
+            <xs:attribute name="id" type="uuid" use="required"/>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="listings">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="listing" type="listing" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+            <xs:attribute name="count" type="xs:nonNegativeInteger" use="required"/>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+      <xs:attribute name="version" type="xs:string" use="required"/>
+      <xs:attribute name="generatedAt" type="xs:dateTime" use="required"/>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

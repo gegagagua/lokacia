@@ -1,3 +1,4 @@
+/// <reference types="geojson" />
 'use client';
 import * as React from 'react';
 import type { GeoJSONSource, Map as MlMap, Marker as MlMarker } from 'maplibre-gl';

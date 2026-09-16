@@ -1,0 +1,49 @@
+{
+  "title": "",
+  "metaDescription": "",
+  "subtitle": "",
+  "metric": "",
+  "metricPrice": "",
+  "metricVacancy": "",
+  "businessType": "",
+  "allTypes": "",
+  "dealType": "",
+  "deal": {
+    "rent": "",
+    "sale": ""
+  },
+  "city": "",
+  "cities": {
+    "tbilisi": "",
+    "batumi": "",
+    "kutaisi": "",
+    "rustavi": ""
+  },
+  "legend": "",
+  "noData": "",
+  "perM2Month": "",
+  "perM2": "",
+  "spaces": "",
+  "loading": "",
+  "updated": "",
+  "table": "",
+  "col": {
+    "name": "",
+    "avg": "",
+    "active": "",
+    "vacancy": "",
+    "median": ""
+  },
+  "panel": {
+    "avg": "",
+    "active": "",
+    "vacancy": "",
+    "median": "",
+    "listings": "",
+    "district": "",
+    "reportTitle": "",
+    "reportText": "",
+    "reportCta": ""
+  },
+  "hint": ""
+}

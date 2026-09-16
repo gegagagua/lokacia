@@ -80,6 +80,8 @@ export function FileUpload({ items, onFiles, onReorder, onRemove, accept = 'imag
           accept={accept}
           multiple={multiple}
           className="sr-only"
+          tabIndex={-1}
+          aria-label={label}
           onChange={(e) => {
             const files = [...(e.target.files ?? [])];
             if (files.length) onFiles(files);

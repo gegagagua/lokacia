@@ -1,0 +1,71 @@
+{
+  "title": "",
+  "subtitle": "",
+  "new": "",
+  "empty": "",
+  "emptyHint": "",
+  "active": "",
+  "inactive": "",
+  "toggle": "",
+  "steps": "",
+  "running": "",
+  "done": "",
+  "stopped": "",
+  "edit": "",
+  "delete": "",
+  "deleted": "",
+  "saved": "",
+  "trigger": {
+    "label": "",
+    "after_viewing": "",
+    "new_lead": "",
+    "manual": ""
+  },
+  "editor": {
+    "createTitle": "",
+    "editTitle": "",
+    "name": "",
+    "steps": "",
+    "step": "",
+    "delay": "",
+    "channel": "",
+    "template": "",
+    "variables": "",
+    "vars": {
+      "name": "",
+      "agent": "",
+      "org": ""
+    },
+    "addStep": "",
+    "removeStep": "",
+    "moveUp": "",
+    "moveDown": "",
+    "save": "",
+    "hint": "",
+    "preview": ""
+  },
+  "channels": {
+    "sms": "",
+    "email": "",
+    "telegram": ""
+  },
+  "enroll": {
+    "button": "",
+    "title": "",
+    "contact": "",
+    "submit": "",
+    "done": ""
+  },
+  "runs": {
+    "title": "",
+    "contact": "",
+    "sequence": "",
+    "progress": "",
+    "next": "",
+    "status": "",
+    "stop": "",
+    "stoppedToast": "",
+    "empty": ""
+  },
+  "noManage": ""
+}

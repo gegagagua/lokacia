@@ -1,0 +1,172 @@
+{
+  "presentations": {
+    "title": "",
+    "subtitle": "",
+    "create": "",
+    "empty": "",
+    "emptyHint": "",
+    "columns": {
+      "title": "",
+      "contact": "",
+      "spaces": "",
+      "opened": "",
+      "author": "",
+      "created": "",
+      "actions": ""
+    },
+    "notOpened": "",
+    "openedAgo": "",
+    "opens": "",
+    "copyLink": "",
+    "linkCopied": "",
+    "pdf": "",
+    "preview": "",
+    "delete": "",
+    "deleteConfirm": "",
+    "deleted": "",
+    "form": {
+      "title": "",
+      "titlePlaceholder": "",
+      "contact": "",
+      "message": "",
+      "messagePlaceholder": "",
+      "listings": "",
+      "addListing": "",
+      "remove": "",
+      "noListings": "",
+      "submit": "",
+      "created": ""
+    }
+  },
+  "public": {
+    "metaTitle": "",
+    "notFound": "",
+    "notFoundHint": "",
+    "preparedFor": "",
+    "spaces": "",
+    "pdf": "",
+    "viewOnPortal": "",
+    "agent": "",
+    "call": "",
+    "specs": "",
+    "noSpecs": "",
+    "footer": ""
+  },
+  "liveness": {
+    "title": "",
+    "subtitle": "",
+    "ask": "",
+    "askSelected": "",
+    "asked": "",
+    "confirm": "",
+    "confirmed": "",
+    "empty": "",
+    "selectAll": "",
+    "select": "",
+    "columns": {
+      "listing": "",
+      "state": "",
+      "lastConfirmed": "",
+      "days": "",
+      "lastCheck": "",
+      "owner": "",
+      "actions": ""
+    },
+    "states": {
+      "ok": "",
+      "due": "",
+      "overdue": "",
+      "stale": ""
+    },
+    "results": {
+      "pending": "",
+      "confirmed": "",
+      "rented": "",
+      "expired": ""
+    },
+    "never": "",
+    "noCheck": "",
+    "filter": ""
+  },
+  "competitors": {
+    "title": "",
+    "subtitle": "",
+    "add": "",
+    "empty": "",
+    "emptyHint": "",
+    "columns": {
+      "portal": "",
+      "url": "",
+      "listing": "",
+      "price": "",
+      "delta": "",
+      "checked": "",
+      "status": "",
+      "actions": ""
+    },
+    "statuses": {
+      "active": "",
+      "removed": "",
+      "error": ""
+    },
+    "check": "",
+    "checked": "",
+    "history": "",
+    "noHistory": "",
+    "remove": "",
+    "removed": "",
+    "form": {
+      "url": "",
+      "urlPlaceholder": "",
+      "listing": "",
+      "portal": "",
+      "portalHint": "",
+      "submit": "",
+      "created": ""
+    },
+    "cheaper": "",
+    "pricier": "",
+    "same": "",
+    "tos": ""
+  },
+  "ownerReports": {
+    "title": "",
+    "subtitle": "",
+    "run": "",
+    "ran": "",
+    "empty": "",
+    "emptyHint": "",
+    "week": "",
+    "columns": {
+      "week": "",
+      "listing": "",
+      "views": "",
+      "reveals": "",
+      "saves": "",
+      "viewings": "",
+      "sent": ""
+    },
+    "notSent": "",
+    "detail": "",
+    "total": ""
+  },
+  "profile": {
+    "title": "",
+    "subtitle": "",
+    "name": "",
+    "slug": "",
+    "slugHint": "",
+    "bio": "",
+    "bioPlaceholder": "",
+    "avatar": "",
+    "uploadAvatar": "",
+    "save": "",
+    "saved": "",
+    "slugTaken": "",
+    "publicLink": "",
+    "noSlug": "",
+    "listings": "",
+    "reviews": "",
+    "rating": ""
+  }
+}

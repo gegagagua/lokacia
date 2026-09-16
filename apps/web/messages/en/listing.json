@@ -1,0 +1,168 @@
+{
+  "breadcrumbs": {
+    "home": ""
+  },
+  "header": {
+    "vip": "",
+    "offPlan": "",
+    "owner": "",
+    "broker": "",
+    "commission": "",
+    "noCommission": "",
+    "confirmed": "",
+    "perM2": "",
+    "status": "",
+    "notPublic": ""
+  },
+  "gallery": {
+    "label": "",
+    "photos": "",
+    "plans": "",
+    "pano": "",
+    "video": "",
+    "open": "",
+    "prev": "",
+    "next": "",
+    "close": "",
+    "counter": "",
+    "empty": "",
+    "tour": "",
+    "openTour": "",
+    "openVideo": "",
+    "videoTitle": ""
+  },
+  "specs": {
+    "title": "",
+    "plan": "",
+    "yes": "",
+    "no": "",
+    "area": "",
+    "floor": "",
+    "floorOf": "",
+    "deposit": "",
+    "depositMonths": "",
+    "serviceFee": "",
+    "utilities": "",
+    "completion": "",
+    "empty": ""
+  },
+  "description": {
+    "title": "",
+    "empty": ""
+  },
+  "contact": {
+    "title": "",
+    "owner": "",
+    "broker": "",
+    "agency": "",
+    "profile": "",
+    "reveal": "",
+    "revealing": "",
+    "revealed": "",
+    "call": "",
+    "noPhone": "",
+    "revealError": "",
+    "book": "",
+    "offer": "",
+    "message": "",
+    "edit": "",
+    "favorite": "",
+    "unfavorite": "",
+    "share": "",
+    "copied": "",
+    "shareError": "",
+    "privacy": ""
+  },
+  "calculator": {
+    "title": "",
+    "subtitle": "",
+    "businessType": "",
+    "fitoutMonths": "",
+    "months": "",
+    "includeFitout": "",
+    "rent": "",
+    "utilities": "",
+    "utilitiesIncluded": "",
+    "serviceFee": "",
+    "monthly": "",
+    "deposit": "",
+    "fitout": "",
+    "firstMonth": "",
+    "effective": "",
+    "note": "",
+    "saleTitle": "",
+    "pricePerM2": "",
+    "spacePrice": "",
+    "equipmentPrice": "",
+    "total": ""
+  },
+  "equipment": {
+    "title": "",
+    "subtitle": "",
+    "name": "",
+    "qty": "",
+    "price": "",
+    "sum": "",
+    "spacePrice": "",
+    "equipmentPrice": "",
+    "total": ""
+  },
+  "history": {
+    "title": "",
+    "subtitle": "",
+    "present": "",
+    "months": "",
+    "warning": "",
+    "warningHint": "",
+    "empty": ""
+  },
+  "insights": {
+    "title": "",
+    "subtitle": "",
+    "radius": "",
+    "meters": "",
+    "nearest": "",
+    "none": "",
+    "distance": "",
+    "price": "",
+    "perM2": "",
+    "avg": "",
+    "above": "",
+    "below": "",
+    "fair": "",
+    "mapLabel": "",
+    "loading": "",
+    "error": ""
+  },
+  "permits": {
+    "title": "",
+    "subtitle": ""
+  },
+  "project": {
+    "title": "",
+    "completion": "",
+    "open": "",
+    "prebook": "",
+    "dialogTitle": "",
+    "dialogText": "",
+    "message": "",
+    "messagePlaceholder": "",
+    "phone": "",
+    "submit": "",
+    "success": "",
+    "duplicate": "",
+    "error": ""
+  },
+  "similar": {
+    "title": "",
+    "all": ""
+  },
+  "notFound": {
+    "title": "",
+    "text": "",
+    "search": ""
+  },
+  "og": {
+    "alt": ""
+  }
+}

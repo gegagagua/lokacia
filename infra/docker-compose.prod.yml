@@ -1,0 +1,208 @@
+# lokacia.ge production / staging stack (single host or small swarm of hosts behind a load balancer).
+#   IMAGE_TAG=sha-abc123 docker compose -f infra/docker-compose.prod.yml --env-file /srv/lokacia/.env up -d
+# Zero-downtime rollout of stateless services: `docker rollout -f infra/docker-compose.prod.yml api` (docker-rollout plugin,
+# see docs/OPERATIONS.md → Deploy). Postgres can be replaced by a managed PostGIS 16 instance: drop the `postgres` service
+# and point DATABASE_URL at it.
+name: lokacia
+
+x-app: &app
+  restart: unless-stopped
+  env_file: [/srv/lokacia/.env]
+  environment:
+    NODE_ENV: production
+    DATABASE_URL: ${DATABASE_URL:-postgres://lokacia:${POSTGRES_APP_PASSWORD}@pgbouncer:6432/lokacia}
+    REDIS_URL: redis://redis:6379
+    MEILI_URL: http://meilisearch:7700
+    QUEUE_DRIVER: bullmq
+    STORAGE_DRIVER: s3
+  logging:
+    driver: json-file
+    options: { max-size: '20m', max-file: '5' }
+  networks: [internal]
+
+services:
+  migrate:
+    <<: *app
+    image: ghcr.io/${GHCR_OWNER:-lokacia}/lokacia-migrate:${IMAGE_TAG:-latest}
+    restart: 'no'
+    environment:
+      NODE_ENV: production
+      # migrations run as the schema owner, directly against Postgres (not through PgBouncer)
+      DATABASE_URL: ${MIGRATE_DATABASE_URL:-postgres://lokacia_owner:${POSTGRES_OWNER_PASSWORD}@postgres:5432/lokacia}
+    depends_on:
+      postgres: { condition: service_healthy }
+    profiles: [migrate]
+
+  api:
+    <<: *app
+    image: ghcr.io/${GHCR_OWNER:-lokacia}/lokacia-api:${IMAGE_TAG:-latest}
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL:-postgres://lokacia:${POSTGRES_APP_PASSWORD}@pgbouncer:6432/lokacia}
+      REDIS_URL: redis://redis:6379
+      MEILI_URL: http://meilisearch:7700
+      QUEUE_DRIVER: bullmq
+      STORAGE_DRIVER: s3
+      JOBS_ENABLED: 'false' # API pods only enqueue; the worker service processes jobs
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:4000/v1/health >/dev/null || exit 1']
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
+    stop_grace_period: 30s
+    depends_on:
+      pgbouncer: { condition: service_started }
+      redis: { condition: service_healthy }
+    deploy:
+      replicas: 2
+      resources: { limits: { memory: 768m } }
+
+  worker:
+    <<: *app
+    image: ghcr.io/${GHCR_OWNER:-lokacia}/lokacia-api:${IMAGE_TAG:-latest}
+    command: ['node', 'apps/api/dist/src/worker.js']
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL:-postgres://lokacia:${POSTGRES_APP_PASSWORD}@pgbouncer:6432/lokacia}
+      REDIS_URL: redis://redis:6379
+      MEILI_URL: http://meilisearch:7700
+      QUEUE_DRIVER: bullmq
+      STORAGE_DRIVER: s3
+      JOBS_ENABLED: 'true'
+    healthcheck: { disable: true }
+    stop_grace_period: 45s # lets BullMQ finish in-flight jobs (WORKER_SHUTDOWN_TIMEOUT_MS=30000)
+    depends_on:
+      pgbouncer: { condition: service_started }
+      redis: { condition: service_healthy }
+    deploy:
+      replicas: 1
+      resources: { limits: { memory: 1g } }
+
+  web:
+    <<: *app
+    image: ghcr.io/${GHCR_OWNER:-lokacia}/lokacia-web:${IMAGE_TAG:-latest}
+    environment: { NODE_ENV: production, API_URL: http://api:4000 }
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3100/ >/dev/null || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    depends_on: [api]
+    deploy:
+      replicas: 2
+      resources: { limits: { memory: 768m } }
+
+  crm:
+    <<: *app
+    image: ghcr.io/${GHCR_OWNER:-lokacia}/lokacia-crm:${IMAGE_TAG:-latest}
+    environment: { NODE_ENV: production, API_URL: http://api:4000 }
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3101/ >/dev/null || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    depends_on: [api]
+
+  admin:
+    <<: *app
+    image: ghcr.io/${GHCR_OWNER:-lokacia}/lokacia-admin:${IMAGE_TAG:-latest}
+    environment: { NODE_ENV: production, API_URL: http://api:4000 }
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3102/ >/dev/null || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    depends_on: [api]
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports: ['80:80', '443:443', '443:443/udp']
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [web, crm, admin, api]
+    networks: [internal]
+
+  postgres:
+    image: postgis/postgis:16-3.5
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_SUPERUSER_PASSWORD:?set POSTGRES_SUPERUSER_PASSWORD}
+      POSTGRES_DB: lokacia
+    command: ['postgres', '-c', 'config_file=/etc/postgresql/postgresql.conf']
+    volumes:
+      - pg:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./backup/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+      - ./backup/pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf:ro
+      - pgbackrest_spool:/var/spool/pgbackrest
+    shm_size: 1g
+    healthcheck: { test: ['CMD-SHELL', 'pg_isready -U postgres'], interval: 5s, retries: 20 }
+    networks: [internal]
+
+  pgbouncer:
+    image: edoburu/pgbouncer:v1.24.1-p0
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://lokacia:${POSTGRES_APP_PASSWORD}@postgres:5432/lokacia
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 1000
+      DEFAULT_POOL_SIZE: 40
+      AUTH_TYPE: scram-sha-256
+    depends_on:
+      postgres: { condition: service_healthy }
+    networks: [internal]
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    # BullMQ requires noeviction; AOF so delayed/repeatable jobs survive restarts
+    command: ['redis-server', '--appendonly', 'yes', '--maxmemory-policy', 'noeviction']
+    volumes: [redis:/data]
+    healthcheck: { test: ['CMD', 'redis-cli', 'ping'], interval: 5s, retries: 20 }
+    networks: [internal]
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.15
+    restart: unless-stopped
+    environment:
+      MEILI_ENV: production
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:?set MEILI_MASTER_KEY}
+      MEILI_NO_ANALYTICS: 'true'
+    volumes: [meili:/meili_data]
+    profiles: [meilisearch] # enable when SEARCH_ENGINE=meilisearch
+    networks: [internal]
+
+  imgproxy:
+    image: darthsim/imgproxy:v3
+    restart: unless-stopped
+    environment:
+      IMGPROXY_KEY: ${IMGPROXY_KEY:?set IMGPROXY_KEY}
+      IMGPROXY_SALT: ${IMGPROXY_SALT:?set IMGPROXY_SALT}
+      IMGPROXY_USE_S3: 'true'
+      IMGPROXY_S3_ENDPOINT: ${S3_ENDPOINT}
+      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY}
+      IMGPROXY_STRIP_METADATA: 'true'
+      IMGPROXY_ENFORCE_WEBP: 'true'
+      IMGPROXY_TTL: '31536000'
+    healthcheck: { test: ['CMD', 'imgproxy', 'health'], interval: 10s, retries: 10 }
+    networks: [internal]
+
+networks:
+  internal: {}
+
+volumes:
+  pg: {}
+  pgbackrest_spool: {}
+  redis: {}
+  meili: {}
+  caddy_data: {}
+  caddy_config: {}

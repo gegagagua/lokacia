@@ -1,0 +1,61 @@
+{
+  "brokersTitle": "",
+  "brokersMetaDescription": "",
+  "brokersSubtitle": "",
+  "search": "",
+  "searchPlaceholder": "",
+  "district": "",
+  "allDistricts": "",
+  "apply": "",
+  "noBrokers": "",
+  "noBrokersHint": "",
+  "activeListings": "",
+  "memberSince": "",
+  "reviewsCount": "",
+  "noRating": "",
+  "stats": {
+    "active": "",
+    "closed": "",
+    "districts": ""
+  },
+  "listings": "",
+  "noListings": "",
+  "reviews": "",
+  "noReviews": "",
+  "about": "",
+  "team": "",
+  "projects": "",
+  "website": "",
+  "address": "",
+  "verified": "",
+  "roles": {
+    "manager": "",
+    "agent": "",
+    "assistant": ""
+  },
+  "orgType": {
+    "agency": "",
+    "developer": ""
+  },
+  "phone": {
+    "reveal": "",
+    "call": "",
+    "limited": "",
+    "error": ""
+  },
+  "review": {
+    "title": "",
+    "rating": "",
+    "stars": "",
+    "body": "",
+    "bodyPlaceholder": "",
+    "submit": "",
+    "success": "",
+    "already": "",
+    "error": "",
+    "own": "",
+    "login": ""
+  },
+  "completion": "",
+  "breadcrumbHome": ""
+}

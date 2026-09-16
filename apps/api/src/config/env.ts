@@ -81,6 +81,9 @@ export function loadEnv(overrides: Partial<Record<keyof Env, unknown>> = {}): En
     for (const k of ['JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET'] as const) {
       if (parsed.data[k].startsWith('dev_') || parsed.data[k] === 'change_me') throw new Error(`${k} must be set in production`);
     }
+    for (const k of ['IP_HASH_SALT', 'PAYMENTS_WEBHOOK_SECRET'] as const) {
+      if (parsed.data[k].startsWith('dev_')) throw new Error(`${k} must be set in production`);
+    }
   }
   return parsed.data;
 }

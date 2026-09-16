@@ -5,6 +5,9 @@ import { getLocale, getMessages } from 'next-intl/server';
 import { ToastProvider } from '@lokacia/ui';
 import { SiteHeader } from '@/components/shell/site-header';
 import { SiteFooter } from '@/components/shell/site-footer';
+import { FeedbackWidget } from '@/components/v2/feedback-widget';
+import { AnalyticsBeacon } from '@/components/v2/analytics-beacon';
+import { ImpersonationBanner } from '@/components/v2/impersonation-banner';
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '@/lib/site';
 import './globals.css';
 
@@ -49,11 +52,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:rounded-button focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-contrast">
               მთავარ შინაარსზე გადასვლა
             </a>
+            <ImpersonationBanner />
             <SiteHeader />
             <main id="main" className="flex-1">
               {children}
             </main>
             <SiteFooter />
+            <FeedbackWidget />
+            <AnalyticsBeacon />
           </ToastProvider>
         </NextIntlClientProvider>
       </body>

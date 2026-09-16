@@ -1,0 +1,22 @@
+{
+  "title": "",
+  "subtitle": "",
+  "usersTotal": "",
+  "newUsers": "",
+  "activeListings": "",
+  "pendingHint": "",
+  "revenue30d": "",
+  "mrr": "",
+  "queuesTitle": "",
+  "queues": {
+    "moderation": "",
+    "verifications": "",
+    "feedback": "",
+    "disputes": "",
+    "failedPayments": ""
+  },
+  "listingsByStatus": "",
+  "signups": "",
+  "events": "",
+  "noEvents": ""
+}

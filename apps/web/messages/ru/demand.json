@@ -1,0 +1,103 @@
+{
+  "board": {
+    "title": "",
+    "subtitle": "",
+    "metaTitle": "",
+    "metaDescription": "",
+    "add": "",
+    "mine": "",
+    "found": "",
+    "loadMore": "",
+    "loading": "",
+    "empty": "",
+    "emptyHint": "",
+    "reset": ""
+  },
+  "filters": {
+    "title": "",
+    "businessType": "",
+    "dealType": "",
+    "district": "",
+    "areaMin": "",
+    "budgetMax": "",
+    "q": "",
+    "qPlaceholder": "",
+    "any": "",
+    "apply": ""
+  },
+  "card": {
+    "area": "",
+    "budget": "",
+    "budgetAny": "",
+    "districts": "",
+    "anyDistrict": "",
+    "expiresIn": "",
+    "expiresToday": "",
+    "contacts": "",
+    "open": ""
+  },
+  "status": {
+    "active": "",
+    "closed": "",
+    "expired": ""
+  },
+  "detail": {
+    "back": "",
+    "requester": "",
+    "published": "",
+    "expires": "",
+    "description": "",
+    "yours": "",
+    "contactPhone": "",
+    "close": "",
+    "closed": "",
+    "renew": "",
+    "renewed": "",
+    "matches": "",
+    "matchesHint": "",
+    "matchesEmpty": "",
+    "searchAll": "",
+    "inactive": ""
+  },
+  "contact": {
+    "title": "",
+    "hint": "",
+    "body": "",
+    "bodyPlaceholder": "",
+    "listing": "",
+    "noListing": "",
+    "submit": "",
+    "sent": "",
+    "openChat": "",
+    "login": "",
+    "error": ""
+  },
+  "form": {
+    "title": "",
+    "subtitle": "",
+    "businessType": "",
+    "choose": "",
+    "dealType": "",
+    "titleLabel": "",
+    "titlePlaceholder": "",
+    "description": "",
+    "descriptionPlaceholder": "",
+    "areaMin": "",
+    "areaMax": "",
+    "budget": "",
+    "budgetHint": "",
+    "districts": "",
+    "districtsHint": "",
+    "phone": "",
+    "phoneHint": "",
+    "expires": "",
+    "days": "",
+    "submit": "",
+    "error": ""
+  },
+  "account": {
+    "title": "",
+    "empty": "",
+    "emptyHint": ""
+  }
+}

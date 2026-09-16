@@ -11,9 +11,9 @@ export type KanbanItem = { id: string; column: string };
 function Item<T extends KanbanItem>({ item, render }: { item: T; render: (i: T) => React.ReactNode }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id, data: { column: item.column } });
   return (
-    <li ref={setNodeRef} style={{ transform: CSS.Translate.toString(transform), transition }} {...attributes} {...listeners} className={cn('touch-none list-none', isDragging && 'opacity-40')}>
+    <div ref={setNodeRef} style={{ transform: CSS.Translate.toString(transform), transition }} {...attributes} {...listeners} className={cn('touch-none rounded-[8px]', isDragging && 'opacity-40')}>
       {render(item)}
-    </li>
+    </div>
   );
 }
 
@@ -26,16 +26,22 @@ function Column<T extends KanbanItem>({ col, items, render }: { col: KanbanColum
         <span className="rounded-full bg-surface-2 px-2 text-small tabular text-muted">{items.length}</span>
       </header>
       <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
-        <ul ref={setNodeRef} className="flex min-h-24 flex-1 flex-col gap-2 p-2">
+        {/* div, not ul: sortable items carry role="button" (dnd-kit), which is invalid as a direct list child */}
+        <div ref={setNodeRef} className="flex min-h-24 flex-1 flex-col gap-2 p-2">
           {items.map((i) => (
             <Item key={i.id} item={i} render={render} />
           ))}
-        </ul>
+        </div>
       </SortableContext>
       {col.footer && <footer className="border-t border-border px-3 py-2 text-small text-muted">{col.footer}</footer>}
     </section>
   );
 }
+
+const colTitle = (columns: KanbanColumn[], id: string | number | undefined, fallback?: unknown) => {
+  const key = (fallback as { column?: string } | undefined)?.column ?? String(id ?? '').replace(/^col:/, '');
+  return columns.find((c) => c.key === key)?.title ?? key;
+};
 
 /** Drag-and-drop board. `onMove(itemId, toColumn, toIndex)` is called on drop (keyboard accessible). */
 export function Kanban<T extends KanbanItem>({ columns, items, renderItem, onMove, className }: { columns: KanbanColumn[]; items: T[]; renderItem: (i: T) => React.ReactNode; onMove: (id: string, column: string, index: number) => void; className?: string }) {
@@ -52,7 +58,19 @@ export function Kanban<T extends KanbanItem>({ columns, items, renderItem, onMov
   };
   const active = items.find((i) => i.id === activeId);
   return (
-    <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={(e: DragStartEvent) => setActiveId(String(e.active.id))} onDragEnd={onEnd} onDragCancel={() => setActiveId(null)}>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCorners}
+      accessibility={{
+        screenReaderInstructions: { draggable: 'ბარათის ასაღებად დააჭირეთ Space ან Enter. ისრებით გადაადგილეთ, Space ან Enter — დადება, Escape — გაუქმება.' },
+        announcements: {
+          onDragStart: () => 'ბარათი აღებულია.',
+          onDragOver: ({ over }) => (over ? `ბარათი სვეტზეა: ${colTitle(columns, over.id, over.data.current)}.` : 'ბარათი სვეტს გარეთა.'),
+          onDragEnd: ({ over }) => (over ? `ბარათი დაიდო სვეტში: ${colTitle(columns, over.id, over.data.current)}.` : 'ბარათი დაიდო.'),
+          onDragCancel: () => 'გადაადგილება გაუქმდა.',
+        },
+      }}
+      onDragStart={(e: DragStartEvent) => setActiveId(String(e.active.id))} onDragEnd={onEnd} onDragCancel={() => setActiveId(null)}>
       <div className={cn('flex gap-3 overflow-x-auto pb-2', className)}>
         {columns.map((c) => (
           <Column key={c.key} col={c} items={items.filter((i) => i.column === c.key)} render={renderItem} />

@@ -23,7 +23,18 @@ export class QueueService implements OnApplicationBootstrap, OnModuleDestroy {
 
   /** Register a job handler (call from module constructors / onModuleInit). */
   register(name: string, handler: Handler) {
-    this.handlers.set(name, handler);
+    // Several modules may subscribe to the same event (e.g. `listings.published` → alerts, demand, CRM matching).
+    const prev = this.handlers.get(name);
+    if (!prev) {
+      this.handlers.set(name, handler);
+      return;
+    }
+    this.handlers.set(name, async (data) => {
+      const results = await Promise.allSettled([prev(data), handler(data)]);
+      const failed = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
+      if (failed) throw failed.reason;
+      return results.map((r) => (r as PromiseFulfilledResult<unknown>).value);
+    });
   }
 
   /** Register a repeatable job. */

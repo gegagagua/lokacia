@@ -1,0 +1,76 @@
+name: Quality
+# Lighthouse CI budgets (Phase 14) + k6 smoke against a production build with a seeded database.
+on:
+  push: { branches: [main] }
+  pull_request: { paths: ['apps/web/**', 'packages/ui/**', 'infra/lighthouse/**', 'infra/k6/**'] }
+  schedule: [{ cron: '0 3 * * 1' }] # weekly full load test
+  workflow_dispatch: {}
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.5
+        env: { POSTGRES_USER: postgres, POSTGRES_PASSWORD: postgres, POSTGRES_DB: lokacia }
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U postgres" --health-interval 5s --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+    env:
+      NODE_ENV: production
+      DATABASE_URL: postgres://lokacia:lokacia@localhost:5432/lokacia
+      JWT_ACCESS_SECRET: ci_access_secret_123
+      JWT_REFRESH_SECRET: ci_refresh_secret_123
+      IP_HASH_SALT: ci_ip_salt
+      PAYMENTS_WEBHOOK_SECRET: ci_webhook_secret
+      API_URL: http://localhost:4000
+      APP_URL: http://localhost:3100
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: pnpm }
+      - run: PGPASSWORD=postgres psql -h localhost -U postgres -d lokacia -f infra/postgres/init.sql
+      - run: pnpm i --frozen-lockfile
+      - run: pnpm db:migrate && pnpm db:seed
+      - run: pnpm turbo run build --filter=@lokacia/api... --filter=@lokacia/web...
+      - name: Start API + web (production mode)
+        run: |
+          (cd apps/api && node dist/src/main.js > ../../api.log 2>&1 &)
+          (cd apps/web && pnpm start > ../../web.log 2>&1 &)
+          npx --yes wait-on -t 120000 http://localhost:4000/v1/health http://localhost:3100/
+      - name: Lighthouse CI (mobile)
+        run: |
+          SLUG=$(curl -fsS 'http://localhost:4000/v1/listings?limit=1' | node -e "process.stdin.on('data',d=>console.log(JSON.parse(d).items[0].slug))")
+          npx --yes @lhci/cli@0.15.x autorun --config=infra/lighthouse/lighthouserc.json \
+            --collect.url=http://localhost:3100/ --collect.url=http://localhost:3100/search --collect.url=http://localhost:3100/listings/$SLUG
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+      - name: k6 smoke (search + listing thresholds)
+        uses: grafana/run-k6-action@v1
+        env: { BASE_URL: 'http://localhost:4000', WEB_URL: 'http://localhost:3100', SMOKE: '1' }
+        with:
+          path: |
+            infra/k6/search.js
+            infra/k6/listing.js
+      - if: failure()
+        run: tail -n 200 api.log web.log
+
+  storybook:
+    # Phase 1: Storybook builds and every story passes axe (WCAG 2.2 AA) in light and dark themes.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: pnpm }
+      - run: pnpm i --frozen-lockfile
+      - run: pnpm --filter @lokacia/contracts build
+      - run: pnpm --filter @lokacia/ui exec playwright install --with-deps chromium
+      - run: pnpm --filter @lokacia/ui build-storybook
+      - run: pnpm --filter @lokacia/ui test:a11y
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: storybook-static, path: packages/ui/storybook-static, retention-days: 7 }

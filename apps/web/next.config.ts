@@ -22,7 +22,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://*.openstreetmap.org https://api.maptiler.com",
       "font-src 'self' data:",
-      "connect-src 'self' https://*.openstreetmap.org https://api.maptiler.com https://demotiles.maplibre.org ws://localhost:4000 " + API_URL.replace(/^http/, 'ws'),
+      "connect-src 'self' https://*.openstreetmap.org https://api.maptiler.com https://demotiles.maplibre.org " + (process.env.NODE_ENV === 'development' ? 'ws://localhost:4000 ' : '') + API_URL.replace(/^http/, 'ws'),
       "worker-src 'self' blob:",
       "frame-src 'self' https://challenges.cloudflare.com https://meet.jit.si https://www.youtube.com",
       "frame-ancestors 'self'",

@@ -10,7 +10,9 @@ export function ChatThread({ messages, onSend, onAttach, sending, placeholder = 
   const [draft, setDraft] = React.useState('');
   const end = React.useRef<HTMLDivElement>(null);
   const file = React.useRef<HTMLInputElement>(null);
-  React.useEffect(() => end.current?.scrollIntoView({ block: 'end' }), [messages.length]);
+  React.useEffect(() => {
+    end.current?.scrollIntoView({ block: 'end' });
+  }, [messages.length]);
   const submit = async (e?: React.FormEvent) => {
     e?.preventDefault();
     const body = draft.trim();
@@ -47,7 +49,7 @@ export function ChatThread({ messages, onSend, onAttach, sending, placeholder = 
             <button type="button" onClick={() => file.current?.click()} className="grid size-10 shrink-0 place-items-center rounded-button border border-border text-muted hover:bg-surface-2" aria-label="ფაილის მიმაგრება">
               <Paperclip className="size-4" strokeWidth={1.5} />
             </button>
-            <input ref={file} type="file" className="sr-only" onChange={(e) => e.target.files?.[0] && onAttach(e.target.files[0])} />
+            <input ref={file} type="file" className="sr-only" tabIndex={-1} aria-label="ფაილის მიმაგრება" onChange={(e) => e.target.files?.[0] && onAttach(e.target.files[0])} />
           </>
         )}
         <textarea

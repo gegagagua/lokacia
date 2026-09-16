@@ -1,0 +1,131 @@
+{
+  "appName": "",
+  "skip": "",
+  "groups": {
+    "work": "",
+    "marketing": "",
+    "team": ""
+  },
+  "nav": {
+    "dashboard": "",
+    "contacts": "",
+    "deals": "",
+    "calendar": "",
+    "tasks": "",
+    "inbox": "",
+    "listings": "",
+    "addOnSite": "",
+    "presentations": "",
+    "sequences": "",
+    "liveness": "",
+    "competitors": "",
+    "ownerReports": "",
+    "cobroker": "",
+    "analytics": "",
+    "sources": "",
+    "documents": "",
+    "team": "",
+    "data": "",
+    "audit": "",
+    "settings": "",
+    "more": ""
+  },
+  "org": {
+    "switch": "",
+    "current": "",
+    "role": ""
+  },
+  "roles": {
+    "manager": "",
+    "agent": "",
+    "assistant": "",
+    "admin": ""
+  },
+  "user": {
+    "menu": "",
+    "profile": "",
+    "portal": "",
+    "logout": "",
+    "theme": ""
+  },
+  "palette": {
+    "open": "",
+    "placeholder": "",
+    "pages": "",
+    "actions": "",
+    "contacts": "",
+    "deals": "",
+    "listings": "",
+    "empty": "",
+    "hint": "",
+    "newContact": "",
+    "newDeal": "",
+    "newTask": "",
+    "newViewing": "",
+    "toggleTheme": ""
+  },
+  "offline": {
+    "banner": "",
+    "title": "",
+    "body": "",
+    "retry": ""
+  },
+  "noOrg": {
+    "title": "",
+    "body": "",
+    "name": "",
+    "create": ""
+  },
+  "common": {
+    "save": "",
+    "cancel": "",
+    "close": "",
+    "delete": "",
+    "edit": "",
+    "add": "",
+    "loading": "",
+    "error": "",
+    "retry": "",
+    "empty": "",
+    "saved": "",
+    "confirm": "",
+    "search": "",
+    "all": "",
+    "none": "",
+    "back": "",
+    "noAccess": ""
+  },
+  "call": {
+    "call": "",
+    "logTitle": "",
+    "logDescription": "",
+    "outcome": "",
+    "duration": "",
+    "note": "",
+    "save": "",
+    "saved": "",
+    "skip": ""
+  },
+  "timeline": {
+    "title": "",
+    "addNote": "",
+    "notePlaceholder": "",
+    "empty": "",
+    "types": {
+      "note": "",
+      "call": "",
+      "stage_change": "",
+      "email": "",
+      "sms": "",
+      "viewing": "",
+      "merge": "",
+      "import": "",
+      "message": "",
+      "task": "",
+      "match": "",
+      "document": "",
+      "presentation": "",
+      "sequence": ""
+    }
+  }
+}

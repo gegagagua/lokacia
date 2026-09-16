@@ -1,0 +1,35 @@
+@import 'tailwindcss';
+@import '@lokacia/ui/theme.css';
+
+@source '../../../../packages/ui/src';
+
+@layer base {
+  /* Dense professional workspace: slightly smaller base size, tabular numbers everywhere in data views. */
+  .crm-dense {
+    font-size: 15px;
+  }
+  .crm-dense table td,
+  .crm-dense table th {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  kbd {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    border: 1px solid var(--border-strong);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    padding: 0 4px;
+    color: var(--text-muted);
+  }
+}
+
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}

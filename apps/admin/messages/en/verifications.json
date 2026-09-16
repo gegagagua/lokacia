@@ -1,0 +1,24 @@
+{
+  "title": "",
+  "subtitle": "",
+  "tabs": {
+    "pending": "",
+    "approved": "",
+    "rejected": ""
+  },
+  "status": {
+    "pending": "",
+    "approved": "",
+    "rejected": ""
+  },
+  "preview": "",
+  "document": "",
+  "openDocument": "",
+  "approve": "",
+  "approved": "",
+  "reject": "",
+  "rejectTitle": "",
+  "rejected": "",
+  "emptyTitle": "",
+  "emptyText": ""
+}

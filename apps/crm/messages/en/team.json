@@ -1,0 +1,111 @@
+{
+  "title": "",
+  "subtitle": "",
+  "members": "",
+  "name": "",
+  "phone": "",
+  "role": "",
+  "districts": "",
+  "active": "",
+  "invited": "",
+  "stats": {
+    "contacts": "",
+    "openDeals": "",
+    "wonThisMonth": "",
+    "overdueTasks": ""
+  },
+  "noDistricts": "",
+  "editDistricts": "",
+  "districtsTitle": "",
+  "districtsHint": "",
+  "saved": "",
+  "invite": {
+    "title": "",
+    "phone": "",
+    "role": "",
+    "submit": "",
+    "sent": ""
+  },
+  "distribution": {
+    "title": "",
+    "hint": "",
+    "round_robin": "",
+    "round_robinHint": "",
+    "district": "",
+    "districtHint": "",
+    "manual": "",
+    "manualHint": "",
+    "saved": ""
+  },
+  "permissions": {
+    "title": "",
+    "permission": "",
+    "list": {
+      "contacts_viewAll": "",
+      "deals_viewAll": "",
+      "records_delete": "",
+      "finance_view": "",
+      "team_manage": "",
+      "settings_manage": "",
+      "pipeline_manage": "",
+      "audit_view": "",
+      "data_import": "",
+      "data_export": "",
+      "sources_manage": "",
+      "sequences_manage": "",
+      "listings_publish": "",
+      "documents_sign": "",
+      "analytics_view": ""
+    }
+  },
+  "settings": {
+    "title": "",
+    "subtitle": "",
+    "pipeline": "",
+    "pipelineHint": "",
+    "organization": "",
+    "organizationHint": "",
+    "distribution": "",
+    "distributionHint": "",
+    "profile": "",
+    "profileHint": "",
+    "sources": "",
+    "sourcesHint": ""
+  },
+  "pipeline": {
+    "title": "",
+    "subtitle": "",
+    "name": "",
+    "key": "",
+    "kind": "",
+    "kinds": {
+      "open": "",
+      "won": "",
+      "lost": ""
+    },
+    "deals": "",
+    "add": "",
+    "newStage": "",
+    "moveUp": "",
+    "moveDown": "",
+    "remove": "",
+    "moveTo": "",
+    "save": "",
+    "saved": ""
+  },
+  "org": {
+    "title": "",
+    "name": "",
+    "phone": "",
+    "email": "",
+    "address": "",
+    "website": "",
+    "about": "",
+    "logo": "",
+    "uploadLogo": "",
+    "brandColor": "",
+    "brandHint": "",
+    "save": "",
+    "saved": ""
+  }
+}

@@ -1,5 +1,8 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
+import { MessagingController } from './messaging.controller';
+import { MessagingService } from './messaging.service';
+import { RealtimeGateway } from './realtime.gateway';
 
-/** Placeholder — implemented in its roadmap phase. */
-@Module({})
+@Global()
+@Module({ controllers: [MessagingController], providers: [MessagingService, RealtimeGateway], exports: [MessagingService, RealtimeGateway] })
 export class MessagingModule {}

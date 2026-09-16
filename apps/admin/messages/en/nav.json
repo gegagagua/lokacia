@@ -1,0 +1,38 @@
+{
+  "label": "",
+  "skip": "",
+  "badge": "",
+  "menu": "",
+  "close": "",
+  "portal": "",
+  "pending": "",
+  "groups": {
+    "work": "",
+    "people": "",
+    "content": "",
+    "money": ""
+  },
+  "dashboard": "",
+  "moderation": "",
+  "verifications": "",
+  "feedback": "",
+  "escrow": "",
+  "users": "",
+  "orgs": "",
+  "audit": "",
+  "cms": "",
+  "taxonomy": "",
+  "finance": "",
+  "revenue": "",
+  "settings": "",
+  "role": {
+    "admin": "",
+    "moderator": "",
+    "user": "",
+    "broker": "",
+    "agency_manager": "",
+    "agency_assistant": "",
+    "developer": "",
+    "guest": ""
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "title": "",
+  "traffic": {
+    "title": "",
+    "subtitle": "",
+    "weekday": "",
+    "days": {
+      "0": "",
+      "1": "",
+      "2": "",
+      "3": "",
+      "4": "",
+      "5": "",
+      "6": ""
+    },
+    "dayTotal": "",
+    "peak": "",
+    "perHour": "",
+    "sourceSamples": "",
+    "sourceProvider": "",
+    "chartLabel": "",
+    "people": "",
+    "hour": ""
+  },
+  "score": {
+    "title": "",
+    "strong": "",
+    "medium": "",
+    "weak": "",
+    "weight": ""
+  },
+  "tour": {
+    "title": "",
+    "viewerLabel": "",
+    "loading": "",
+    "failed": "",
+    "usdz": "",
+    "hidden": "",
+    "download": "",
+    "hide3d": "",
+    "show3d": "",
+    "hint": "",
+    "plan": "",
+    "planHint": ""
+  },
+  "finance": {
+    "title": "",
+    "subtitle": "",
+    "apply": ""
+  },
+  "scanUpload": {
+    "label": "",
+    "hint": "",
+    "badFormat": "",
+    "done": "",
+    "error": "",
+    "uploading": ""
+  },
+  "feedback": {
+    "button": "",
+    "title": "",
+    "description": "",
+    "rating": "",
+    "message": "",
+    "send": "",
+    "thanks": "",
+    "error": ""
+  },
+  "impersonation": {
+    "text": "",
+    "stop": ""
+  },
+  "escrow": {
+    "start": "",
+    "created": "",
+    "error": ""
+  }
+}

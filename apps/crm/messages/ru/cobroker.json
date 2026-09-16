@@ -1,0 +1,37 @@
+{
+  "title": "",
+  "subtitle": "",
+  "share": "",
+  "tabs": {
+    "incoming": "",
+    "outgoing": "",
+    "shared": ""
+  },
+  "empty": {
+    "incoming": "",
+    "outgoing": "",
+    "shared": ""
+  },
+  "cols": {
+    "listing": "",
+    "partner": "",
+    "split": "",
+    "status": "",
+    "date": "",
+    "actions": ""
+  },
+  "accept": "",
+  "decline": "",
+  "revoke": "",
+  "createDeal": "",
+  "form": {
+    "listing": "",
+    "org": "",
+    "orgSearch": "",
+    "split": "",
+    "preview": "",
+    "note": "",
+    "submit": "",
+    "sent": ""
+  }
+}

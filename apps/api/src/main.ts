@@ -1,3 +1,4 @@
+import './common/observability/register-api'; // no-op unless SENTRY_DSN / OTEL_EXPORTER_OTLP_ENDPOINT are set
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';

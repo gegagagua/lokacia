@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
+import { CompareController, FavoritesController } from './favorites.controller';
+import { FavoritesService } from './favorites.service';
 
-/** Placeholder — implemented in its roadmap phase. */
-@Module({})
+/** Favorites & comparison tables with share links (P14). */
+@Module({ controllers: [FavoritesController, CompareController], providers: [FavoritesService], exports: [FavoritesService] })
 export class FavoritesModule {}

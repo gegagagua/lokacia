@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
+import { AiController } from './ai.controller';
 
-/** Placeholder — implemented in its roadmap phase. */
-@Module({})
+@Module({ controllers: [AiController] })
 export class AiModule {}

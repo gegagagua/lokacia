@@ -20,9 +20,11 @@
     "react-dom": "^19.3.0",
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
+    "server-only": "^0.0.1",
+    "socket.io-client": "^4.8.3",
     "swr": "^2.5.1",
-    "zod": "^4.6.5",
-    "server-only": "^0.0.1"
+    "three": "^0.186.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@lokacia/config": "workspace:*",
@@ -30,6 +32,7 @@
     "@types/node": "^24.0.0",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "@types/three": "^0.186.0",
     "eslint": "^9.39.5",
     "tailwindcss": "^4.3.3",
     "typescript": "6.0.3",

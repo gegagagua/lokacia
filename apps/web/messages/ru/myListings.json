@@ -1,0 +1,90 @@
+{
+  "title": "",
+  "description": "",
+  "publish": "",
+  "filters": {
+    "label": "",
+    "all": "",
+    "active": "",
+    "attention": "",
+    "drafts": "",
+    "review": "",
+    "closed": ""
+  },
+  "empty": {
+    "title": "",
+    "description": "",
+    "filtered": ""
+  },
+  "card": {
+    "confirmed": "",
+    "notConfirmed": "",
+    "views": "",
+    "reveals": "",
+    "saves": "",
+    "stats30d": "",
+    "rejected": "",
+    "stale": "",
+    "photos": "",
+    "noPhoto": "",
+    "actionsLabel": "",
+    "perMonth": ""
+  },
+  "actions": {
+    "edit": "",
+    "submit": "",
+    "confirm": "",
+    "rented": "",
+    "sold": "",
+    "archive": "",
+    "restore": "",
+    "delete": "",
+    "stats": "",
+    "slots": "",
+    "shortSlots": "",
+    "view": "",
+    "more": ""
+  },
+  "toast": {
+    "submitted": "",
+    "confirmed": "",
+    "status": "",
+    "deleted": "",
+    "error": "",
+    "passport": "",
+    "fillPassport": ""
+  },
+  "delete": {
+    "title": "",
+    "description": "",
+    "confirm": "",
+    "cancel": ""
+  },
+  "slots": {
+    "viewingTitle": "",
+    "shortTitle": "",
+    "description": ""
+  },
+  "confirm": {
+    "metaTitle": "",
+    "title": "",
+    "description": "",
+    "available": "",
+    "rented": "",
+    "sold": "",
+    "lastConfirmed": "",
+    "never": "",
+    "status": "",
+    "expiresAt": "",
+    "hiddenNote": "",
+    "doneAvailable": "",
+    "doneRented": "",
+    "alreadyDone": "",
+    "openListing": "",
+    "myListings": "",
+    "invalidTitle": "",
+    "invalidDescription": "",
+    "login": "",
+    "error": ""
+  }
+}

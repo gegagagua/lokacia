@@ -113,7 +113,7 @@ export class GeoService implements OnModuleInit {
   async recomputeDistrictStats() {
     await this.dbs.db.execute(sql`
       UPDATE districts d SET
-        avg_price_m2_minor = COALESCE(sub.avg_rent, d.avg_price_m2_minor),
+        avg_price_m2_minor = COALESCE(d.avg_price_m2_override_minor, sub.avg_rent, d.avg_price_m2_minor),
         avg_sale_price_m2_minor = COALESCE(sub.avg_sale, d.avg_sale_price_m2_minor),
         active_count = COALESCE(sub.active, 0),
         vacancy_count = COALESCE(sub.vacancy, 0),

@@ -82,6 +82,15 @@ export class UsersController {
     return row;
   }
 
+  /** Latest consent decision per kind. */
+  @Get('me/consents')
+  async consentsList(@CurrentUser() user: AuthUser) {
+    const rows = await this.dbs.db.query.consents.findMany({ where: eq(consents.userId, user.id), orderBy: (c, { desc }) => desc(c.createdAt) });
+    const latest = new Map<string, (typeof rows)[number]>();
+    for (const r of rows) if (!latest.has(r.kind)) latest.set(r.kind, r);
+    return [...latest.values()].map((r) => ({ kind: r.kind, granted: r.granted, at: r.createdAt }));
+  }
+
   /** Personal data export (Georgian PDP law). */
   @Get('me/export')
   async export(@CurrentUser() user: AuthUser, @Res() res: Response) {
@@ -145,6 +154,30 @@ export class UsersController {
   @Post('me/telegram-link/mock-confirm')
   async mockTelegram(@CurrentUser() user: AuthUser) {
     await this.dbs.db.update(users).set({ telegramChatId: `mock-${user.id.slice(0, 8)}`, telegramLinkToken: null }).where(eq(users.id, user.id));
+    return { ok: true };
+  }
+
+  /** Viber deep link (bot conversation with a context token). */
+  @Post('me/viber-link')
+  async viberLink() {
+    const token = randomBytes(12).toString('base64url');
+    return { url: `viber://pa?chatURI=lokacia_ge&context=${token}`, token };
+  }
+
+  /** Demo helper for the mock channel: link Viber without a real bot. */
+  @Post('me/viber-link/mock-confirm')
+  async mockViber(@CurrentUser() user: AuthUser) {
+    await this.dbs.db.update(users).set({ viberId: `mock-${user.id.slice(0, 8)}` }).where(eq(users.id, user.id));
+    return { ok: true };
+  }
+
+  /** Unlink a messenger channel. */
+  @Delete('me/messengers/:channel')
+  @HttpCode(200)
+  async unlinkMessenger(@CurrentUser() user: AuthUser, @Param('channel') channel: string) {
+    if (channel === 'telegram') await this.dbs.db.update(users).set({ telegramChatId: null, telegramLinkToken: null }).where(eq(users.id, user.id));
+    else if (channel === 'viber') await this.dbs.db.update(users).set({ viberId: null }).where(eq(users.id, user.id));
+    else throw problems.badRequest('channel: telegram ან viber');
     return { ok: true };
   }
 

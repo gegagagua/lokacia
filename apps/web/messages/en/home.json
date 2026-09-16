@@ -1,0 +1,85 @@
+{
+  "meta": {
+    "title": "",
+    "description": ""
+  },
+  "hero": {
+    "eyebrow": "",
+    "title": "",
+    "lead": "",
+    "publish": "",
+    "browse": "",
+    "planCaption": ""
+  },
+  "types": {
+    "title": "",
+    "subtitle": "",
+    "count": ""
+  },
+  "stats": {
+    "title": "",
+    "active": "",
+    "confirmed": "",
+    "verified": "",
+    "brokers": "",
+    "demand": "",
+    "newWeek": ""
+  },
+  "fresh": {
+    "title": "",
+    "all": ""
+  },
+  "districts": {
+    "title": "",
+    "subtitle": "",
+    "district": "",
+    "price": "",
+    "active": "",
+    "map": ""
+  },
+  "how": {
+    "title": "",
+    "tenants": "",
+    "owners": "",
+    "brokers": "",
+    "t1": "",
+    "t2": "",
+    "t3": "",
+    "o1": "",
+    "o2": "",
+    "o3": "",
+    "b1": "",
+    "b2": "",
+    "b3": "",
+    "tenantsCta": "",
+    "ownersCta": "",
+    "brokersCta": ""
+  },
+  "demand": {
+    "title": "",
+    "subtitle": "",
+    "all": "",
+    "add": "",
+    "budget": "",
+    "area": "",
+    "empty": ""
+  },
+  "cta": {
+    "ownerTitle": "",
+    "ownerLead": "",
+    "ownerCta": "",
+    "brokerTitle": "",
+    "brokerLead": "",
+    "brokerCta": ""
+  },
+  "errors": {
+    "notFoundTitle": "",
+    "notFoundLead": "",
+    "home": "",
+    "search": "",
+    "errorTitle": "",
+    "errorLead": "",
+    "retry": "",
+    "code": ""
+  }
+}

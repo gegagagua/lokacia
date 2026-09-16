@@ -42,7 +42,9 @@ export async function api<T>(path: string, opts: Opts = {}): Promise<T> {
     throw new ApiError(res.status, problem);
   }
   if (res.status === 204) return undefined as T;
-  return (await res.json()) as T;
+  // Nest sends an empty body for `null` results
+  const text = await res.text();
+  return (text ? JSON.parse(text) : null) as T;
 }
 
 /** Same as `api` but returns null on 401/403/404 (handy for optional data in pages). */

@@ -1,0 +1,55 @@
+# TLS via Let's Encrypt (or Cloudflare origin certs when proxied). HSTS is also set by the apps.
+{
+	email ops@lokacia.ge
+	servers {
+		trusted_proxies static 173.245.48.0/20 103.21.244.0/22 103.22.200.0/22 103.31.4.0/22 141.101.64.0/18 108.162.192.0/18 190.93.240.0/20 188.114.96.0/20 197.234.240.0/22 198.41.128.0/17 162.158.0.0/15 104.16.0.0/13 104.24.0.0/14 172.64.0.0/13 131.0.72.0/22
+		client_ip_headers CF-Connecting-IP X-Forwarded-For
+	}
+}
+
+(common) {
+	encode zstd gzip
+	header -Server
+	log {
+		output stdout
+		format json
+	}
+}
+
+{$APP_DOMAIN:lokacia.ge}, www.{$APP_DOMAIN:lokacia.ge} {
+	import common
+	@www host www.{$APP_DOMAIN:lokacia.ge}
+	redir @www https://{$APP_DOMAIN:lokacia.ge}{uri} permanent
+	reverse_proxy web:3100 {
+		header_up CF-Connecting-IP {client_ip}
+		lb_policy least_conn
+		health_uri /
+		health_interval 10s
+	}
+}
+
+crm.{$APP_DOMAIN:lokacia.ge} {
+	import common
+	reverse_proxy crm:3101
+}
+
+admin.{$APP_DOMAIN:lokacia.ge} {
+	import common
+	# Admin is additionally restricted to office/VPN IPs (set ADMIN_ALLOW_CIDR)
+	@blocked not remote_ip {$ADMIN_ALLOW_CIDR:0.0.0.0/0}
+	respond @blocked 403
+	reverse_proxy admin:3102
+}
+
+api.{$APP_DOMAIN:lokacia.ge} {
+	import common
+	reverse_proxy api:4000 {
+		lb_policy least_conn
+		health_uri /v1/health
+		health_interval 10s
+		# ClientIp() trusts CF-Connecting-IP → overwrite it with the verified client IP so it cannot be spoofed
+		# by clients hitting the origin directly (Caddy only honours client_ip_headers from trusted_proxies).
+		header_up CF-Connecting-IP {client_ip}
+		# socket.io websockets are proxied transparently
+	}
+}

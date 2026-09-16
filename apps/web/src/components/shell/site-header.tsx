@@ -21,9 +21,10 @@ export async function SiteHeader() {
   ];
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-bg/95 backdrop-blur supports-[backdrop-filter]:bg-bg/85">
-      <div className="container-page flex h-16 items-center gap-4">
+      <div className="container-page flex h-16 min-w-0 items-center gap-2 sm:gap-4">
         <Link href="/" className="shrink-0 rounded-button" aria-label="lokacia.ge — მთავარი">
-          <Logo size={26} />
+          <Logo size={26} className="hidden sm:inline-flex" />
+          <Logo size={24} showGeorgian={false} className="sm:hidden" />
         </Link>
         <nav aria-label="მთავარი ნავიგაცია" className="ml-2 hidden items-center gap-0.5 xl:flex">
           {nav.map((n) => (
@@ -32,8 +33,10 @@ export async function SiteHeader() {
             </Link>
           ))}
         </nav>
-        <div className="ml-auto flex items-center gap-1.5">
-          <LanguageSwitcher />
+        <div className="ml-auto flex min-w-0 items-center gap-1">
+          <div className="hidden sm:block">
+            <LanguageSwitcher />
+          </div>
           <ThemeToggle />
           {user && <NotificationsBell />}
           <Button asChild size="sm" className="hidden sm:inline-flex">

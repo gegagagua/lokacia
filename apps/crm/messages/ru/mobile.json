@@ -1,0 +1,58 @@
+{
+  "title": "",
+  "subtitle": "",
+  "photos": {
+    "title": "",
+    "take": "",
+    "count": "",
+    "remove": ""
+  },
+  "gps": {
+    "title": "",
+    "detect": "",
+    "detecting": "",
+    "accuracy": "",
+    "denied": "",
+    "mapHint": ""
+  },
+  "voice": {
+    "title": "",
+    "record": "",
+    "stop": "",
+    "remove": "",
+    "unsupported": "",
+    "denied": ""
+  },
+  "fields": {
+    "title": "",
+    "titlePlaceholder": "",
+    "businessType": "",
+    "dealType": "",
+    "price": "",
+    "area": "",
+    "address": "",
+    "note": ""
+  },
+  "save": "",
+  "saving": "",
+  "savedOnline": "",
+  "savedOffline": "",
+  "openListing": "",
+  "queue": {
+    "title": "",
+    "pending": "",
+    "syncing": "",
+    "error": "",
+    "retry": "",
+    "remove": "",
+    "sync": "",
+    "empty": ""
+  },
+  "validation": {
+    "title": "",
+    "area": "",
+    "price": "",
+    "location": "",
+    "address": ""
+  }
+}

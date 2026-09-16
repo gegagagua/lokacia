@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
+import { StatsController } from './stats.controller';
+import { StatsService } from './stats.service';
 
-/** Placeholder — implemented in its roadmap phase. */
-@Module({})
+@Module({ controllers: [StatsController], providers: [StatsService], exports: [StatsService] })
 export class StatsModule {}

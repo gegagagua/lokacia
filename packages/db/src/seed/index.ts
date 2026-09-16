@@ -555,18 +555,18 @@ export async function seed() {
     for (const d of districts) {
       const density = d.city === 'tbilisi' ? 1 : 0.4;
       for (const bt of BUSINESS_TYPES) {
-        const n = Math.round(R.int(2, 7) * density);
+        const n = Math.round(R.int(6, 16) * density);
         for (let k = 0; k < n; k++) {
           const [lat, lng] = pointIn(d.boundary);
           pois.push({ category: 'competitor', businessType: bt.slug, name: `${R.pick(COMPETITOR_NAMES[bt.slug] ?? ['ბიზნესი'])} „${R.pick(['ლილე', 'ორბი', 'ქვევრი', 'ნუში', 'ფიქალი', 'ტყემალი', 'ალვა', 'კვარცი'])}“`, source: 'demo', sourceId: `c${poiN++}`, lat, lng });
         }
       }
       const cats: [typeof s.pois.$inferInsert['category'], number, string[]][] = [
-        ['transport', 12, ['ავტობუსის გაჩერება', 'მეტროს სადგური', 'მიკროავტობუსის გაჩერება']],
-        ['school', 4, ['საჯარო სკოლა №', 'კერძო სკოლა „განთიადი“ №', 'საბავშვო ბაღი №']],
-        ['business_center', 3, ['ბიზნეს-ცენტრი „', 'ოფის-პარკი „']],
-        ['parking', 4, ['ავტოსადგომი №']],
-        ['bank', 4, ['ბანკის ფილიალი №']],
+        ['transport', 45, ['ავტობუსის გაჩერება', 'მეტროს სადგური', 'მიკროავტობუსის გაჩერება']],
+        ['school', 12, ['საჯარო სკოლა №', 'კერძო სკოლა „განთიადი“ №', 'საბავშვო ბაღი №']],
+        ['business_center', 10, ['ბიზნეს-ცენტრი „', 'ოფის-პარკი „']],
+        ['parking', 14, ['ავტოსადგომი №']],
+        ['bank', 12, ['ბანკის ფილიალი №']],
       ];
       for (const [category, n, names] of cats) {
         for (let k = 0; k < Math.round(n * density); k++) {

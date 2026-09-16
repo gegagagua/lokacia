@@ -43,7 +43,9 @@ export async function apiFetch<T>(path: string, init: { method?: string; body?: 
   }
   if (init.raw) return res as unknown as T;
   if (res.status === 204) return undefined as T;
-  return (await res.json()) as T;
+  // Nest sends an empty body for `null` results
+  const text = await res.text();
+  return (text ? JSON.parse(text) : null) as T;
 }
 
 export const fetcher = <T,>(path: string) => apiFetch<T>(path);

@@ -1,0 +1,64 @@
+{
+  "title": "",
+  "subtitle": "",
+  "tabs": {
+    "today": "",
+    "overdue": "",
+    "upcoming": "",
+    "done": ""
+  },
+  "scope": {
+    "mine": "",
+    "all": ""
+  },
+  "add": {
+    "title": "",
+    "placeholder": "",
+    "due": "",
+    "priority": "",
+    "assignee": "",
+    "contact": "",
+    "submit": "",
+    "created": ""
+  },
+  "priority": {
+    "low": "",
+    "normal": "",
+    "high": ""
+  },
+  "complete": "",
+  "reopen": "",
+  "snooze": "",
+  "snoozeOptions": {
+    "hour": "",
+    "tomorrow": "",
+    "week": ""
+  },
+  "snoozed": "",
+  "deleted": "",
+  "delete": "",
+  "noDue": "",
+  "overdueBy": "",
+  "empty": {
+    "today": "",
+    "overdue": "",
+    "upcoming": "",
+    "done": ""
+  },
+  "emptyHint": "",
+  "reminders": {
+    "title": "",
+    "body": "",
+    "enablePush": "",
+    "pushEnabled": "",
+    "pushDenied": "",
+    "pushUnsupported": "",
+    "test": "",
+    "testTitle": "",
+    "testBody": ""
+  },
+  "linked": {
+    "deal": "",
+    "contact": ""
+  }
+}

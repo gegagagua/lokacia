@@ -1,0 +1,4 @@
+Noto Sans Georgian (NotoSansGeorgian_400Regular.ttf, NotoSansGeorgian_700Bold.ttf)
+Copyright 2022 The Noto Project Authors (https://github.com/notofonts/georgian)
+Licensed under the SIL Open Font License, Version 1.1 — https://openfontlicense.org
+Used only to render Open Graph images server-side (next/og requires TTF).

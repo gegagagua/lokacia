@@ -1,0 +1,147 @@
+name: Deploy
+# staging: every green CI run on main · production: tags v* (GitHub environment "production" requires reviewers)
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      environment: { description: 'staging or production', required: true, default: staging, type: choice, options: [staging, production] }
+      ref: { description: 'git ref / tag to deploy', required: false }
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: deploy-${{ github.event_name == 'push' && 'production' || inputs.environment || 'staging' }}
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  OWNER: ${{ github.repository_owner }}
+
+jobs:
+  meta:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.m.outputs.environment }}
+      tag: ${{ steps.m.outputs.tag }}
+      sha: ${{ steps.m.outputs.sha }}
+    steps:
+      - id: m
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then env=production; sha="${{ github.sha }}"; tag="${GITHUB_REF_NAME}";
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then env="${{ inputs.environment }}"; sha="${{ github.sha }}"; tag="manual-${GITHUB_SHA::12}";
+          else env=staging; sha="${{ github.event.workflow_run.head_sha }}"; tag="sha-${sha::12}"; fi
+          echo "environment=$env" >> "$GITHUB_OUTPUT"; echo "sha=$sha" >> "$GITHUB_OUTPUT"; echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: meta
+    runs-on: ubuntu-latest
+    environment: ${{ needs.meta.outputs.environment }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - { image: lokacia-api, file: infra/docker/api.Dockerfile, target: runtime }
+          - { image: lokacia-migrate, file: infra/docker/api.Dockerfile, target: migrate }
+          - { image: lokacia-web, file: infra/docker/web.Dockerfile, target: runtime }
+          - { image: lokacia-crm, file: infra/docker/crm.Dockerfile, target: runtime }
+          - { image: lokacia-admin, file: infra/docker/admin.Dockerfile, target: runtime }
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: '${{ inputs.ref || needs.meta.outputs.sha }}' }
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with: { registry: '${{ env.REGISTRY }}', username: '${{ github.actor }}', password: '${{ secrets.GITHUB_TOKEN }}' }
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.file }}
+          target: ${{ matrix.target }}
+          push: true
+          provenance: true
+          sbom: true
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}
+          # NEXT_PUBLIC_* are inlined at build time → per-environment values (GitHub environment variables)
+          build-args: |
+            NEXT_PUBLIC_APP_URL=${{ vars.APP_URL }}
+            NEXT_PUBLIC_CRM_URL=${{ vars.CRM_URL }}
+            NEXT_PUBLIC_ADMIN_URL=${{ vars.ADMIN_URL }}
+            NEXT_PUBLIC_MAPTILER_KEY=${{ vars.MAPTILER_KEY }}
+            NEXT_PUBLIC_TURNSTILE_SITE_KEY=${{ vars.TURNSTILE_SITE_KEY }}
+            APP_URL=${{ vars.APP_URL }}
+            API_URL=http://api:4000
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ matrix.image }}:${{ needs.meta.outputs.tag }}
+            ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ matrix.image }}:${{ needs.meta.outputs.environment }}
+
+  deploy:
+    needs: [meta, build]
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ needs.meta.outputs.environment }}
+      url: ${{ vars.APP_URL }}
+    env:
+      IMAGE_TAG: ${{ needs.meta.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: '${{ inputs.ref || needs.meta.outputs.sha }}', sparse-checkout: infra }
+      - name: Configure SSH
+        run: |
+          install -m 700 -d ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
+          echo "${{ secrets.DEPLOY_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+      - name: Sync compose files
+        run: rsync -az --delete infra/docker-compose.prod.yml infra/caddy infra/backup infra/postgres "${{ vars.DEPLOY_HOST }}:/srv/lokacia/infra/"
+      - name: Pull images
+        run: |
+          ssh "${{ vars.DEPLOY_HOST }}" "cd /srv/lokacia && echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u '${{ github.actor }}' --password-stdin \
+            && export IMAGE_TAG=$IMAGE_TAG GHCR_OWNER=${{ env.OWNER }} \
+            && docker compose -f infra/docker-compose.prod.yml --env-file .env pull api worker web crm admin \
+            && docker compose -f infra/docker-compose.prod.yml --env-file .env --profile migrate pull migrate"
+      - name: Run database migrations (expand-only; must be backward compatible with the running release)
+        run: |
+          ssh "${{ vars.DEPLOY_HOST }}" "cd /srv/lokacia && export IMAGE_TAG=$IMAGE_TAG GHCR_OWNER=${{ env.OWNER }} \
+            && docker compose -f infra/docker-compose.prod.yml --env-file .env --profile migrate run --rm migrate"
+      - name: Rolling update (health-gated, zero downtime)
+        run: |
+          # docker-rollout (https://github.com/wowu/docker-rollout) starts new containers next to the old ones,
+          # waits for the healthcheck, then drains and removes the old ones. Caddy retries on the healthy upstream.
+          ssh "${{ vars.DEPLOY_HOST }}" "cd /srv/lokacia && export IMAGE_TAG=$IMAGE_TAG GHCR_OWNER=${{ env.OWNER }} \
+            && for s in api web crm admin; do docker rollout -f infra/docker-compose.prod.yml --env-file .env --timeout 120 \$s || exit 1; done \
+            && docker compose -f infra/docker-compose.prod.yml --env-file .env up -d --no-deps worker caddy \
+            && docker image prune -f"
+      - name: Smoke check
+        run: |
+          for i in $(seq 1 30); do
+            curl -fsS "${{ vars.API_PUBLIC_URL }}/v1/health" | grep -q '"status":"ok"' && curl -fsS -o /dev/null "${{ vars.APP_URL }}/" && exit 0
+            sleep 5
+          done
+          echo "smoke check failed — roll back with: IMAGE_TAG=<previous> docker rollout …" >&2
+          exit 1
+
+  e2e-staging:
+    needs: [meta, deploy]
+    if: needs.meta.outputs.environment == 'staging'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: '${{ needs.meta.outputs.sha }}' }
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: pnpm }
+      - run: pnpm i --frozen-lockfile --filter @lokacia/e2e...
+      - run: pnpm --filter @lokacia/e2e exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
+        env:
+          WEB_URL: ${{ vars.APP_URL }}
+          CRM_URL: ${{ vars.CRM_URL }}
+          ADMIN_URL: ${{ vars.ADMIN_URL }}
+          API_URL: ${{ vars.API_PUBLIC_URL }}

@@ -1,0 +1,57 @@
+{
+  "title": "",
+  "subtitle": "",
+  "new": "",
+  "empty": "",
+  "emptyHint": "",
+  "cols": {
+    "title": "",
+    "related": "",
+    "version": "",
+    "status": "",
+    "created": ""
+  },
+  "form": {
+    "template": "",
+    "deal": "",
+    "dealHint": "",
+    "contact": "",
+    "title": "",
+    "termMonths": "",
+    "commissionPct": "",
+    "create": ""
+  },
+  "detail": {
+    "versions": "",
+    "version": "",
+    "pdf": "",
+    "newVersion": "",
+    "editText": "",
+    "saveVersion": "",
+    "send": "",
+    "signLink": "",
+    "copy": "",
+    "copied": "",
+    "locked": "",
+    "delete": ""
+  },
+  "sendDialog": {
+    "title": "",
+    "description": "",
+    "name": "",
+    "phone": "",
+    "submit": "",
+    "sent": ""
+  },
+  "sign": {
+    "readConfirm": "",
+    "name": "",
+    "sign": "",
+    "decline": "",
+    "signed": "",
+    "declined": "",
+    "notAvailable": "",
+    "notFound": "",
+    "demo": ""
+  }
+}

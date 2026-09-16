@@ -45,7 +45,7 @@ export const invoices = pgTable(
     orgId: uuid('org_id'),
     userId: uuid('user_id'),
     subscriptionId: uuid('subscription_id'),
-    purpose: text('purpose', { enum: ['subscription', 'vip', 'report', 'transfer_listing', 'service_commission', 'rent', 'api'] })
+    purpose: text('purpose', { enum: ['subscription', 'vip', 'report', 'transfer_listing', 'service_commission', 'rent', 'api', 'escrow'] })
       .notNull(),
     refId: uuid('ref_id'),
     lines: jsonb('lines').$type<{ name: string; qty: number; amountMinor: number }[]>().notNull(),
@@ -97,6 +97,12 @@ export const escrowAccounts = pgTable('escrow_accounts', {
   provider: text('provider').notNull().default('mock'),
   providerRef: text('provider_ref'),
   disputeReason: text('dispute_reason'),
+  /** V3 digital contract: e-sign reference, generated contract PDF, signatures. */
+  contractUrl: text('contract_url'),
+  esignRef: text('esign_ref'),
+  tenantSignedAt: ts('tenant_signed_at'),
+  ownerSignedAt: ts('owner_signed_at'),
+  invoiceId: uuid('invoice_id'),
   history: jsonb('history').$type<{ from: string; to: string; at: string; by?: string }[]>().notNull().default(sql`'[]'::jsonb`),
 });
 
