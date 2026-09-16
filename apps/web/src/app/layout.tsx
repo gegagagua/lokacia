@@ -1,6 +1,6 @@
 import Script from 'next/script';
 import type { Metadata, Viewport } from 'next';
-import { Noto_Sans, Noto_Sans_Georgian } from 'next/font/google';
+import localFont from 'next/font/local';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getTranslations } from 'next-intl/server';
 import { ToastProvider } from '@lokacia/ui';
@@ -14,9 +14,17 @@ import { getAppLocale, getRequestPathname, localeSeo } from '@/i18n/server';
 import { absUrl, SITE_NAME, SITE_URL } from '@/lib/site';
 import './globals.css';
 
-const font = Noto_Sans_Georgian({ subsets: ['georgian', 'latin'], axes: ['wdth'], variable: '--font-georgian', display: 'swap' });
-/** Cyrillic glyphs for /ru (Noto Sans Georgian has none); only referenced on Russian pages. */
-const cyrillic = Noto_Sans({ subsets: ['cyrillic'], variable: '--font-cyrillic', display: 'swap', preload: false });
+const font = localFont({
+  variable: '--font-brand',
+  display: 'swap',
+  src: [
+    { path: '../../node_modules/@fontsource/firago/files/firago-latin-400-normal.woff2', weight: '400', style: 'normal' },
+    { path: '../../node_modules/@fontsource/firago/files/firago-latin-500-normal.woff2', weight: '500', style: 'normal' },
+    { path: '../../node_modules/@fontsource/firago/files/firago-latin-600-normal.woff2', weight: '600', style: 'normal' },
+    { path: '../../node_modules/@fontsource/firago/files/firago-latin-700-normal.woff2', weight: '700', style: 'normal' },
+  ],
+  fallback: ['Noto Sans Georgian', 'system-ui', 'sans-serif'],
+});
 
 /** Defaults for every page; pages override title/description/alternates via `pageMetadata`. hreflang is derived from the request path. */
 export async function generateMetadata(): Promise<Metadata> {
@@ -51,12 +59,10 @@ const themeScript = `try{var t=localStorage.getItem('lk-theme');if(t==='dark'||t
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const locale = await getAppLocale();
   const [messages, t] = await Promise.all([getMessages(), getTranslations('meta.a11y')]);
-  const ru = locale === 'ru';
   return (
     <html
       lang={HTML_LANG[locale]}
-      className={ru ? `${font.variable} ${cyrillic.variable}` : font.variable}
-      style={ru ? ({ '--font-sans': "var(--font-georgian), var(--font-cyrillic), 'Noto Sans Georgian', system-ui, sans-serif" } as React.CSSProperties) : undefined}
+      className={font.variable}
       suppressHydrationWarning
     >
       <head>

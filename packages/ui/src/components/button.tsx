@@ -7,17 +7,17 @@ export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'link
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 const variants: Record<ButtonVariant, string> = {
-  primary: 'bg-primary text-primary-contrast hover:bg-primary-hover border border-primary',
-  secondary: 'bg-surface text-text border border-border-strong hover:bg-surface-2',
-  ghost: 'bg-transparent text-text border border-transparent hover:bg-surface-2',
-  danger: 'bg-transparent text-danger border border-danger hover:bg-danger/10',
-  link: 'bg-transparent text-link underline-offset-4 hover:underline border border-transparent px-0',
-  accent: 'bg-accent text-accent-contrast border border-accent hover:brightness-95',
+  primary: 'bg-primary text-primary-contrast shadow-sm hover:bg-primary-hover hover:shadow-md active:translate-y-px',
+  secondary: 'bg-surface text-text border border-border shadow-xs hover:border-border-strong hover:bg-surface-2 active:translate-y-px',
+  ghost: 'bg-transparent text-text hover:bg-surface-2',
+  danger: 'bg-transparent text-danger border border-danger/40 hover:bg-danger/10',
+  link: 'bg-transparent text-link underline-offset-4 hover:underline px-0',
+  accent: 'bg-accent text-accent-contrast shadow-sm hover:brightness-105 hover:shadow-md active:translate-y-px',
 };
 const sizes: Record<ButtonSize, string> = {
-  sm: 'h-8 px-3 text-small gap-1.5',
-  md: 'h-10 px-4 text-[15px] gap-2',
-  lg: 'h-12 px-6 text-body gap-2',
+  sm: 'h-9 px-3.5 text-[14px] gap-1.5',
+  md: 'h-11 px-5 text-[15px] gap-2',
+  lg: 'h-13 px-7 text-[16px] gap-2.5',
 };
 
 export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -38,7 +38,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
       ref={ref}
       type={asChild ? undefined : (type ?? 'button')}
       className={cn(
-        'inline-flex items-center justify-center whitespace-nowrap rounded-button font-medium transition-colors duration-150 disabled:pointer-events-none disabled:opacity-50 select-none',
+        'inline-flex items-center justify-center whitespace-nowrap rounded-button font-semibold transition-all duration-200 ease-out disabled:pointer-events-none disabled:opacity-50 select-none focus-visible:outline-none focus-visible:shadow-ring',
         variants[variant],
         sizes[size],
         className,
@@ -62,6 +62,6 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
 export type IconButtonProps = Omit<ButtonProps, 'icon' | 'children'> & { label: string; children: React.ReactNode };
 
 export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton({ label, size = 'md', className, variant = 'ghost', ...props }, ref) {
-  const dim = size === 'sm' ? 'size-8' : size === 'lg' ? 'size-12' : 'size-10';
+  const dim = size === 'sm' ? 'size-9' : size === 'lg' ? 'size-13' : 'size-11';
   return <Button ref={ref} variant={variant} aria-label={label} title={label} className={cn(dim, 'px-0', className)} size={size} {...props} />;
 });

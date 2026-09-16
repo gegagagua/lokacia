@@ -28,7 +28,7 @@ export class MediaController {
   @Public()
   @Get('placeholder/:kind/:seed')
   @Header('content-type', 'image/svg+xml')
-  @Header('cache-control', 'public, max-age=31536000, immutable')
+  @Header('cache-control', 'public, max-age=86400, stale-while-revalidate=604800')
   placeholder(@Param('kind') kind: string, @Param('seed') seed: string) {
     return placeholderSvg(kind, seed.replace(/\.svg$/, ''));
   }

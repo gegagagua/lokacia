@@ -17,14 +17,17 @@ description: How to build pages and UI in the lokacia.ge Next.js apps (apps/web,
 Button (variants primary/secondary/ghost/danger/link/accent, `asChild` for links), IconButton(label), Field+Input/Textarea/Select/Checkbox/RadioGroup/Switch/Slider, Combobox, Dialog, Drawer, Popover, Tooltip, Tabs, `useToast()`, Badge/VipBadge/VerifiedBadge, Avatar, Card, SectionTitle, EmptyState, Skeleton, SpecRow, Stat, Stepper, Table (sortable), Pagination, SpacePlan, PriceTag, ListingCard, FileUpload, Calendar, ChatThread, Kanban, Logo. Map: `import { MapView } from '@lokacia/ui/map'` (client only; wrap with `next/dynamic` `ssr:false` when used in server pages).
 Formatting from `@lokacia/contracts`: `formatMoney(minor)` → `3 000 ₾`, `formatArea`, `formatDateKa` → `16 სექტემბერი, 2026`, `relativeDaysKa`, `DEAL_TYPE_LABELS_KA`, `PASSPORT_FIELDS`.
 
-## Brand rules (docs/BRAND.md) — enforced in review
-- Tailwind semantic colors only: `bg-bg`, `bg-surface`, `bg-surface-2`, `text-text`, `text-muted`, `border-border`, `border-border-strong`, `bg-primary text-primary-contrast`, `text-link`, `text-danger`, `bg-accent` (sulfur: tiny elements only — pins, VIP, active).
-- No shadows, no gradients, no stock photos. Depth = borders + background. Radius: buttons `rounded-button`, cards `rounded-card`, modals `rounded-modal`, photos `rounded-photo`.
-- Type scale utilities: `text-display`, `text-h1`, `text-h2`, `text-h3`, `text-body`, `text-small`; headings/large numbers get `compact`; numbers get `tabular`.
-- Layout: `container-page` (1200px, 16px gutters), 8px spacing rhythm, mobile first, no horizontal scroll at 360px.
-- Icons: lucide-react with `strokeWidth={1.5}`, decorative icons `aria-hidden`.
-- Motion 150–200ms on user action only; pin-drop is the one signature animation.
-- Accessibility: every control labelled, visible focus (global), `aria-live` for async results, dark mode works automatically via tokens.
+## Brand rules v2 (docs/BRAND.md → "v2 — Modern redesign") — enforced in review
+- Modern, airy, readable. Semantic Tailwind colors only: `bg-bg`, `bg-surface`, `bg-surface-2/3`, `text-text`, `text-muted`, `border-border`, `bg-primary text-primary-contrast`, `bg-primary-soft text-primary-soft-text` (tinted tiles/chips), `bg-accent text-accent-contrast` (energetic CTAs, VIP), `text-link`, `text-danger`, `text-success`.
+- Depth via `shadow-xs|sm|md|lg` and hover lift (`card-hover` or `transition-all hover:-translate-y-1 hover:shadow-md`); light borders.
+- Shape: `rounded-button` (12) buttons/inputs, `rounded-card` (20) cards, `rounded-modal` (28), `rounded-photo` (14) images, `rounded-full` chips/pills/segmented tabs.
+- Font FiraGO is global; headings `font-bold` with `tracking-tight` on large sizes; scale `text-display|h1|h2|h3|body|small`; numbers `tabular`. No tiny low-contrast text for key info.
+- Marketing/hero bands may use `hero-gradient` (white text), `text-gradient`, `glass`; section header = `eyebrow` pill + big title + muted lead paragraph.
+- Image-first cards (4:3 photos with rounded corners, overlay badges); SpacePlan is a secondary signature detail.
+- Spacing rhythm: sections `py-16 md:py-24`, grids `gap-6`, card padding `p-5/p-6`.
+- Icons: lucide-react `strokeWidth={2}` in tinted icon tiles (`size-11 rounded-2xl bg-primary-soft text-primary-soft-text grid place-items-center`); decorative icons `aria-hidden`.
+- Motion 200–300ms ease-out; images `group-hover:scale-[1.04]`; respect reduced motion.
+- Accessibility unchanged: labels, focus rings (`focus-visible:shadow-ring`), contrast AA in light & dark, 375px no horizontal scroll.
 
 ## i18n
 - All UI strings in `messages/ka/<namespace>.json` (one namespace file per feature area — create your own file; do not edit other teams' files). Mirror keys with empty strings in `messages/en/` and `messages/ru/`.

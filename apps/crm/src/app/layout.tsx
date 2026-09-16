@@ -1,13 +1,23 @@
 import Script from 'next/script';
 import type { Metadata, Viewport } from 'next';
-import { Noto_Sans_Georgian } from 'next/font/google';
+import localFont from 'next/font/local';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import { ToastProvider } from '@lokacia/ui';
 import { SwRegister } from '@/components/shell/sw-register';
 import './globals.css';
 
-const font = Noto_Sans_Georgian({ subsets: ['georgian', 'latin'], axes: ['wdth'], variable: '--font-georgian', display: 'swap' });
+const font = localFont({
+  variable: '--font-brand',
+  display: 'swap',
+  src: [
+    { path: '../../node_modules/@fontsource/firago/files/firago-latin-400-normal.woff2', weight: '400', style: 'normal' },
+    { path: '../../node_modules/@fontsource/firago/files/firago-latin-500-normal.woff2', weight: '500', style: 'normal' },
+    { path: '../../node_modules/@fontsource/firago/files/firago-latin-600-normal.woff2', weight: '600', style: 'normal' },
+    { path: '../../node_modules/@fontsource/firago/files/firago-latin-700-normal.woff2', weight: '700', style: 'normal' },
+  ],
+  fallback: ['Noto Sans Georgian', 'system-ui', 'sans-serif'],
+});
 
 export const metadata: Metadata = {
   title: { default: 'lokacia CRM', template: '%s · lokacia CRM' },

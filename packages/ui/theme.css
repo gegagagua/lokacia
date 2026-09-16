@@ -9,6 +9,7 @@
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
   --color-text: var(--text);
   --color-muted: var(--text-muted);
   --color-border: var(--border);
@@ -16,8 +17,12 @@
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-primary-contrast: var(--primary-contrast);
+  --color-primary-500: var(--primary-500);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-soft-text: var(--primary-soft-text);
   --color-accent: var(--accent);
   --color-accent-contrast: var(--accent-contrast);
+  --color-accent-soft: var(--accent-soft);
   --color-link: var(--link);
   --color-danger: var(--danger);
   --color-success: var(--success);
@@ -34,24 +39,33 @@
   --radius-modal: var(--radius-modal);
   --radius-photo: var(--radius-photo);
 
-  --font-sans: var(--font-georgian), 'Noto Sans Georgian', system-ui, sans-serif;
+  --shadow-xs: var(--elev-xs);
+  --shadow-sm: var(--elev-sm);
+  --shadow-md: var(--elev-md);
+  --shadow-lg: var(--elev-lg);
+  --shadow-ring: var(--elev-ring);
+
+  --font-sans: var(--font-brand), 'FiraGO', 'Noto Sans Georgian', system-ui, sans-serif;
   --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
 
-  /* BRAND.md type scale (size / line-height) */
-  --text-display: 56px;
-  --text-display--line-height: 60px;
-  --text-h1: 40px;
-  --text-h1--line-height: 48px;
-  --text-h2: 28px;
-  --text-h2--line-height: 36px;
-  --text-h3: 20px;
-  --text-h3--line-height: 28px;
+  /* Type scale v2 (size / line-height) */
+  --text-display: 60px;
+  --text-display--line-height: 68px;
+  --text-display--letter-spacing: -0.02em;
+  --text-h1: 44px;
+  --text-h1--line-height: 52px;
+  --text-h1--letter-spacing: -0.015em;
+  --text-h2: 32px;
+  --text-h2--line-height: 40px;
+  --text-h2--letter-spacing: -0.01em;
+  --text-h3: 21px;
+  --text-h3--line-height: 30px;
   --text-body: 16px;
-  --text-body--line-height: 1.6;
-  --text-small: 13px;
-  --text-small--line-height: 20px;
+  --text-body--line-height: 1.65;
+  --text-small: 14px;
+  --text-small--line-height: 21px;
 
-  --container-page: 1200px;
+  --container-page: 1240px;
   --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
@@ -60,24 +74,28 @@
     background: var(--bg);
     color: var(--text);
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
   body {
     font-family: var(--font-sans);
     font-size: 16px;
-    line-height: 1.6;
+    line-height: 1.65;
+    font-feature-settings: 'kern' 1;
   }
-  h1, h2, h3, .font-compact {
-    font-stretch: 75%;
-    font-variation-settings: 'wdth' 75;
-    letter-spacing: 0;
+  h1, h2, h3, h4 {
+    font-weight: 700;
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
   }
   :focus-visible {
     outline: 2px solid var(--focus);
     outline-offset: 2px;
   }
   ::selection {
-    background: color-mix(in srgb, var(--accent) 40%, transparent);
+    background: color-mix(in srgb, var(--accent) 35%, transparent);
   }
   a {
     color: inherit;
@@ -95,29 +113,78 @@
   table, .tabular {
     font-variant-numeric: tabular-nums;
   }
+  input, select, textarea, button {
+    font: inherit;
+  }
 }
 
 @utility tabular {
   font-variant-numeric: tabular-nums;
 }
+/* v1 used a condensed width; v2 keeps the name for compatibility: tight, bold numerals/headings. */
 @utility compact {
-  font-stretch: 75%;
-  font-variation-settings: 'wdth' 75;
+  letter-spacing: -0.01em;
+  font-weight: 700;
 }
 @utility container-page {
   width: 100%;
-  max-width: 1200px;
+  max-width: 1240px;
   margin-inline: auto;
   padding-inline: 16px;
   @media (width >= 768px) {
-    padding-inline: 24px;
+    padding-inline: 32px;
   }
 }
+/* v1 drafting grid → v2 soft tinted surface with a faint dot texture (kept name for compatibility). */
 @utility drawing-grid {
-  background-image:
-    linear-gradient(to right, color-mix(in srgb, var(--border) 45%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in srgb, var(--border) 45%, transparent) 1px, transparent 1px);
-  background-size: 24px 24px;
+  background-color: var(--surface-2);
+  background-image: radial-gradient(color-mix(in srgb, var(--border-strong) 55%, transparent) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+@utility card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--elev-sm);
+}
+@utility card-hover {
+  transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out), border-color 200ms var(--ease-out);
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--elev-md);
+    border-color: var(--border-strong);
+  }
+}
+@utility glass {
+  background: color-mix(in srgb, var(--surface) 78%, transparent);
+  backdrop-filter: saturate(160%) blur(16px);
+  -webkit-backdrop-filter: saturate(160%) blur(16px);
+}
+@utility hero-gradient {
+  background:
+    radial-gradient(1200px 600px at 85% -10%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%),
+    radial-gradient(900px 500px at 0% 110%, color-mix(in srgb, var(--primary-500) 45%, transparent), transparent 60%),
+    linear-gradient(135deg, #133a33 0%, #1e4a42 45%, #22584d 100%);
+  color: #f3f8f6;
+}
+@utility text-gradient {
+  background: linear-gradient(90deg, #f7d67a, #e2aa1c 60%, #f3c24a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+@utility eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--primary-soft-text);
+  background: var(--primary-soft);
+  border-radius: 999px;
+  padding: 4px 12px;
 }
 
 @media (prefers-reduced-motion: reduce) {

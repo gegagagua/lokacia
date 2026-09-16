@@ -65,3 +65,4 @@ One line per decision (date — decision — why).
 - 2026-09-17 — Rent late penalty is capped at 100 % of the monthly rent.
 - 2026-09-17 — API DB pool sets `idle_in_transaction_session_timeout = 15 s`; code inside `dbs.org/system` must use the `tx` handle, never `dbs.db`.
 - 2026-09-17 — Account deletion anonymizes portal tables but keeps the counterpart's copy of messages/offers, invoices/ledger and consent records (legal retention); agency CRM contacts are handled by the agencies.
+- 2026-09-17 — Design system v2 (owner feedback: v1 looked dry/unreadable): FiraGO font, white surfaces with soft shadows, larger radii, pill controls, hero gradients, colourful illustrated placeholders, image-first listing cards. Documented in BRAND.md "v2"; overrides v1 no-shadow/no-gradient/condensed rules.

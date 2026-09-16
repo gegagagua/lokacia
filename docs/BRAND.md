@@ -42,3 +42,20 @@ Button, IconButton, Input, Select, Combobox, Checkbox, Radio, Switch, Slider (ra
 
 ## Copy rules (Georgian)
 Plain, concrete, short. Buttons state the action: „ფართის გამოქვეყნება“, „ჩვენების ჯავშნა“, „ნომრის ჩვენება“, „ძებნის შენახვა“. Dates: `16 სექტემბერი, 2026`. Numbers: space as thousands separator, `₾` after the amount (`3 000 ₾`).
+
+---
+
+## v2 — Modern redesign (2026-09-17, owner request: "maximally modern, readable, not dry")
+Supersedes the v1 rules above where they conflict (no shadows / no gradients / condensed headings / drafting grid). Palette and logo stay.
+
+- **Feel:** premium proptech — airy, bright, confident. White surfaces on a soft neutral page (`bg-bg` #F5F7F4), deep Mtatsminda green as the primary, sulfur yellow as the energetic accent (CTAs like "publish", VIP, highlights), blueprint blue for links.
+- **Typography:** FiraGO (self-hosted, Georgian + Latin + Cyrillic). Headings bold 700, normal width, slight negative tracking on large sizes; body 16/1.65. Scale: display 60/68, h1 44/52, h2 32/40, h3 21/30, small 14/21. Numbers `tabular`. Never use tiny 12px body copy for important info.
+- **Depth:** soft layered shadows `shadow-xs|sm|md|lg` (tokens `--elev-*`), hover lift on interactive cards (`card-hover` or `hover:-translate-y-1 hover:shadow-md`). Borders are light (`border-border`).
+- **Shape:** buttons 12px, inputs 12px (h-12), cards 20px, modals 28px, photos 14px, chips/badges fully rounded pills.
+- **Gradients allowed** for hero and feature bands: `hero-gradient` (deep green with warm glow), `text-gradient` for a highlighted word, subtle image overlays. `glass` utility for sticky headers/overlays.
+- **Imagery first:** listing cards and pages lead with large photos (illustrated placeholders in seed). The SpacePlan drawing stays as a signature detail (mini inset / technical section), not the hero of every card.
+- **Layout:** `container-page` 1240px, generous section rhythm (`py-16 md:py-24` for marketing sections, `gap-6/8` grids), eyebrow pill above section titles (`eyebrow`), big section titles.
+- **Components:** segmented pill tabs, pill filters/chips, icon tiles with soft tinted backgrounds (`bg-primary-soft text-primary-soft-text`), stat cards with large numbers, empty states with tinted icon tile, skeletons rounded.
+- **Motion:** 200–300ms ease-out on hover/press (lift, scale 1.04 on images), pin-drop remains the map signature. Respect reduced motion.
+- **Dark mode:** near-black green surfaces, mint primary (#4CC3A2), same component shapes.
+- **Utilities:** `card`, `card-hover`, `glass`, `hero-gradient`, `text-gradient`, `eyebrow`; `drawing-grid` now renders a soft dotted tint (legacy name).

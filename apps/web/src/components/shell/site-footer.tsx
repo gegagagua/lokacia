@@ -12,19 +12,19 @@ export async function SiteFooter() {
     { title: t('company'), links: [{ href: '/pages/about', label: t('about') }, { href: '/pages/terms', label: t('terms') }, { href: '/pages/privacy', label: t('privacy') }] },
   ];
   return (
-    <footer className="mt-16 border-t border-border bg-surface">
-      <div className="container-page grid gap-8 py-10 md:grid-cols-4">
-        <div className="flex flex-col gap-3">
-          <Logo size={24} />
-          <p className="max-w-xs text-small text-muted">{t('tagline')}</p>
+    <footer className="hero-gradient mt-24">
+      <div className="container-page grid gap-10 py-16 md:grid-cols-4">
+        <div className="flex flex-col gap-4 [&_.text-primary]:text-white [&_.text-muted]:text-white/60">
+          <Logo size={30} />
+          <p className="max-w-xs text-[15px] leading-relaxed text-white/70">{t('tagline')}</p>
         </div>
         {cols.map((c) => (
           <nav key={c.title} aria-label={c.title}>
-            <h2 className="mb-2 text-small font-semibold uppercase tracking-wide text-muted">{c.title}</h2>
-            <ul className="flex flex-col gap-1.5">
+            <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-[0.08em] text-white/50">{c.title}</h2>
+            <ul className="flex flex-col gap-2.5">
               {c.links.map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="text-[15px] hover:text-link">
+                  <Link href={l.href} className="text-[15px] text-white/85 transition-colors hover:text-accent">
                     {l.label}
                   </Link>
                 </li>
@@ -33,8 +33,8 @@ export async function SiteFooter() {
           </nav>
         ))}
       </div>
-      <div className="border-t border-border">
-        <div className="container-page flex flex-wrap items-center justify-between gap-2 py-4 text-small text-muted">
+      <div className="border-t border-white/10">
+        <div className="container-page flex flex-wrap items-center justify-between gap-2 py-5 text-small text-white/55">
           <span>© {new Date().getFullYear()} lokacia.ge. {t('rights')}</span>
           <span>{[c('tbilisi'), c('batumi'), c('kutaisi'), c('rustavi')].join(' · ')}</span>
         </div>

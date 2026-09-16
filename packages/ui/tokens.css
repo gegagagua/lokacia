@@ -1,6 +1,7 @@
 /*
- * lokacia.ge design tokens (docs/BRAND.md) — concept: cadastral drawing.
- * Raw palette + semantic tokens for light and dark. Contrast verified in src/lib/contrast.test.ts.
+ * lokacia.ge design tokens — v2 "modern" (2026-09-17, see docs/DECISIONS.md).
+ * Brand palette kept (Mtatsminda green, sulfur, blueprint); surfaces are clean white/near-white with soft depth.
+ * Contrast verified in src/lib/contrast.test.ts.
  */
 :root {
   --c-plaster: #edf0eb;
@@ -11,77 +12,108 @@
   --c-stone: #8a968f;
   --c-brick: #b4492f;
 
-  --bg: var(--c-plaster);
-  --surface: #f7f9f5;
-  --surface-2: #e3e8e1;
-  --text: var(--c-basalt);
-  --text-muted: #56625c;
-  --border: #cfd6d0;
-  --border-strong: var(--c-stone);
-  --primary: var(--c-mtatsminda);
-  --primary-hover: #163a34;
-  --primary-contrast: #f7f9f5;
-  --accent: var(--c-sulfur);
-  --accent-contrast: var(--c-basalt);
-  --link: var(--c-blueprint);
-  --danger: #a3402a;
-  --success: #2c6b4f;
-  --focus: var(--c-blueprint);
-  --overlay: rgb(23 32 29 / 0.48);
+  --bg: #f5f7f4;
+  --surface: #ffffff;
+  --surface-2: #f0f4f1;
+  --surface-3: #e5ece8;
+  --text: #0f1a17;
+  --text-muted: #53635d;
+  --border: #e2e8e4;
+  --border-strong: #c7d2cc;
+  --primary: #1e4a42;
+  --primary-hover: #163a33;
+  --primary-contrast: #ffffff;
+  --primary-500: #2e7a69;
+  --primary-soft: #e4f1ec;
+  --primary-soft-text: #1a5446;
+  --accent: #e2aa1c;
+  --accent-contrast: #17201d;
+  --accent-soft: #fbf1d6;
+  --link: #2a58ad;
+  --danger: #b43c28;
+  --success: #1c7a52;
+  --focus: #2f5fb8;
+  --overlay: rgb(8 14 12 / 0.55);
   --map-water: #b9cbe6;
   --map-park: #c9dbc8;
 
-  --radius-button: 6px;
-  --radius-card: 12px;
-  --radius-modal: 20px;
-  --radius-photo: 4px;
+  --elev-xs: 0 1px 2px rgb(15 26 23 / 0.06);
+  --elev-sm: 0 1px 2px rgb(15 26 23 / 0.05), 0 2px 8px -2px rgb(15 26 23 / 0.08);
+  --elev-md: 0 2px 4px rgb(15 26 23 / 0.04), 0 12px 28px -10px rgb(15 26 23 / 0.16);
+  --elev-lg: 0 4px 8px rgb(15 26 23 / 0.04), 0 28px 56px -18px rgb(15 26 23 / 0.28);
+  --elev-ring: 0 0 0 4px rgb(47 95 184 / 0.18);
+
+  --radius-button: 12px;
+  --radius-card: 20px;
+  --radius-modal: 28px;
+  --radius-photo: 14px;
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --bg: var(--c-basalt);
-    --surface: #1d2825;
-    --surface-2: #26332f;
-    --text: var(--c-plaster);
-    --text-muted: #a9b4ae;
-    --border: #33413c;
-    --border-strong: #5b6a64;
-    --primary: #6fb3a2;
-    --primary-hover: #86c3b3;
-    --primary-contrast: #0f1614;
-    --accent: #e3b43a;
+    --bg: #0a110f;
+    --surface: #111a17;
+    --surface-2: #17221e;
+    --surface-3: #1f2c27;
+    --text: #edf3f0;
+    --text-muted: #a3b5ae;
+    --border: #22302b;
+    --border-strong: #34463f;
+    --primary: #4cc3a2;
+    --primary-hover: #6ad2b5;
+    --primary-contrast: #06120e;
+    --primary-500: #4cc3a2;
+    --primary-soft: #133029;
+    --primary-soft-text: #8fe0c8;
+    --accent: #f0bd3a;
     --accent-contrast: #17201d;
-    --link: #8fb0ea;
-    --danger: #e0826b;
-    --success: #7cc29f;
-    --focus: #8fb0ea;
-    --overlay: rgb(0 0 0 / 0.6);
+    --accent-soft: #2f2710;
+    --link: #8fb4f2;
+    --danger: #f08a73;
+    --success: #6fd0a0;
+    --focus: #8fb4f2;
+    --overlay: rgb(0 0 0 / 0.65);
     --map-water: #253a57;
     --map-park: #22362d;
+    --elev-xs: 0 1px 2px rgb(0 0 0 / 0.4);
+    --elev-sm: 0 1px 2px rgb(0 0 0 / 0.35), 0 2px 8px -2px rgb(0 0 0 / 0.45);
+    --elev-md: 0 2px 4px rgb(0 0 0 / 0.3), 0 12px 28px -10px rgb(0 0 0 / 0.6);
+    --elev-lg: 0 4px 8px rgb(0 0 0 / 0.3), 0 28px 56px -18px rgb(0 0 0 / 0.7);
+    --elev-ring: 0 0 0 4px rgb(143 180 242 / 0.22);
     color-scheme: dark;
   }
 }
 
 :root[data-theme='dark'] {
-  --bg: var(--c-basalt);
-  --surface: #1d2825;
-  --surface-2: #26332f;
-  --text: var(--c-plaster);
-  --text-muted: #a9b4ae;
-  --border: #33413c;
-  --border-strong: #5b6a64;
-  --primary: #6fb3a2;
-  --primary-hover: #86c3b3;
-  --primary-contrast: #0f1614;
-  --accent: #e3b43a;
+  --bg: #0a110f;
+  --surface: #111a17;
+  --surface-2: #17221e;
+  --surface-3: #1f2c27;
+  --text: #edf3f0;
+  --text-muted: #a3b5ae;
+  --border: #22302b;
+  --border-strong: #34463f;
+  --primary: #4cc3a2;
+  --primary-hover: #6ad2b5;
+  --primary-contrast: #06120e;
+  --primary-500: #4cc3a2;
+  --primary-soft: #133029;
+  --primary-soft-text: #8fe0c8;
+  --accent: #f0bd3a;
   --accent-contrast: #17201d;
-  --link: #8fb0ea;
-  --danger: #e0826b;
-  --success: #7cc29f;
-  --focus: #8fb0ea;
-  --overlay: rgb(0 0 0 / 0.6);
+  --accent-soft: #2f2710;
+  --link: #8fb4f2;
+  --danger: #f08a73;
+  --success: #6fd0a0;
+  --focus: #8fb4f2;
+  --overlay: rgb(0 0 0 / 0.65);
   --map-water: #253a57;
   --map-park: #22362d;
+  --elev-xs: 0 1px 2px rgb(0 0 0 / 0.4);
+  --elev-sm: 0 1px 2px rgb(0 0 0 / 0.35), 0 2px 8px -2px rgb(0 0 0 / 0.45);
+  --elev-md: 0 2px 4px rgb(0 0 0 / 0.3), 0 12px 28px -10px rgb(0 0 0 / 0.6);
+  --elev-lg: 0 4px 8px rgb(0 0 0 / 0.3), 0 28px 56px -18px rgb(0 0 0 / 0.7);
+  --elev-ring: 0 0 0 4px rgb(143 180 242 / 0.22);
   color-scheme: dark;
 }

@@ -309,7 +309,7 @@ export async function seed() {
         completionDate: isoDate(daysFrom(p.months * 30)),
         description: 'მიქსდ-იუზ კომპლექსი: ქვედა ორი ქანობი — კომერციული ფართები, ცალკე შესასვლელებით და ფასადით.',
         floors: p.floors,
-        coverUrl: `/api/v1/media/placeholder/facade/${slugify(p.name)}.svg`,
+        coverUrl: `/api/v1/media/placeholder/facade/${slugify(p.name)}.svg?v=2`,
         lat,
         lng,
         createdBy: p.org.id,
@@ -451,7 +451,7 @@ export async function seed() {
         descriptionRu: `Коммерческое помещение ${area} м² в районе ${DISTRICT_NAMES[district.slug]!.ru}, подходит под ${bt.nameRu.toLowerCase()}.`,
         vipUntil: vip ? daysFrom(R.int(2, 25)) : null,
         videoUrl: R.chance(0.15) ? 'https://meet.jit.si/lokacia-demo-viewing' : null,
-        tourUrl: R.chance(0.1) ? `/api/v1/media/placeholder/pano/${id}.svg` : null,
+        tourUrl: R.chance(0.1) ? `/api/v1/media/placeholder/pano/${id}.svg?v=2` : null,
         lat,
         lng,
         createdAt: created,
@@ -487,7 +487,7 @@ export async function seed() {
         media.push({
           listingId: id,
           kind: 'photo',
-          url: `/api/v1/media/placeholder/${R.pick(['interior', 'interior', 'facade', 'street', 'detail'])}/${id.slice(-8)}-${p}.svg`,
+          url: `/api/v1/media/placeholder/${R.pick(['interior', 'interior', 'facade', 'street', 'detail'])}/${id.slice(-8)}-${p}.svg?v=2`,
           sort: p,
           width: 1600,
           height: 1067,
@@ -495,8 +495,8 @@ export async function seed() {
           alt: `${title} — ფოტო ${p + 1}`,
         });
       }
-      if (R.chance(0.7)) media.push({ listingId: id, kind: 'plan', url: `/api/v1/media/placeholder/plan/${id.slice(-8)}.svg`, sort: 100, isFloorplan: true, status: 'ready', alt: 'ნახაზი' });
-      if (R.chance(0.08)) media.push({ listingId: id, kind: 'pano360', url: `/api/v1/media/placeholder/pano/${id.slice(-8)}.svg`, sort: 101, status: 'ready', alt: '360° ფოტო' });
+      if (R.chance(0.7)) media.push({ listingId: id, kind: 'plan', url: `/api/v1/media/placeholder/plan/${id.slice(-8)}.svg?v=2`, sort: 100, isFloorplan: true, status: 'ready', alt: 'ნახაზი' });
+      if (R.chance(0.08)) media.push({ listingId: id, kind: 'pano360', url: `/api/v1/media/placeholder/pano/${id.slice(-8)}.svg?v=2`, sort: 101, status: 'ready', alt: '360° ფოტო' });
 
       // Space history (P10) — some spaces with frequent closures
       const histN = R.chance(0.45) ? R.int(1, i % 9 === 0 ? 4 : 2) : 0;
@@ -530,7 +530,7 @@ export async function seed() {
         liveness.push({ listingId: id, channel: 'sms', token: token(), sentAt: sent, expiresAt: new Date(sent.getTime() + 72 * 3_600_000), result: 'expired' });
       }
       if (!isAgentListing && !project && R.chance(0.12)) {
-        verifications.push({ listingId: id, userId: ownerId, documentUrl: `/api/v1/media/placeholder/document/${id.slice(-8)}.svg`, status: R.chance(0.5) ? 'pending' : 'approved', reviewedBy: null, note: null });
+        verifications.push({ listingId: id, userId: ownerId, documentUrl: `/api/v1/media/placeholder/document/${id.slice(-8)}.svg?v=2`, status: R.chance(0.5) ? 'pending' : 'approved', reviewedBy: null, note: null });
       }
     }
     // Make approved verifications consistent with badge
@@ -682,7 +682,7 @@ export async function seed() {
       rating: R.int(38, 50),
       reviewsCount: R.int(3, 40),
       verified: R.chance(0.6),
-      portfolio: [1, 2, 3].map((n) => `/api/v1/media/placeholder/interior/provider-${i}-${n}.svg`),
+      portfolio: [1, 2, 3].map((n) => `/api/v1/media/placeholder/interior/provider-${i}-${n}.svg?v=2`),
     }));
     providers[0]!.slug = 'motsqoba-plus';
     await insertMany(tx, s.serviceProviders, providers);
