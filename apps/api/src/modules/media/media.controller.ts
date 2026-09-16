@@ -7,7 +7,7 @@ import { problems } from '../../common/problem';
 import type { AppRequest, AuthUser } from '../../common/request';
 import { ApiZodBody, ZBody } from '../../common/zod';
 import { MEDIA_KINDS, MediaService } from './media.service';
-import { placeholderSvg } from './placeholder';
+import { placeholderSvg, renderPlaceholderWebp } from './placeholder';
 
 const uploadSchema = z.object({ kind: z.enum(MEDIA_KINDS), contentType: z.string(), fileName: z.string().max(200), listingId: z.string().uuid().nullish(), size: z.number().int().positive().optional() });
 const reorderSchema = z.object({ ids: z.array(z.string().uuid()).min(1).max(60) });
@@ -27,10 +27,14 @@ export class MediaController {
 
   @Public()
   @Get('placeholder/:kind/:seed')
-  @Header('content-type', 'image/svg+xml')
-  @Header('cache-control', 'public, max-age=86400, stale-while-revalidate=604800')
-  placeholder(@Param('kind') kind: string, @Param('seed') seed: string) {
-    return placeholderSvg(kind, seed.replace(/\.svg$/, ''));
+  async placeholder(@Param('kind') kind: string, @Param('seed') seed: string, @Query('w') w: string | undefined, @Res() res: Response) {
+    res.setHeader('cache-control', 'public, max-age=604800, stale-while-revalidate=2592000');
+    if (!seed.endsWith('.webp')) {
+      res.type('image/svg+xml').send(placeholderSvg(kind, seed.replace(/\.svg$/, '')));
+      return;
+    }
+    const width = [480, 960, 1600].includes(Number(w)) ? Number(w) : 960;
+    res.type('image/webp').send(await renderPlaceholderWebp(kind, seed.replace(/\.webp$/, ''), width));
   }
 
   @Public()

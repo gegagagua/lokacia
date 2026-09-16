@@ -45,7 +45,7 @@
   --shadow-lg: var(--elev-lg);
   --shadow-ring: var(--elev-ring);
 
-  --font-sans: var(--font-brand), 'FiraGO', 'Noto Sans Georgian', system-ui, sans-serif;
+  --font-sans: var(--font-brand), var(--font-brand-cyr), 'FiraGO', 'Noto Sans Georgian', system-ui, sans-serif;
   --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
 
   /* Type scale v2 (size / line-height) */

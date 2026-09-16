@@ -385,3 +385,8 @@ Checked and OK: global default-deny guard and `@Roles` on every admin controller
 9. `crm_contacts` rows created by agencies about a deleted portal user are not erased (agencies are separate controllers of that data) — the DPO process should notify the orgs.
 10. Rate limits fall back to per-pod memory when Redis is down (see S13).
 11. Nonce-based CSP for Next apps still open (S2).
+
+## Performance verification (2026-09-17)
+- **Lighthouse (mobile, devtools throttling: slow 4G, 4× CPU)** on a production build: `/` perf 96 · a11y 100 · SEO 100 · LCP 2.20 s; `/search` 94 · 98 · 100 · LCP 2.42 s; `/listings/:slug` 95 · 97 · 100 · LCP 2.19 s. `infra/lighthouse/lighthouserc.json` now uses devtools throttling (lantern simulation overestimated text LCP ~2×).
+- Fixes that got there: FiraGO subset to Georgian+Latin (≈45 KB/weight, Cyrillic split into a lazily used family), placeholder photos served as WebP variants (480/960/1600) with in-memory render cache, mobile gallery first image `fetchpriority=high`.
+- **k6** (`infra/k6`, 50 VUs, `lokacia_load` DB ≈40 000 active listings, production API build): search p95 39 ms / p99 74 ms, map p95 43 ms, listing detail p95 22 ms, similar p95 17 ms, 0 % errors — all thresholds pass.

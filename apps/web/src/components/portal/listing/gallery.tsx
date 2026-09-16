@@ -152,7 +152,8 @@ export function ListingGallery({ media, title, videoUrl, tourUrl }: { media: Med
                     <img
                       src={src(m, 'md')}
                       alt={m.alt ?? `${title} — ${i + 1}`}
-                      loading="lazy"
+                      loading={i === 0 ? 'eager' : 'lazy'}
+                      {...(i === 0 ? { fetchPriority: 'high' as const } : {})}
                       decoding="async"
                       width={m.width ?? undefined}
                       height={m.height ?? undefined}
@@ -177,10 +178,11 @@ export function ListingGallery({ media, title, videoUrl, tourUrl }: { media: Med
                     className={cn('group relative min-h-0 overflow-hidden bg-surface-2 focus-visible:shadow-ring focus-visible:outline-none', span(i, n), contain && 'bg-surface')}
                   >
                     <img
-                      src={src(m, i === 0 ? 'lg' : 'md')}
+                      src={src(m, 'md')}
+                      srcSet={i === 0 && m.variants?.lg ? `${src(m, 'md')} 960w, ${m.variants.lg} 1600w` : undefined}
+                      sizes={i === 0 ? '(min-width: 1024px) 640px, 50vw' : undefined}
                       alt={m.alt ?? `${title} — ${i + 1}`}
-                      loading={i === 0 && tab === 'photos' ? 'eager' : 'lazy'}
-                      {...(i === 0 && tab === 'photos' ? { fetchPriority: 'high' as const } : {})}
+                      loading="lazy"
                       decoding="async"
                       width={m.width ?? undefined}
                       height={m.height ?? undefined}

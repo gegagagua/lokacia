@@ -143,11 +143,11 @@ Feature references: `P#` = portal feature, `C#` = CRM feature, `V#` = v2.0 featu
 ## Phase 14 — SEO, performance, security, observability
 - [x] Landing pages: district × business type, business type, district; sitemap index; robots; canonical; schema.org
 - [x] OG images per listing (generated)
-- [ ] Lighthouse CI budgets (LCP < 2.5 s, ≥ 90) on key pages
+- [x] Lighthouse CI budgets (LCP < 2.5 s, ≥ 90) on key pages
 - [x] Security: CSP, HSTS, rate limits review, personal-data export/delete endpoints, consent log
 - [ ] Sentry, OpenTelemetry traces, Grafana dashboards, uptime checks
 - [x] Backups + PITR config, documented restore drill
-- [ ] Load test (k6) on search and listing pages
+- [x] Load test (k6) on search and listing pages
 **Done when:** Lighthouse CI and k6 thresholds pass.
 
 ## Phase 15 — Beta & launch readiness

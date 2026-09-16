@@ -487,7 +487,10 @@ export async function seed() {
         media.push({
           listingId: id,
           kind: 'photo',
-          url: `/api/v1/media/placeholder/${R.pick(['interior', 'interior', 'facade', 'street', 'detail'])}/${id.slice(-8)}-${p}.svg?v=2`,
+          ...(() => {
+            const base = `/api/v1/media/placeholder/${R.pick(['interior', 'interior', 'facade', 'street', 'detail'])}/${id.slice(-8)}-${p}`;
+            return { url: `${base}.svg?v=2`, variants: { sm: `${base}.webp?v=2&w=480`, md: `${base}.webp?v=2&w=960`, lg: `${base}.webp?v=2&w=1600` } };
+          })(),
           sort: p,
           width: 1600,
           height: 1067,

@@ -12,7 +12,7 @@
         "preset": "perf",
         "formFactor": "mobile",
         "screenEmulation": { "mobile": true, "width": 412, "height": 823, "deviceScaleFactor": 1.75, "disabled": false },
-        "throttlingMethod": "simulate",
+        "throttlingMethod": "devtools",
         "onlyCategories": ["performance", "accessibility", "best-practices", "seo"],
         "budgetPath": "infra/lighthouse/budgets.json",
         "chromeFlags": "--no-sandbox --headless=new"

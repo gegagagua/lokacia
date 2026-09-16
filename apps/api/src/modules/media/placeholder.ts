@@ -1,3 +1,5 @@
+import sharp from 'sharp';
+
 /**
  * Deterministic illustrated placeholders for seeded listings (no stock photos — docs/DECISIONS.md).
  * v2: colourful flat-3D illustrations with daylight, materials and depth, so demo listings feel like real spaces.
@@ -254,4 +256,18 @@ const RENDERERS: Record<string, (seed: string) => string> = { interior, facade, 
 
 export function placeholderSvg(kind: string, seed: string): string {
   return (RENDERERS[kind] ?? interior)(seed);
+}
+
+/** Raster variant for fast LCP: SVG → WebP, memoised (LRU-ish, 400 entries). */
+const webpCache = new Map<string, Promise<Buffer>>();
+export function renderPlaceholderWebp(kind: string, seed: string, width: number): Promise<Buffer> {
+  const key = `${kind}/${seed}/${width}`;
+  let hit = webpCache.get(key);
+  if (!hit) {
+    hit = sharp(Buffer.from(placeholderSvg(kind, seed)), { density: 72 }).resize({ width }).webp({ quality: 78 }).toBuffer();
+    webpCache.set(key, hit);
+    hit.catch(() => webpCache.delete(key));
+    if (webpCache.size > 400) webpCache.delete(webpCache.keys().next().value as string);
+  }
+  return hit;
 }
