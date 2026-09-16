@@ -1,0 +1,28 @@
+{
+  "name": "@lokacia/ai",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vitest run",
+    "eval:live": "AI_LIVE=1 vitest run src/evals.test.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.126.0",
+    "@lokacia/contracts": "workspace:*",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@lokacia/config": "workspace:*",
+    "@types/node": "^24.0.0",
+    "eslint": "^9.39.5",
+    "typescript": "6.0.3",
+    "vitest": "^5.0.1"
+  }
+}

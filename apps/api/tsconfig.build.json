@@ -1,0 +1,6 @@
+{
+  "extends": "@lokacia/config/tsconfig/node.json",
+  "compilerOptions": { "outDir": "dist", "rootDir": "src", "noEmit": false, "sourceMap": true },
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts"]
+}
