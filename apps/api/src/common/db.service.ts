@@ -8,7 +8,8 @@ export class DbService implements OnModuleDestroy {
   private readonly client: ReturnType<typeof createDb>['client'];
 
   constructor(@Inject(ENV) env: Env) {
-    const { db, client } = createDb(env.DATABASE_URL, { max: env.NODE_ENV === 'test' ? 5 : 20 });
+    // idle-in-transaction timeout: self-heals pool starvation (nested pool use inside a transaction) instead of hanging the API
+    const { db, client } = createDb(env.DATABASE_URL, { max: env.NODE_ENV === 'test' ? 5 : 20, idleInTransactionTimeoutMs: 15_000 });
     this.db = db;
     this.client = client;
   }

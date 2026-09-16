@@ -106,6 +106,7 @@ export class ApiKeysService {
       .insert(apiUsage)
       .values({ apiKeyId: keyId, day, endpoint, count: 1 })
       .onConflictDoUpdate({ target: [apiUsage.apiKeyId, apiUsage.day, apiUsage.endpoint], set: { count: sql`${apiUsage.count} + 1`, updatedAt: new Date() } });
-    await this.dbs.db.update(apiKeys).set({ lastUsedAt: new Date() }).where(eq(apiKeys.id, keyId));
+    // lastUsedAt at minute precision: avoids a row lock on the key for every request (hot-row contention under load)
+    await this.dbs.db.update(apiKeys).set({ lastUsedAt: new Date() }).where(and(eq(apiKeys.id, keyId), sql`(${apiKeys.lastUsedAt} IS NULL OR ${apiKeys.lastUsedAt} < now() - interval '1 minute')`));
   }
 }

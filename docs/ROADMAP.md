@@ -61,7 +61,7 @@ Feature references: `P#` = portal feature, `C#` = CRM feature, `V#` = v2.0 featu
 ## Phase 5 — Search, map, location analytics
 - [x] Meilisearch index for active listings (sync via queue on change); facets; geo radius & bounding box
 - [x] Search page: business-type-driven filters (P1), URL state, list/map split view, sorting, cursor pagination
-- [ ] OSM POI import script (competitors by business type, transport, schools, business centers) + district stats job
+- [x] OSM POI import script (competitors by business type, transport, schools, business centers) + district stats job
 - [x] `/v1/geo/insights` + insights panel on listing page (P3)
 - [x] Price recommendation service (P18) used in wizard
 - [x] Price & vacancy district map (P23 free part)
@@ -163,9 +163,9 @@ Feature references: `P#` = portal feature, `C#` = CRM feature, `V#` = v2.0 featu
 
 ## Phase 16 — Foot traffic & location score
 - [x] Traffic provider interface + mock hourly dataset; ingestion into `traffic_samples` (V1)
-- [ ] Hourly flow chart on listing & map layer
+- [x] Hourly flow chart on listing & map layer
 - [x] Location score 0–100 per business type with explainable components; AI summary (V2)
-- [ ] Score shown on cards, filter/sort by score
+- [x] Score shown on cards, filter/sort by score
 
 ## Phase 17 — Digital contracts & escrow
 - [x] Online contract signing flow on top of documents module (V3)

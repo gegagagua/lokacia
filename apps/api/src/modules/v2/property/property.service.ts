@@ -1,7 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import ExcelJS from 'exceljs';
 import {
-  and, asc, desc, eq, inArray, isNull, leases, listingMedia, listings, lt, maintenanceRequests, notifications, or, rentInvoices, sql, users, utilityReadings,
+  and, asc, desc, eq, inArray, isNull, leases, listingMedia, listings, lt, maintenanceRequests, notifications, or, payments, rentInvoices, sql, users, utilityReadings,
 } from '@lokacia/db';
 import {
   MAINTENANCE_STATUS_LABELS_KA, RENT_STATUS_LABELS_KA, UTILITY_KIND_LABELS_KA, formatDateKa, formatMoney, normalizePhone, type LeaseDetailDto, type LeaseDto, type MaintenanceDto,
@@ -29,6 +29,12 @@ registerTemplates({
 });
 
 const DAY = 86_400_000;
+/** Late-payment penalty is capped at 100 % of the rent (proportionate penalty; also keeps int4 columns from overflowing). */
+export const PENALTY_CAP_PCT = 100;
+export function latePenaltyMinor(amountMinor: number, pctPerDay: number, daysLate: number) {
+  const pct = Math.min(PENALTY_CAP_PCT, Math.max(0, Number(pctPerDay) || 0) * Math.max(0, daysLate));
+  return Math.min(amountMinor, Math.round((amountMinor * pct) / 100));
+}
 const today = () => new Date().toISOString().slice(0, 10);
 const periodOf = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 
@@ -210,7 +216,7 @@ export class PropertyService implements OnModuleInit {
     let notices = 0;
     for (const { r, l } of rows) {
       const daysLate = Math.max(0, Math.floor((new Date(`${d}T00:00:00Z`).getTime() - new Date(`${r.dueOn}T00:00:00Z`).getTime()) / DAY));
-      const penaltyMinor = Math.round((r.amountMinor * l.penaltyPctPerDay * daysLate) / 100);
+      const penaltyMinor = latePenaltyMinor(r.amountMinor, l.penaltyPctPerDay, daysLate);
       const sendNotice = !r.lateNoticeSentAt;
       await this.dbs.db.update(rentInvoices).set({ status: 'overdue', penaltyMinor, ...(sendNotice ? { lateNoticeSentAt: now } : {}) }).where(eq(rentInvoices.id, r.id));
       if (sendNotice) {
@@ -231,17 +237,31 @@ export class PropertyService implements OnModuleInit {
       .select({ r: rentInvoices, l: leases })
       .from(rentInvoices)
       .innerJoin(leases, eq(leases.id, rentInvoices.leaseId))
-      .where(and(eq(leases.autopay, true), sql`${leases.tenantId} IS NOT NULL`, inArray(rentInvoices.status, ['open', 'overdue']), sql`${rentInvoices.dueOn} <= ${d}`));
+      .where(
+        and(
+          eq(leases.autopay, true), eq(leases.status, 'active'), isNull(leases.deletedAt), sql`${leases.tenantId} IS NOT NULL`,
+          inArray(rentInvoices.status, ['open', 'overdue']), isNull(rentInvoices.deletedAt), sql`${rentInvoices.dueOn} <= ${d}`,
+        ),
+      );
     let charged = 0;
+    let failed = 0;
     for (const { r, l } of rows) {
-      const listing = await this.dbs.db.query.listings.findFirst({ where: eq(listings.id, l.listingId) });
-      await this.billing.chargeOffSession({
-        userId: l.tenantId!, purpose: 'rent', refId: r.id, idempotencyKey: `autopay:${r.id}`,
-        lines: [{ name: `იჯარა ${r.period} — ${listing?.title ?? ''}`, qty: 1, amountMinor: r.amountMinor + r.penaltyMinor }], description: `იჯარა ${r.period}`,
-      });
-      charged++;
+      // one bad row (e.g. an earlier autopay attempt already exists) must not stop the whole batch
+      try {
+        const listing = await this.dbs.db.query.listings.findFirst({ where: eq(listings.id, l.listingId) });
+        const existing = await this.dbs.db.query.payments.findFirst({ where: eq(payments.idempotencyKey, `autopay:${r.id}`) });
+        if (existing) continue; // already charged once for this rent invoice → never double-charge off-session
+        await this.billing.chargeOffSession({
+          userId: l.tenantId!, purpose: 'rent', refId: r.id, idempotencyKey: `autopay:${r.id}`,
+          lines: [{ name: `იჯარა ${r.period} — ${listing?.title ?? ''}`, qty: 1, amountMinor: r.amountMinor + r.penaltyMinor }], description: `იჯარა ${r.period}`,
+        });
+        charged++;
+      } catch (e) {
+        failed++;
+        this.logger.warn(`autopay for rent invoice ${r.id} failed: ${(e as Error).message}`);
+      }
     }
-    return { charged };
+    return { charged, failed };
   }
 
   async pay(user: AuthUser, rentInvoiceId: string) {

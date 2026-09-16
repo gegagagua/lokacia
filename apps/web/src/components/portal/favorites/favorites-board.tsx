@@ -1,17 +1,18 @@
 'use client';
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import useSWR from 'swr';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { ExternalLink, Heart, Scale, Trash2 } from 'lucide-react';
-import { COMPARE_MAX, formatDateKa, type CompareListDto, type FavoriteDto } from '@lokacia/contracts';
+import { COMPARE_MAX, formatDateKa, toAppLocale, type CompareListDto, type FavoriteDto } from '@lokacia/contracts';
 import { Button, Checkbox, EmptyState, IconButton, ListingCard, Skeleton, useToast } from '@lokacia/ui';
 import { apiFetch, fetcher } from '@/lib/api-client';
 import { CopyLinkButton } from '../copy-link-button';
 
 export function FavoritesBoard({ typeNames }: { typeNames: Record<string, string> }) {
   const t = useTranslations('favorites');
+  const locale = useLocale();
   const toast = useToast();
   const router = useRouter();
   const { data, mutate, isLoading } = useSWR<FavoriteDto[]>('/favorites', fetcher);
@@ -97,7 +98,7 @@ export function FavoritesBoard({ typeNames }: { typeNames: Record<string, string
               const on = selected.includes(f.id);
               return (
                 <li key={f.id} className={`relative flex flex-col rounded-card ${on ? 'outline-2 outline-offset-2 outline-primary' : ''}`}>
-                  <ListingCard listing={f} href={`/listings/${f.slug}`} LinkComponent={Link} businessTypeName={(s) => typeNames[s] ?? s} favorite onFavorite={() => void remove(f.id)} className="h-full" />
+                  <ListingCard listing={f} href={`/listings/${f.slug}`} LinkComponent={Link} locale={toAppLocale(locale)} businessTypeName={(s) => typeNames[s] ?? s} favorite onFavorite={() => void remove(f.id)} className="h-full" />
                   <div className="absolute left-2 top-10 z-10 rounded-[6px] border border-border bg-surface/95 p-1.5">
                     <Checkbox checked={on} onCheckedChange={(v) => toggle(f.id, v === true)} aria-label={t('select', { title: f.title })} disabled={!on && selected.length >= COMPARE_MAX} />
                   </div>

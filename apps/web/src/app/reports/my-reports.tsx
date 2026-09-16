@@ -2,12 +2,14 @@
 import useSWR from 'swr';
 import { useTranslations } from 'next-intl';
 import { Download } from 'lucide-react';
-import { formatDateKa, type ReportPurchaseDto } from '@lokacia/contracts';
+import type { ReportPurchaseDto } from '@lokacia/contracts';
 import { Badge, Button, Card } from '@lokacia/ui';
 import { fetcher } from '@/lib/api-client';
+import { useFormat } from '@/i18n/use-format';
 
 export function MyReports({ compact }: { compact?: boolean }) {
   const t = useTranslations('billing.reports');
+  const fmt = useFormat();
   const { data } = useSWR<ReportPurchaseDto[]>('/billing/reports', fetcher);
   if (!data) return null;
   return (
@@ -24,7 +26,7 @@ export function MyReports({ compact }: { compact?: boolean }) {
               <div className="min-w-0">
                 <div className="font-medium">{r.productName}</div>
                 <div className="text-small text-muted">
-                  {[r.districtName, r.businessType].filter(Boolean).join(' · ')} · {formatDateKa(r.createdAt)}
+                  {[r.districtName, r.businessType].filter(Boolean).join(' · ')} · {fmt.date(r.createdAt)}
                 </div>
               </div>
               {r.status === 'ready' ? (

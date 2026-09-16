@@ -8,7 +8,7 @@ import { QueueService } from '../../../common/queue.service';
 import { ENV, type Env } from '../../../config/env';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { ActivityService } from '../shared/activity.service';
-import { assertCan, type CrmCtx } from '../shared/crm-access';
+import { assertCan, visibleContact, visibleDeal, type CrmCtx } from '../shared/crm-access';
 import { CrmEventsService } from '../shared/crm-events.service';
 
 type Row = typeof crmTasks.$inferSelect;
@@ -121,12 +121,10 @@ export class TasksService implements OnModuleInit {
     const task = await this.dbs.org(ctx.orgId, async (tx) => {
       const assigneeId = ctx.ownContactsOnly ? ctx.userId : (input.assigneeId ?? ctx.userId);
       let contactId = input.contactId ?? null;
-      if (input.dealId) {
-        const deal = await tx.query.crmDeals.findFirst({ where: eq(crmDeals.id, input.dealId) });
-        if (!deal) throw problems.notFound('გარიგება');
-        contactId ??= deal.contactId;
-      }
-      if (contactId && !(await tx.query.crmContacts.findFirst({ where: eq(crmContacts.id, contactId) }))) throw problems.notFound('კონტაქტი');
+      // linked records must be visible to the caller (agents: own deals/contacts) — 404 otherwise
+      const deal = input.dealId ? await visibleDeal(tx, ctx, input.dealId) : null;
+      if (contactId && contactId !== deal?.contactId) await visibleContact(tx, ctx, contactId);
+      contactId ??= deal?.contactId ?? null;
       const [row] = await tx
         .insert(crmTasks)
         .values({ orgId: ctx.orgId, title: input.title, dueAt: input.dueAt ? new Date(input.dueAt) : null, priority: input.priority, dealId: input.dealId ?? null, contactId, assigneeId })
@@ -151,9 +149,12 @@ export class TasksService implements OnModuleInit {
         if (String(set.dueAt?.getTime()) !== String(before.dueAt?.getTime())) set.remindedAt = null;
       }
       if (patch.assigneeId !== undefined && !ctx.ownContactsOnly) set.assigneeId = patch.assigneeId;
-      if (patch.dealId !== undefined) set.dealId = patch.dealId;
-      if (patch.contactId !== undefined) set.contactId = patch.contactId;
-      const [row] = await tx.update(crmTasks).set(set).where(eq(crmTasks.id, id)).returning();
+      if (patch.dealId !== undefined && patch.dealId !== before.dealId) set.dealId = patch.dealId ? (await visibleDeal(tx, ctx, patch.dealId)).id : null;
+      if (patch.contactId !== undefined && patch.contactId !== before.contactId) {
+        const dealContact = set.dealId ? (await visibleDeal(tx, ctx, set.dealId)).contactId : null;
+        set.contactId = patch.contactId && patch.contactId !== dealContact ? (await visibleContact(tx, ctx, patch.contactId)).id : patch.contactId;
+      }
+      const [row] = Object.keys(set).length ? await tx.update(crmTasks).set(set).where(eq(crmTasks.id, id)).returning() : [before];
       return this.one(tx, row!);
     });
   }

@@ -1,15 +1,17 @@
 'use client';
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import useSWR from 'swr';
 import { useTranslations } from 'next-intl';
 import { Plus, Wrench } from 'lucide-react';
-import { formatDateKa, formatMoney, RENT_STATUS_LABELS_KA, type ListingCard, type LeaseDto, type PropertyOverview } from '@lokacia/contracts';
+import { type ListingCard, type LeaseDto, type PropertyOverview } from '@lokacia/contracts';
+import { useFormat } from '@/i18n/use-format';
 import { Badge, Button, Checkbox, Dialog, EmptyState, Field, Input, Select, Skeleton, Stat, useToast } from '@lokacia/ui';
 import { apiFetch, ClientApiError, fetcher } from '@/lib/api-client';
 
 export function PropertyOverviewView() {
   const t = useTranslations('property');
+  const f = useFormat();
   const { data, mutate, error } = useSWR<PropertyOverview>('/property/overview', fetcher);
   if (error) return <p className="mt-6 text-danger">{t('loadError')}</p>;
   if (!data) return <Skeleton className="mt-6 h-48" />;
@@ -19,9 +21,9 @@ export function PropertyOverviewView() {
     <div className="mt-6 flex min-w-0 flex-col gap-10 [&>*]:min-w-0">
       {owned.length > 0 && (
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <Stat label={t('totals.monthly')} value={formatMoney(data.totals.monthlyRentMinor)} />
-          <Stat label={t('totals.collected')} value={formatMoney(data.totals.collectedThisMonthMinor)} />
-          <Stat label={t('totals.overdue')} value={<span className={data.totals.overdueMinor ? 'text-danger' : ''}>{formatMoney(data.totals.overdueMinor)}</span>} />
+          <Stat label={t('totals.monthly')} value={f.money(data.totals.monthlyRentMinor)} />
+          <Stat label={t('totals.collected')} value={f.money(data.totals.collectedThisMonthMinor)} />
+          <Stat label={t('totals.overdue')} value={<span className={data.totals.overdueMinor ? 'text-danger' : ''}>{f.money(data.totals.overdueMinor)}</span>} />
           <Stat label={t('totals.maintenance')} value={data.totals.openMaintenance} />
         </div>
       )}
@@ -46,6 +48,7 @@ export function PropertyOverviewView() {
 
 function LeaseGrid({ leases }: { leases: LeaseDto[] }) {
   const t = useTranslations('property');
+  const f = useFormat();
   return (
     <ul className="mt-4 grid gap-3 md:grid-cols-2">
       {leases.map((l) => (
@@ -75,15 +78,15 @@ function LeaseGrid({ leases }: { leases: LeaseDto[] }) {
               </div>
               <div>
                 <dt className="text-muted">{t('rentAmount')}</dt>
-                <dd className="tabular">{formatMoney(l.rentMinor)}</dd>
+                <dd className="tabular">{f.money(l.rentMinor)}</dd>
               </div>
               <div>
                 <dt className="text-muted">{t('balance')}</dt>
-                <dd className={`tabular ${l.balanceDueMinor > 0 ? 'text-danger' : ''}`}>{formatMoney(l.balanceDueMinor)}</dd>
+                <dd className={`tabular ${l.balanceDueMinor > 0 ? 'text-danger' : ''}`}>{f.money(l.balanceDueMinor)}</dd>
               </div>
               <div>
                 <dt className="text-muted">{t('nextDue')}</dt>
-                <dd className="tabular">{l.nextDue ? `${formatDateKa(l.nextDue.dueOn)} · ${RENT_STATUS_LABELS_KA[l.nextDue.status]}` : '—'}</dd>
+                <dd className="tabular">{l.nextDue ? `${f.date(l.nextDue.dueOn)} · ${t(`labels.rentStatus.${l.nextDue.status}`)}` : '—'}</dd>
               </div>
             </dl>
             {l.openMaintenance > 0 && (

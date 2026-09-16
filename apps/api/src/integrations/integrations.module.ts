@@ -7,6 +7,7 @@ import { MockSms } from './sms/sms.mock';
 import { CHANNELS, type MessageChannel } from './channels/channels';
 import { MockChannel } from './channels/channels.mock';
 import { TelegramChannel, ViberChannel } from './channels/telegram';
+import { ExpoPushChannel, MockPushChannel } from './channels/push';
 import { PAYMENTS } from './payments/payments';
 import { MockPayments } from './payments/payments.mock';
 import { BogPayments, PspPayments, TbcPayments } from './payments/payments.banks';
@@ -32,7 +33,7 @@ export const AI = Symbol('AI');
         telegram: env.TELEGRAM_BOT_TOKEN ? new TelegramChannel(env.TELEGRAM_BOT_TOKEN) : new MockChannel('telegram'),
         viber: env.VIBER_BOT_TOKEN ? new ViberChannel(env.VIBER_BOT_TOKEN) : new MockChannel('viber'),
         whatsapp: new MockChannel('whatsapp'),
-        push: new MockChannel('push'),
+        push: env.PUSH_PROVIDER === 'expo' ? new ExpoPushChannel(env.EXPO_ACCESS_TOKEN) : new MockPushChannel(),
       }),
     },
     {

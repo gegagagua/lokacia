@@ -1,19 +1,22 @@
 'use client';
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import useSWR from 'swr';
 import { useTranslations } from 'next-intl';
 import { ArrowLeft, Download, FileSpreadsheet } from 'lucide-react';
 import {
-  formatDateKa, formatDateTimeKa, formatMoney, MAINTENANCE_PRIORITY_LABELS_KA, MAINTENANCE_STATUS_LABELS_KA, RENT_STATUS_LABELS_KA, UTILITY_KIND_LABELS_KA,
   type CheckoutResponse, type LeaseDetailDto, type MaintenanceDto, type RentInvoiceDto,
 } from '@lokacia/contracts';
+import { useFormat } from '@/i18n/use-format';
 import { Badge, Button, Card, EmptyState, Field, Input, Select, Skeleton, Switch, Tabs, Textarea, useToast, type BadgeTone } from '@lokacia/ui';
 import { apiFetch, ClientApiError, fetcher, uploadFile } from '@/lib/api-client';
 import { followCheckout } from '@/components/billing/checkout';
 
 const RENT_TONE: Record<string, BadgeTone> = { paid: 'success', open: 'neutral', overdue: 'danger' };
 const MAINT_TONE: Record<string, BadgeTone> = { open: 'neutral', in_progress: 'link', resolved: 'success' };
+const MAINT_STATUSES = ['open', 'in_progress', 'resolved'] as const;
+const MAINT_PRIORITIES = ['low', 'normal', 'urgent'] as const;
+const UTILITY_KINDS = ['electricity', 'water', 'gas', 'cleaning', 'internet'] as const;
 
 function useErr() {
   const toast = useToast();
@@ -23,6 +26,7 @@ function useErr() {
 
 export function LeaseDetailView({ id }: { id: string }) {
   const t = useTranslations('property');
+  const f = useFormat();
   const { data, mutate, error } = useSWR<LeaseDetailDto>(`/property/leases/${id}`, fetcher);
   if (error) return <EmptyState title={t('notFound')} action={<Button asChild variant="secondary"><Link href="/account/property">{t('back')}</Link></Button>} />;
   if (!data) return <Skeleton className="h-64" />;
@@ -47,13 +51,13 @@ export function LeaseDetailView({ id }: { id: string }) {
           <dt className="text-muted">{owner ? t('tenant') : t('owner')}</dt>
           <dd>{owner ? `${data.tenantName}${data.tenantPhone ? ` · ${data.tenantPhone}` : ''}` : (data.ownerName ?? '—')}</dd>
           <dt className="text-muted">{t('rentAmount')}</dt>
-          <dd className="tabular">{formatMoney(data.rentMinor)} · {t('dueDay', { n: data.dayOfMonth })}</dd>
+          <dd className="tabular">{f.money(data.rentMinor)} · {t('dueDay', { n: data.dayOfMonth })}</dd>
           <dt className="text-muted">{t('period')}</dt>
           <dd className="tabular">
-            {formatDateKa(data.startsOn)} – {data.endsOn ? formatDateKa(data.endsOn) : t('openEnded')}
+            {f.date(data.startsOn)} – {data.endsOn ? f.date(data.endsOn) : t('openEnded')}
           </dd>
           <dt className="text-muted">{t('balance')}</dt>
-          <dd className={`tabular ${data.balanceDueMinor ? 'text-danger' : ''}`}>{formatMoney(data.balanceDueMinor)}</dd>
+          <dd className={`tabular ${data.balanceDueMinor ? 'text-danger' : ''}`}>{f.money(data.balanceDueMinor)}</dd>
         </dl>
       </div>
       <Tabs
@@ -71,6 +75,8 @@ export function LeaseDetailView({ id }: { id: string }) {
 
 function RentTab({ lease, onChange }: { lease: LeaseDetailDto; onChange: () => void }) {
   const t = useTranslations('property.rent');
+  const f = useFormat();
+  const tl = useTranslations('property.labels');
   const onErr = useErr();
   const toast = useToast();
   const owner = lease.myRole === 'owner';
@@ -138,12 +144,12 @@ function RentTab({ lease, onChange }: { lease: LeaseDetailDto; onChange: () => v
                 {lease.invoices.map((inv) => (
                   <tr key={inv.id} className="border-b border-border last:border-0">
                     <td className="whitespace-nowrap p-3 tabular">{inv.period}</td>
-                    <td className="whitespace-nowrap p-3 tabular">{formatDateKa(inv.dueOn)}</td>
-                    <td className="whitespace-nowrap p-3 text-right tabular">{formatMoney(inv.amountMinor)}</td>
-                    <td className="whitespace-nowrap p-3 text-right tabular">{inv.penaltyMinor ? formatMoney(inv.penaltyMinor) : '—'}</td>
+                    <td className="whitespace-nowrap p-3 tabular">{f.date(inv.dueOn)}</td>
+                    <td className="whitespace-nowrap p-3 text-right tabular">{f.money(inv.amountMinor)}</td>
+                    <td className="whitespace-nowrap p-3 text-right tabular">{inv.penaltyMinor ? f.money(inv.penaltyMinor) : '—'}</td>
                     <td className="p-3">
-                      <Badge tone={RENT_TONE[inv.status] ?? 'neutral'}>{RENT_STATUS_LABELS_KA[inv.status]}</Badge>
-                      {inv.paidAt && <div className="mt-1 text-muted">{formatDateKa(inv.paidAt)}</div>}
+                      <Badge tone={RENT_TONE[inv.status] ?? 'neutral'}>{tl(`rentStatus.${inv.status}`)}</Badge>
+                      {inv.paidAt && <div className="mt-1 text-muted">{f.date(inv.paidAt)}</div>}
                     </td>
                     <td className="p-3 text-right">
                       {inv.status === 'paid' ? (
@@ -152,7 +158,7 @@ function RentTab({ lease, onChange }: { lease: LeaseDetailDto; onChange: () => v
                         </Button>
                       ) : (
                         <Button size="sm" loading={paying === inv.id} onClick={() => pay(inv)}>
-                          {t('pay', { amount: formatMoney(inv.totalMinor) })}
+                          {t('pay', { amount: f.money(inv.totalMinor) })}
                         </Button>
                       )}
                     </td>
@@ -197,6 +203,8 @@ function RentTab({ lease, onChange }: { lease: LeaseDetailDto; onChange: () => v
 
 function MaintenanceTab({ lease, onChange }: { lease: LeaseDetailDto; onChange: () => void }) {
   const t = useTranslations('property.maintenance');
+  const f = useFormat();
+  const tl = useTranslations('property.labels');
   const onErr = useErr();
   const toast = useToast();
   const owner = lease.myRole === 'owner';
@@ -261,16 +269,16 @@ function MaintenanceTab({ lease, onChange }: { lease: LeaseDetailDto; onChange: 
                   <div className="min-w-0">
                     <div className="font-medium">{m.title}</div>
                     <div className="text-small text-muted">
-                      {m.reporterName ?? '—'} · {formatDateKa(m.createdAt)} · {t('priority')}: {MAINTENANCE_PRIORITY_LABELS_KA[m.priority]}
+                      {m.reporterName ?? '—'} · {f.date(m.createdAt)} · {t('priority')}: {tl(`maintenancePriority.${m.priority}`)}
                     </div>
                   </div>
                   {owner ? (
-                    <Select aria-label={t('status')} className="h-8 w-auto text-small" value={m.status} onChange={(e) => setStatus(m, e.target.value)} options={Object.entries(MAINTENANCE_STATUS_LABELS_KA).map(([value, label]) => ({ value, label }))} />
+                    <Select aria-label={t('status')} className="h-8 w-auto text-small" value={m.status} onChange={(e) => setStatus(m, e.target.value)} options={MAINT_STATUSES.map((value) => ({ value, label: tl(`maintenanceStatus.${value}`) }))} />
                   ) : (
-                    <Badge tone={MAINT_TONE[m.status] ?? 'neutral'}>{MAINTENANCE_STATUS_LABELS_KA[m.status]}</Badge>
+                    <Badge tone={MAINT_TONE[m.status] ?? 'neutral'}>{tl(`maintenanceStatus.${m.status}`)}</Badge>
                   )}
                 </div>
-                {m.priority === 'urgent' && m.status !== 'resolved' && <Badge tone="danger" className="mt-2">{MAINTENANCE_PRIORITY_LABELS_KA.urgent}</Badge>}
+                {m.priority === 'urgent' && m.status !== 'resolved' && <Badge tone="danger" className="mt-2">{tl('maintenancePriority.urgent')}</Badge>}
                 {m.description && <p className="mt-2 text-small">{m.description}</p>}
                 {m.photos.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-2">
@@ -282,7 +290,7 @@ function MaintenanceTab({ lease, onChange }: { lease: LeaseDetailDto; onChange: 
                     ))}
                   </div>
                 )}
-                {m.resolvedAt && <p className="mt-2 text-small text-muted">{t('resolvedAt', { date: formatDateKa(m.resolvedAt) })}</p>}
+                {m.resolvedAt && <p className="mt-2 text-small text-muted">{t('resolvedAt', { date: f.date(m.resolvedAt) })}</p>}
               </Card>
             ))}
           </ul>
@@ -298,7 +306,7 @@ function MaintenanceTab({ lease, onChange }: { lease: LeaseDetailDto; onChange: 
             <Textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
           </Field>
           <Field label={t('priority')}>
-            <Select value={priority} onChange={(e) => setPriority(e.target.value)} options={Object.entries(MAINTENANCE_PRIORITY_LABELS_KA).map(([value, label]) => ({ value, label }))} />
+            <Select value={priority} onChange={(e) => setPriority(e.target.value)} options={MAINT_PRIORITIES.map((value) => ({ value, label: tl(`maintenancePriority.${value}`) }))} />
           </Field>
           <div className="flex flex-col gap-1">
             <label htmlFor="maint-photos" className="text-[15px] font-medium">
@@ -319,6 +327,8 @@ function MaintenanceTab({ lease, onChange }: { lease: LeaseDetailDto; onChange: 
 
 function UtilitiesTab({ lease, onChange }: { lease: LeaseDetailDto; onChange: () => void }) {
   const t = useTranslations('property.utilities');
+  const f = useFormat();
+  const tl = useTranslations('property.labels');
   const onErr = useErr();
   const owner = lease.myRole === 'owner';
   const now = new Date();
@@ -328,7 +338,7 @@ function UtilitiesTab({ lease, onChange }: { lease: LeaseDetailDto; onChange: ()
   const [amount, setAmount] = React.useState('');
   const [busy, setBusy] = React.useState(false);
   const periods = [...new Set(lease.utilities.map((u) => u.period))].sort().reverse();
-  const kinds = Object.keys(UTILITY_KIND_LABELS_KA) as (keyof typeof UTILITY_KIND_LABELS_KA)[];
+  const kinds = UTILITY_KINDS;
   const usedKinds = kinds.filter((k) => lease.utilities.some((u) => u.kind === k));
 
   const submit = async (e: React.FormEvent) => {
@@ -359,7 +369,7 @@ function UtilitiesTab({ lease, onChange }: { lease: LeaseDetailDto; onChange: ()
                   <th scope="col" className="p-3 font-medium">{t('period')}</th>
                   {usedKinds.map((k) => (
                     <th key={k} scope="col" className="p-3 text-right font-medium">
-                      {UTILITY_KIND_LABELS_KA[k]}
+                      {tl(`utilityKind.${k}`)}
                     </th>
                   ))}
                   <th scope="col" className="p-3 text-right font-medium">{t('total')}</th>
@@ -375,12 +385,12 @@ function UtilitiesTab({ lease, onChange }: { lease: LeaseDetailDto; onChange: ()
                         const r = rows.find((x) => x.kind === k);
                         return (
                           <td key={k} className="whitespace-nowrap p-3 text-right tabular">
-                            {r ? formatMoney(r.amountMinor) : '—'}
+                            {r ? f.money(r.amountMinor) : '—'}
                             {r?.reading != null && <div className="text-muted">{t('reading', { value: r.reading })}</div>}
                           </td>
                         );
                       })}
-                      <td className="p-3 text-right font-medium tabular">{formatMoney(rows.reduce((a, r) => a + r.amountMinor, 0))}</td>
+                      <td className="p-3 text-right font-medium tabular">{f.money(rows.reduce((a, r) => a + r.amountMinor, 0))}</td>
                     </tr>
                   );
                 })}
@@ -394,7 +404,7 @@ function UtilitiesTab({ lease, onChange }: { lease: LeaseDetailDto; onChange: ()
           <h3 className="font-semibold">{t('add')}</h3>
           <form onSubmit={submit} className="mt-3 flex flex-col gap-3">
             <Field label={t('kind')}>
-              <Select value={kind} onChange={(e) => setKind(e.target.value)} options={kinds.map((k) => ({ value: k, label: UTILITY_KIND_LABELS_KA[k] }))} />
+              <Select value={kind} onChange={(e) => setKind(e.target.value)} options={kinds.map((k) => ({ value: k, label: tl(`utilityKind.${k}`) }))} />
             </Field>
             <Field label={t('period')}>
               <Input type="month" value={period} onChange={(e) => setPeriod(e.target.value)} required />
@@ -417,6 +427,7 @@ function UtilitiesTab({ lease, onChange }: { lease: LeaseDetailDto; onChange: ()
 
 function MessagesTab({ lease, onChange }: { lease: LeaseDetailDto; onChange: () => void }) {
   const t = useTranslations('property.messages');
+  const f = useFormat();
   const onErr = useErr();
   const [body, setBody] = React.useState('');
   const [busy, setBusy] = React.useState(false);
@@ -443,7 +454,7 @@ function MessagesTab({ lease, onChange }: { lease: LeaseDetailDto; onChange: () 
             <li key={m.id} className={`max-w-[85%] rounded-card border px-3 py-2 ${m.fromMe ? 'self-end border-primary/30 bg-primary/10' : 'self-start border-border bg-surface'}`}>
               <p className="whitespace-pre-wrap text-[15px]">{m.body}</p>
               <time className="mt-1 block text-[12px] text-muted tabular" dateTime={m.createdAt}>
-                {formatDateTimeKa(m.createdAt)}
+                {f.dateTime(m.createdAt)}
               </time>
             </li>
           ))}

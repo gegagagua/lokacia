@@ -12,6 +12,20 @@ import {
   relativeDaysKa,
   slugify,
   dealFinance,
+  DEAL_TYPE_LABELS,
+  SEARCH_SORT_LABELS,
+  formatAreaFor,
+  formatDateFor,
+  formatMoneyFor,
+  localizedName,
+  localizedText,
+  pricePeriodSuffix,
+  relativeDaysFor,
+  ruPlural,
+  toAppLocale,
+  localizeFilterDef,
+  localizeUnit,
+  passportLabel,
 } from './index';
 
 describe('format', () => {
@@ -87,5 +101,57 @@ describe('cursor', () => {
     const c = encodeCursor({ id: 'ა', n: 5 });
     expect(decodeCursor(c)).toEqual({ id: 'ა', n: 5 });
     expect(decodeCursor('%%%')).toBeNull();
+  });
+});
+
+describe('locale-aware format helpers', () => {
+  it('formats money per locale, ₾ after the amount', () => {
+    expect(formatMoneyFor(300_000, 'ka')).toBe('3 000 ₾');
+    expect(formatMoneyFor(300_000, 'en')).toBe('3,000 ₾');
+    expect(formatMoneyFor(300_000, 'ru')).toBe('3 000 ₾');
+    expect(formatMoneyFor(1_250_050, 'en')).toBe('12,500.50 ₾');
+    expect(formatMoneyFor(1_250_050, 'ru')).toBe('12 500,50 ₾');
+    expect(formatMoneyFor(150_000, 'en', 'USD')).toBe('$1,500');
+    expect(formatMoneyFor(300_000, 'ka')).toBe(formatMoney(300_000));
+  });
+  it('formats area, dates and relative days', () => {
+    expect(formatAreaFor(1250.5, 'en')).toBe('1,250.5 m²');
+    expect(formatAreaFor(64, 'ru')).toBe('64 м²');
+    expect(formatDateFor(new Date(2026, 8, 16), 'en')).toBe('September 16, 2026');
+    expect(formatDateFor(new Date(2026, 8, 16), 'ru')).toBe('16 сентября 2026');
+    expect(formatDateFor(new Date(2026, 8, 16), 'ka')).toBe('16 სექტემბერი, 2026');
+    const now = new Date(2026, 8, 16, 12);
+    expect(relativeDaysFor(new Date(2026, 8, 13), 'en', now)).toBe('3 days ago');
+    expect(relativeDaysFor(new Date(2026, 8, 15), 'en', now)).toBe('yesterday');
+    expect(relativeDaysFor(new Date(2026, 8, 14), 'ru', now)).toBe('2 дня назад');
+    expect(relativeDaysFor(new Date(2026, 7, 1), 'ru', now)).toBe('1 месяц назад');
+    expect(relativeDaysFor(new Date(2026, 8, 11), 'ru', now)).toBe('5 дней назад');
+  });
+  it('picks localized names/texts with ka fallback and normalizes locales', () => {
+    const d = { nameKa: 'ვაკე', nameEn: 'Vake', nameRu: '' };
+    expect(localizedName(d, 'en')).toBe('Vake');
+    expect(localizedName(d, 'ru')).toBe('ვაკე');
+    expect(localizedText('სათაური', null, 'Заголовок', 'ru')).toBe('Заголовок');
+    expect(localizedText('სათაური', ' ', null, 'en')).toBe('სათაური');
+    expect(toAppLocale('en')).toBe('en');
+    expect(toAppLocale('de')).toBe('ka');
+    expect(pricePeriodSuffix('month', 'en')).toBe(' / mo');
+    expect(pricePeriodSuffix('total', 'ru')).toBe('');
+    expect(ruPlural(21, 'день', 'дня', 'дней')).toBe('день');
+    expect(ruPlural(12, 'день', 'дня', 'дней')).toBe('дней');
+    expect(DEAL_TYPE_LABELS.en.rent).toBe('For rent');
+    expect(SEARCH_SORT_LABELS.ru.newest).toBe('Сначала новые');
+  });
+});
+
+describe('passport localization', () => {
+  it('translates default filter labels and units, keeps custom labels', () => {
+    const def = { key: 'ceilingM', kind: 'min' as const, labelKa: 'ჭერის სიმაღლე (მინ.)', unit: 'მ' };
+    expect(localizeFilterDef(def, 'en')).toMatchObject({ labelKa: 'Ceiling height (min.)', unit: 'm' });
+    expect(localizeFilterDef(def, 'ru')).toMatchObject({ labelKa: 'Высота потолка (мин.)', unit: 'м' });
+    expect(localizeFilterDef(def, 'ka')).toBe(def);
+    expect(localizeFilterDef({ key: 'hasHood', kind: 'boolean' as const, labelKa: 'სპეციალური' }, 'en').labelKa).toBe('სპეციალური');
+    expect(passportLabel('powerKw', 'ru')).toBe('Мощность');
+    expect(localizeUnit('კვტ', 'en')).toBe('kW');
   });
 });

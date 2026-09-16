@@ -4,6 +4,7 @@ import { and, asc, availabilitySlots, desc, eq, gte, inArray, isNull, listingMed
 import { formatDateTimeKa, formatMoney, type ViewingDto } from '@lokacia/contracts';
 import { DbService } from '../../common/db.service';
 import { problems } from '../../common/problem';
+import { RateLimitService } from '../../common/redis.service';
 import { QueueService } from '../../common/queue.service';
 import type { AuthUser } from '../../common/request';
 import { buildIcs } from '../../integrations/calendar/ics';
@@ -33,6 +34,7 @@ export class ViewingsService implements OnModuleInit {
     private readonly read: ListingReadService,
     private readonly notify: NotificationsService,
     private readonly queue: QueueService,
+    private readonly rate: RateLimitService,
   ) {}
 
   onModuleInit() {
@@ -48,6 +50,7 @@ export class ViewingsService implements OnModuleInit {
     const l = await this.read.findRaw(input.listingId);
     if (!l || !['active', 'stale'].includes(l.status)) throw problems.notFound('განცხადება');
     if (l.ownerId === user.id || l.agentId === user.id) throw problems.badRequest('საკუთარ ფართზე ჯავშნა შეუძლებელია');
+    await this.rate.hit(`viewing-book:${user.id}`, 20, 3600); // each request notifies the host by SMS/e-mail
     let startsAt: Date;
     let endsAt: Date;
     let slotId: string | null = null;

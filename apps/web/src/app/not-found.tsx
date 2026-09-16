@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import { getTranslations } from 'next-intl/server';
 import { Button, SpacePlan } from '@lokacia/ui';
 

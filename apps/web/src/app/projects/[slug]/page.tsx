@@ -1,9 +1,8 @@
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { BadgeCheck, Building2, CalendarClock, Layers, MapPin } from 'lucide-react';
-import { formatDateKa, formatMoney, formatNumber } from '@lokacia/contracts';
 import { Avatar, Badge, Card, EmptyState, SpecRow } from '@lokacia/ui';
 import { getNames, getProject } from '@/components/portal/data';
 import { monthsUntil } from '@/components/portal/projects/project-card';
@@ -12,6 +11,7 @@ import { ProjectMap } from '@/components/portal/projects/project-map';
 import { UnitsView } from '@/components/portal/projects/units-view';
 import { Breadcrumbs, JsonLd, pageMetadata } from '@/components/portal/seo';
 import { absUrl } from '@/lib/site';
+import { getFormat } from '@/i18n/server';
 
 export const revalidate = 300;
 
@@ -20,19 +20,20 @@ type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const p = await getProject(slug);
-  if (!p) return { title: 'პროექტი ვერ მოიძებნა', robots: { index: false } };
+  if (!p) return { title: (await getTranslations('meta.titles'))('projectNotFound'), robots: { index: false } };
   const t = await getTranslations('projects');
-  const desc = [p.description, `${t('completion')}: ${formatDateKa(p.completionDate)}`, t('unitsCount', { n: p.unitsCount }), p.minPriceMinor != null ? t('priceFrom', { price: formatMoney(p.minPriceMinor) }) : null].filter(Boolean).join(' · ');
+  const f = await getFormat();
+  const desc = [p.description, `${t('completion')}: ${f.date(p.completionDate)}`, t('unitsCount', { n: p.unitsCount }), p.minPriceMinor != null ? t('priceFrom', { price: f.money(p.minPriceMinor) }) : null].filter(Boolean).join(' · ');
   return pageMetadata({ title: `${p.name} — ${p.district?.name ?? p.address}`, description: desc.slice(0, 300), path: `/projects/${p.slug}`, image: p.coverUrl ?? undefined });
 }
 
 export default async function ProjectPage({ params }: Props) {
   const { slug } = await params;
-  const [p, t, names] = await Promise.all([getProject(slug), getTranslations('projects'), getNames()]);
+  const [p, t, names, f] = await Promise.all([getProject(slug), getTranslations('projects'), getNames(), getFormat()]);
   if (!p) notFound();
   const months = monthsUntil(p.completionDate);
   const center: [number, number] | null = p.lng != null && p.lat != null ? [p.lng, p.lat] : null;
-  const points = p.units.filter((u) => u.lat != null && u.lng != null).map((u) => ({ id: u.id, lat: u.lat!, lng: u.lng!, label: `${formatNumber(u.areaM2)} მ²`, title: u.title, href: `/listings/${u.slug}` }));
+  const points = p.units.filter((u) => u.lat != null && u.lng != null).map((u) => ({ id: u.id, lat: u.lat!, lng: u.lng!, label: `${f.number(u.areaM2)} ${f.areaUnit}`, title: u.title, href: `/listings/${u.slug}` }));
   const available = p.units.filter((u) => u.status === 'active');
   const prices = available.map((u) => u.priceMinor);
 
@@ -57,11 +58,11 @@ export default async function ProjectPage({ params }: Props) {
             </p>
           </div>
           <Card className="p-4">
-            <SpecRow label={t('completion')} value={formatDateKa(p.completionDate)} icon={<CalendarClock className="size-4" strokeWidth={1.5} aria-hidden />} />
+            <SpecRow label={t('completion')} value={f.date(p.completionDate)} icon={<CalendarClock className="size-4" strokeWidth={1.5} aria-hidden />} />
             {p.floors != null && <SpecRow label={t('col.floor')} value={p.floors} icon={<Layers className="size-4" strokeWidth={1.5} aria-hidden />} />}
             <SpecRow label={t('units')} value={p.unitsCount} />
-            {p.minAreaM2 != null && p.maxAreaM2 != null && <SpecRow label={t('col.area')} value={t('areaRange', { min: formatNumber(p.minAreaM2), max: formatNumber(p.maxAreaM2) })} />}
-            {p.minPriceMinor != null && <SpecRow label={t('col.price')} value={t('priceFrom', { price: formatMoney(p.minPriceMinor) })} />}
+            {p.minAreaM2 != null && p.maxAreaM2 != null && <SpecRow label={t('col.area')} value={t('areaRange', { min: f.number(p.minAreaM2), max: f.number(p.maxAreaM2) })} />}
+            {p.minPriceMinor != null && <SpecRow label={t('col.price')} value={t('priceFrom', { price: f.money(p.minPriceMinor) })} />}
           </Card>
           <PrebookDialog projectSlug={p.slug} units={p.units} className="w-full sm:w-auto" />
           <Link href={`/agency/${p.developer.slug}`} className="flex items-center gap-3 rounded-card border border-border bg-surface p-3 hover:border-border-strong">

@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import Link from 'next/link';
+import Link, { useLocalizedPath } from '@/i18n/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import type { OfferDto, OfferThreadSummary } from '@lokacia/contracts';
@@ -12,6 +12,7 @@ import { cleanTenantProfile, TenantProfileEditor, TenantProfileSummary, type Bus
 export function OfferForm({ listing, profile, userName, businessTypes }: { listing: { id: string; dealType: string; priceMinor: number; equipment: { name: string; qty: number; priceMinor: number }[] }; profile: TenantProfileValue | null; userName: string | null; businessTypes: BusinessTypeOption[] }) {
   const t = useTranslations('offers');
   const router = useRouter();
+  const lp = useLocalizedPath();
   const toast = useToast();
   const [terms, setTerms] = React.useState<OfferTerms>({
     priceGel: String(listing.priceMinor / 100),
@@ -37,7 +38,7 @@ export function OfferForm({ listing, profile, userName, businessTypes }: { listi
     try {
       const created = await apiFetch<OfferDto>('/offers', { method: 'POST', body: { ...body, listingId: listing.id, tenantProfile: cleanTenantProfile(tp) } });
       toast({ title: t('new.sent'), tone: 'success' });
-      router.push(`/account/offers/${created.id}`);
+      router.push(lp(`/account/offers/${created.id}`));
     } catch (err) {
       if (err instanceof ClientApiError && err.status === 409) {
         const sent = await apiFetch<OfferThreadSummary[]>('/offers?box=sent').catch(() => []);

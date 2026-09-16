@@ -1,17 +1,20 @@
 'use client';
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import useSWR from 'swr';
 import { useTranslations } from 'next-intl';
 import { CheckCircle2, Clock, XCircle } from 'lucide-react';
-import { formatDateTimeKa, formatMoney, INVOICE_PURPOSE_LABELS_KA, type InvoiceDto } from '@lokacia/contracts';
+import type { InvoiceDto } from '@lokacia/contracts';
 import { Button, Card } from '@lokacia/ui';
 import { fetcher } from '@/lib/api-client';
+import { useFormat } from '@/i18n/use-format';
 
 const RETURN_BY_PURPOSE: Record<string, string> = { vip: '/account/listings', report: '/reports', rent: '/account/property', escrow: '/account/billing', api: '/api-access' };
 
 export function ResultView({ invoiceId, failedHint, back }: { invoiceId: string | null; failedHint: boolean; back: string | null }) {
   const t = useTranslations('billing.result');
+  const tp = useTranslations('billing.purposes');
+  const fmt = useFormat();
   const [polls, setPolls] = React.useState(0);
   const { data, error } = useSWR<InvoiceDto>(invoiceId ? `/billing/invoices/${invoiceId}` : null, fetcher, {
     refreshInterval: (d) => (d && d.status === 'open' && !failedHint && polls < 10 ? 2000 : 0),
@@ -35,16 +38,16 @@ export function ResultView({ invoiceId, failedHint, back }: { invoiceId: string 
           </div>
           <div className="flex justify-between border-b border-border py-2">
             <dt className="text-muted">{t('purpose')}</dt>
-            <dd>{INVOICE_PURPOSE_LABELS_KA[data.purpose]}</dd>
+            <dd>{tp.has(data.purpose) ? tp(data.purpose) : data.purpose}</dd>
           </div>
           <div className="flex justify-between border-b border-border py-2">
             <dt className="text-muted">{t('amount')}</dt>
-            <dd className="tabular">{data.amountMinor === 0 ? t('free') : formatMoney(data.amountMinor)}</dd>
+            <dd className="tabular">{data.amountMinor === 0 ? t('free') : fmt.money(data.amountMinor)}</dd>
           </div>
           {data.paidAt && (
             <div className="flex justify-between py-2">
               <dt className="text-muted">{t('paidAt')}</dt>
-              <dd className="tabular">{formatDateTimeKa(data.paidAt)}</dd>
+              <dd className="tabular">{fmt.dateTime(data.paidAt)}</dd>
             </div>
           )}
         </dl>

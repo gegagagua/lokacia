@@ -1,20 +1,25 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import { getTranslations } from 'next-intl/server';
 import { ArrowRight, CalendarDays, FileSignature, FileText, Heart, MessageSquare, Search, TriangleAlert, UserRound } from 'lucide-react';
-import { formatDateTimeKa, formatNumber, type AccountSummaryDto } from '@lokacia/contracts';
+import type { AccountSummaryDto } from '@lokacia/contracts';
 import { Badge, Button, Card, Stat } from '@lokacia/ui';
 import { api } from '@/lib/api-server';
 import { requireSession } from '@/components/account/require-session';
 import { AccountPageHeader } from '@/components/account/page-header';
 import { ConfirmListingButton } from '@/components/account/dashboard/confirm-listing-button';
-import { relativeKa, tbilisi } from '@/components/account/format';
+import { tbilisi } from '@/components/account/format';
+import { getFormat } from '@/i18n/server';
 
-export const metadata: Metadata = { title: 'მიმოხილვა' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('meta.titles');
+  return { title: t('overview') };
+}
 
 export default async function AccountDashboard() {
   const user = await requireSession('/account');
   const t = await getTranslations('account.dashboard');
+  const f = await getFormat();
   const s = await api<AccountSummaryDto>('/v1/stats/account');
   const isOwner = s.listings.total > 0;
   const p = s.pending;
@@ -50,11 +55,11 @@ export default async function AccountDashboard() {
           <h2 id="kpi" className="sr-only">{t('myListings')}</h2>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             <Link href="/account/listings" className="rounded-card focus-visible:outline-2 focus-visible:outline-focus">
-              <Stat label={t('kpiListings')} value={formatNumber(s.listings.total)} hint={t('kpiActive', { count: s.listings.byStatus.active ?? 0 })} className="h-full hover:border-border-strong" />
+              <Stat label={t('kpiListings')} value={f.number(s.listings.total)} hint={t('kpiActive', { count: s.listings.byStatus.active ?? 0 })} className="h-full hover:border-border-strong" />
             </Link>
-            <Stat label={t('kpiViews')} value={formatNumber(s.listings.views30d)} />
-            <Stat label={t('kpiReveals')} value={formatNumber(s.listings.reveals30d)} />
-            <Stat label={t('kpiSaves')} value={formatNumber(s.listings.saves30d)} />
+            <Stat label={t('kpiViews')} value={f.number(s.listings.views30d)} />
+            <Stat label={t('kpiReveals')} value={f.number(s.listings.reveals30d)} />
+            <Stat label={t('kpiSaves')} value={f.number(s.listings.saves30d)} />
           </div>
         </section>
       )}
@@ -76,8 +81,8 @@ export default async function AccountDashboard() {
                         {l.title}
                       </Link>
                       <div className="flex items-center gap-2 text-small text-muted">
-                        {l.status === 'stale' && <Badge tone="accent">დაუდასტურებელი</Badge>}
-                        {l.lastConfirmedAt ? t('lastConfirmed', { when: relativeKa(l.lastConfirmedAt) }) : t('neverConfirmed')}
+                        {l.status === 'stale' && <Badge tone="accent">{f.listingStatus('stale')}</Badge>}
+                        {l.lastConfirmedAt ? t('lastConfirmed', { when: f.relativeDays(l.lastConfirmedAt) }) : t('neverConfirmed')}
                       </div>
                     </div>
                     <ConfirmListingButton listingId={l.id} label={t('confirmAction')} doneLabel={t('confirmed')} />
@@ -133,7 +138,7 @@ export default async function AccountDashboard() {
                       <Link href={`/account/viewings?v=${v.id}`} className="flex gap-3 px-4 py-3 hover:bg-surface-2">
                         <CalendarDays className="mt-0.5 size-4 shrink-0 text-primary" strokeWidth={1.5} aria-hidden />
                         <div className="min-w-0">
-                          <div className="text-small font-medium tabular">{formatDateTimeKa(tbilisi(v.startsAt))}</div>
+                          <div className="text-small font-medium tabular">{f.dateTime(tbilisi(v.startsAt))}</div>
                           <div className="line-clamp-1 text-[15px]">{v.title}</div>
                           <div className="mt-1 flex gap-1.5">
                             <Badge tone="outline">{v.myRole === 'host' ? t('roleHost') : t('roleVisitor')}</Badge>
@@ -158,7 +163,7 @@ export default async function AccountDashboard() {
               ].map((c) => (
                 <Link key={c.href} href={c.href} className="flex flex-col gap-1 rounded-card border border-border bg-surface p-3 hover:border-border-strong">
                   <c.icon className="size-4 text-muted" strokeWidth={1.5} aria-hidden />
-                  <span className="compact text-h3 font-semibold tabular">{formatNumber(c.value)}</span>
+                  <span className="compact text-h3 font-semibold tabular">{f.number(c.value)}</span>
                   <span className="text-[12px] leading-tight text-muted">{c.label}</span>
                 </Link>
               ))}

@@ -1,11 +1,17 @@
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import { useTranslations } from 'next-intl';
 import { BadgeCheck, MapPin } from 'lucide-react';
 import { SERVICE_CATEGORIES, type ProviderDto } from '@lokacia/contracts';
 import { Avatar, Badge } from '@lokacia/ui';
-import { CITY_NAMES_KA } from '@/lib/site';
+import { useFormat } from '@/i18n/use-format';
 
 export const categoryName = (slug: string) => SERVICE_CATEGORIES.find((c) => c.slug === slug)?.nameKa ?? slug;
+
+/** Localized service category label (falls back to the Georgian taxonomy name). */
+export function useCategoryName() {
+  const t = useTranslations('services.categories');
+  return (slug: string) => (t.has(slug) ? t(slug) : categoryName(slug));
+}
 
 /** Five stars with an accessible label. */
 export function Stars({ rating, count, className }: { rating: number; count?: number; className?: string }) {
@@ -27,6 +33,8 @@ export function Stars({ rating, count, className }: { rating: number; count?: nu
 
 export function ProviderCard({ p }: { p: ProviderDto }) {
   const t = useTranslations('services.provider');
+  const f = useFormat();
+  const catName = useCategoryName();
   return (
     <article className="relative flex h-full flex-col gap-3 rounded-card border border-border bg-surface p-4 transition-colors duration-150 hover:border-border-strong">
       <div className="flex items-start gap-3">
@@ -52,14 +60,14 @@ export function ProviderCard({ p }: { p: ProviderDto }) {
       <div className="flex flex-wrap gap-1.5">
         {p.categories.map((c) => (
           <Badge key={c} tone="neutral">
-            {categoryName(c)}
+            {catName(c)}
           </Badge>
         ))}
       </div>
       <div className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3 text-small text-muted">
         <span className="inline-flex items-center gap-1">
           <MapPin className="size-3.5" strokeWidth={1.5} aria-hidden />
-          {CITY_NAMES_KA[p.city] ?? p.city}
+          {f.city(p.city)}
           {p.completedOrders > 0 && ` · ${t('completed', { count: p.completedOrders })}`}
         </span>
         {p.priceFrom && <span className="font-medium text-text tabular">{p.priceFrom}</span>}

@@ -9,6 +9,8 @@ export const ACCESS_COOKIE = 'lk_at';
 export const REFRESH_COOKIE = 'lk_rt';
 export const ACCESS_TTL_S = 15 * 60;
 export const REFRESH_TTL_S = 30 * 24 * 3600;
+/** Impersonation sessions are short-lived and never extended by refresh. */
+export const IMPERSONATION_TTL_S = 3600;
 
 export type AccessPayload = { sub: string; role: Role; sid: string; imp?: string | null };
 
@@ -20,12 +22,12 @@ export class TokensService {
   ) {}
 
   signAccess(p: AccessPayload) {
-    return this.jwt.sign(p, { secret: this.env.JWT_ACCESS_SECRET, expiresIn: ACCESS_TTL_S });
+    return this.jwt.sign(p, { secret: this.env.JWT_ACCESS_SECRET, expiresIn: ACCESS_TTL_S, algorithm: 'HS256' });
   }
 
   verifyAccess(token: string): AccessPayload | null {
     try {
-      return this.jwt.verify<AccessPayload>(token, { secret: this.env.JWT_ACCESS_SECRET });
+      return this.jwt.verify<AccessPayload>(token, { secret: this.env.JWT_ACCESS_SECRET, algorithms: ['HS256'] });
     } catch {
       return null;
     }

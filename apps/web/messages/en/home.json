@@ -1,85 +1,85 @@
 {
   "meta": {
-    "title": "",
-    "description": ""
+    "title": "lokacia.ge — commercial spaces through a business lens",
+    "description": "Offices, shops, cafe spaces and warehouses for rent and for sale. Filters by business type, technical passport, location analytics and confirmed listings."
   },
   "hero": {
-    "eyebrow": "",
-    "title": "",
-    "lead": "",
-    "publish": "",
-    "browse": "",
-    "planCaption": ""
+    "eyebrow": "Commercial spaces in Georgia",
+    "title": "Will my business work here?",
+    "lead": "Describe what you need — we'll fill in the filters. Every space comes with a technical passport, location analytics and a last-confirmed date.",
+    "publish": "List your space",
+    "browse": "All spaces",
+    "planCaption": "Every space has a floor plan: dimensions, ceiling, power capacity"
   },
   "types": {
-    "title": "",
-    "subtitle": "",
-    "count": ""
+    "title": "By business type",
+    "subtitle": "Each type has its own filters: extraction hood, gas, gate width, shop window.",
+    "count": "Spaces: {count}"
   },
   "stats": {
-    "title": "",
-    "active": "",
-    "confirmed": "",
-    "verified": "",
-    "brokers": "",
-    "demand": "",
-    "newWeek": ""
+    "title": "Numbers in real time",
+    "active": "Active spaces",
+    "confirmed": "Confirmed in the last 14 days",
+    "verified": "Verified owners",
+    "brokers": "Brokers and agencies",
+    "demand": "Active requests",
+    "newWeek": "New this week"
   },
   "fresh": {
-    "title": "",
-    "all": ""
+    "title": "New and VIP spaces",
+    "all": "View all"
   },
   "districts": {
-    "title": "",
-    "subtitle": "",
-    "district": "",
-    "price": "",
-    "active": "",
-    "map": ""
+    "title": "Prices by district",
+    "subtitle": "Average rent per m² per month, Tbilisi",
+    "district": "District",
+    "price": "Price per m²",
+    "active": "Spaces",
+    "map": "Price map"
   },
   "how": {
-    "title": "",
-    "tenants": "",
-    "owners": "",
-    "brokers": "",
-    "t1": "",
-    "t2": "",
-    "t3": "",
-    "o1": "",
-    "o2": "",
-    "o3": "",
-    "b1": "",
-    "b2": "",
-    "b3": "",
-    "tenantsCta": "",
-    "ownersCta": "",
-    "brokersCta": ""
+    "title": "How it works",
+    "tenants": "For businesses",
+    "owners": "For owners",
+    "brokers": "For brokers",
+    "t1": "Choose a business type or describe what you need",
+    "t2": "Compare technical passports, location analytics and the real monthly cost",
+    "t3": "Book a viewing, send an offer, get a draft contract",
+    "o1": "Publish your space with a floor plan and technical passport",
+    "o2": "Price recommendation based on the district average",
+    "o3": "Confirm the space is still available in one click — views, calls, offers",
+    "b1": "Clients, deals and viewings in one CRM",
+    "b2": "Automatic matching with new spaces",
+    "b3": "Public profile, reviews and presentations for clients",
+    "tenantsCta": "Start searching",
+    "ownersCta": "List your space",
+    "brokersCta": "CRM pricing"
   },
   "demand": {
-    "title": "",
-    "subtitle": "",
-    "all": "",
-    "add": "",
-    "budget": "",
-    "area": "",
-    "empty": ""
+    "title": "Businesses looking for space",
+    "subtitle": "Have a suitable space? Respond directly.",
+    "all": "All requests",
+    "add": "Add a request",
+    "budget": "Budget up to {amount}",
+    "area": "{min}–{max} m²",
+    "empty": "No active requests right now"
   },
   "cta": {
-    "ownerTitle": "",
-    "ownerLead": "",
-    "ownerCta": "",
-    "brokerTitle": "",
-    "brokerLead": "",
-    "brokerCta": ""
+    "ownerTitle": "Is your space vacant?",
+    "ownerLead": "Publish your space — businesses will find you through search filters, and people with saved searches will know right away.",
+    "ownerCta": "List your space",
+    "brokerTitle": "Broker or agency?",
+    "brokerLead": "CRM with a kanban board, viewing calendar, XML feed and client portal.",
+    "brokerCta": "View pricing"
   },
   "errors": {
-    "notFoundTitle": "",
-    "notFoundLead": "",
-    "home": "",
-    "search": "",
-    "errorTitle": "",
-    "errorLead": "",
-    "retry": "",
-    "code": ""
+    "notFoundTitle": "Page not found",
+    "notFoundLead": "The link may have changed, or the space has already been rented and the listing deleted.",
+    "home": "Go to home page",
+    "search": "Search spaces",
+    "errorTitle": "Something went wrong",
+    "errorLead": "We couldn't display the page. Please try again — if the error persists, come back later.",
+    "retry": "Try again",
+    "code": "Error code: {digest}"
   }
 }

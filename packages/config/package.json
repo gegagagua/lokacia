@@ -6,6 +6,7 @@
   "exports": {
     "./eslint": "./eslint.config.js",
     "./eslint-next": "./eslint.next.js",
+    "./eslint-react-native": "./eslint.react-native.js",
     "./tsconfig/base.json": "./tsconfig/base.json",
     "./tsconfig/next.json": "./tsconfig/next.json",
     "./tsconfig/node.json": "./tsconfig/node.json",

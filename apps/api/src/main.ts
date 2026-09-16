@@ -24,7 +24,10 @@ async function bootstrap() {
     .addBearerAuth()
     .addApiKey({ type: 'apiKey', name: 'x-api-key', in: 'header' }, 'apiKey')
     .build();
-  SwaggerModule.setup('v1/docs', app, SwaggerModule.createDocument(app, doc), { jsonDocumentUrl: 'v1/openapi.json' });
+  // interactive docs are a dev/staging aid; production exposes them only with API_DOCS_PUBLIC=true
+  if (env.NODE_ENV !== 'production' || process.env.API_DOCS_PUBLIC === 'true') {
+    SwaggerModule.setup('v1/docs', app, SwaggerModule.createDocument(app, doc), { jsonDocumentUrl: 'v1/openapi.json' });
+  }
 
   await app.listen(env.PORT);
   app.get(Logger).log(`API on ${env.API_URL} (docs: /v1/docs)`);

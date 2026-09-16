@@ -1,13 +1,14 @@
 'use client';
 import * as React from 'react';
-import Link from 'next/link';
+import Link, { useLocalizedPath } from '@/i18n/link';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { useTranslations } from 'next-intl';
 import { AlertTriangle, Download, FileText, Loader2, MessageSquare, RefreshCw, Scale } from 'lucide-react';
-import { formatMoney, type OfferDto, type OfferThread } from '@lokacia/contracts';
+import type { OfferDto, OfferThread } from '@lokacia/contracts';
 import { Avatar, Button, Dialog, EmptyState, Field, Skeleton, Textarea, useToast } from '@lokacia/ui';
 import { apiFetch, ClientApiError, fetcher } from '@/lib/api-client';
+import { useFormat } from '@/i18n/use-format';
 import { OfferStatusBadge } from '../status-badges';
 import { useRealtime } from '../realtime';
 import { tbDateTimeKa } from '../viewings/tz';
@@ -22,9 +23,10 @@ type TermKey = 'priceMinor' | 'termMonths' | 'freeMonths' | 'indexationPct' | 'f
 function TermsRows({ o, prev, dealType }: { o: OfferDto; prev?: OfferDto; dealType: string }) {
   const t = useTranslations('offers.thread');
   const tf = useTranslations('offers.form');
+  const f = useFormat();
   const isSale = dealType === 'sale' || dealType === 'transfer';
   const rows: { key: TermKey; label: string; value: string }[] = [
-    { key: 'priceMinor', label: isSale ? tf('priceTotal') : tf('priceMonthly'), value: formatMoney(o.priceMinor) },
+    { key: 'priceMinor', label: isSale ? tf('priceTotal') : tf('priceMonthly'), value: f.money(o.priceMinor) },
     ...(!isSale
       ? [
           { key: 'termMonths' as const, label: tf('term'), value: t('months', { count: o.termMonths }) },
@@ -56,6 +58,8 @@ function TermsRows({ o, prev, dealType }: { o: OfferDto; prev?: OfferDto; dealTy
 export function OfferThreadView({ id, businessTypes }: { id: string; businessTypes: BusinessTypeOption[] }) {
   const t = useTranslations('offers.thread');
   const tf = useTranslations('offers.form');
+  const f = useFormat();
+  const lp = useLocalizedPath();
   const router = useRouter();
   const toast = useToast();
   const { data, error, isLoading, mutate } = useSWR<OfferThread>(`/offers/${id}`, fetcher, {
@@ -109,14 +113,14 @@ export function OfferThreadView({ id, businessTypes }: { id: string; businessTyp
     setErrors(errs);
     if (!body) return;
     const r = (await run(() => apiFetch<OfferDto>(`/offers/${latest.id}/counter`, { method: 'POST', body }), t('counterSent'))) as OfferDto | null;
-    if (r) router.replace(`/account/offers/${r.id}`);
+    if (r) router.replace(lp(`/account/offers/${r.id}`));
   };
   const sendMessage = async () => {
     if (!text.trim()) return;
     setBusy(true);
     try {
       const r = await apiFetch<{ conversationId: string }>('/conversations/with-user', { method: 'POST', body: { userId: counterpart.id, listingId: data.listing.id, body: text.trim() } });
-      router.push(`/account/messages?c=${r.conversationId}`);
+      router.push(lp(`/account/messages?c=${r.conversationId}`));
     } catch (e) {
       toast({ title: e instanceof ClientApiError ? e.message : t('error'), tone: 'danger' });
       setBusy(false);
@@ -219,7 +223,7 @@ export function OfferThreadView({ id, businessTypes }: { id: string; businessTyp
                 <header className="mb-3 flex flex-wrap items-center gap-2">
                   <span className="font-medium">{i === 0 ? t('initial') : t('counterBy')}</span>
                   <span className="text-small text-muted">
-                    {nameOf(o.fromUserId)} ({roleOf(o.fromUserId)}) · <time dateTime={o.createdAt}>{tbDateTimeKa(o.createdAt)}</time>
+                    {nameOf(o.fromUserId)} ({roleOf(o.fromUserId)}) · <time dateTime={o.createdAt}>{tbDateTimeKa(o.createdAt, f.locale)}</time>
                   </span>
                   <span className="ml-auto"><OfferStatusBadge status={o.status} /></span>
                 </header>

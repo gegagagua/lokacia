@@ -3,9 +3,10 @@ import * as React from 'react';
 import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
 import { MapPinned } from 'lucide-react';
-import { formatMoney, POI_LABELS_KA, type PoiCategory } from '@lokacia/contracts';
+import { POI_CATEGORIES, type PoiCategory } from '@lokacia/contracts';
 import { Skeleton, cn } from '@lokacia/ui';
 import { apiFetch } from '@/lib/api-client';
+import { useFormat } from '@/i18n/use-format';
 import type { Insights } from '../data';
 
 const MapView = dynamic(() => import('@lokacia/ui/map').then((m) => m.MapView), { ssr: false, loading: () => <Skeleton className="h-72 w-full rounded-card" /> });
@@ -16,6 +17,7 @@ const DOT: Record<string, string> = { competitor: 'bg-danger', transport: 'bg-li
 /** P3: location analytics — POIs by category in a radius + price vs district average + map. */
 export function InsightsPanel({ initial, query }: { initial: Insights | null; query: { lat: number; lng: number; businessType?: string; priceMinor: number; areaM2: number; dealType: string } }) {
   const t = useTranslations('listing.insights');
+  const fmt = useFormat();
   const [radius, setRadius] = React.useState<number>(initial?.radiusM ?? 500);
   const [data, setData] = React.useState<Insights | null>(initial);
   const [loading, setLoading] = React.useState(false);
@@ -88,8 +90,8 @@ export function InsightsPanel({ initial, query }: { initial: Insights | null; qu
               <div className={cn('compact text-h3 font-semibold', price.verdict === 'above' ? 'text-danger' : price.verdict === 'below' ? 'text-success' : 'text-text')}>
                 {price.verdict === 'above' ? t('above', { pct: price.deltaPct }) : price.verdict === 'below' ? t('below', { pct: Math.abs(price.deltaPct) }) : t('fair')}
               </div>
-              <div className="mt-1 text-small tabular">{t('perM2', { price: formatMoney(price.perM2Minor) })}</div>
-              <div className="text-small text-muted tabular">{t('avg', { district: price.districtName ?? '', price: formatMoney(price.districtAvgM2Minor) })}</div>
+              <div className="mt-1 text-small tabular">{t('perM2', { price: fmt.money(price.perM2Minor) })}</div>
+              <div className="text-small text-muted tabular">{t('avg', { district: price.districtName ?? '', price: fmt.money(price.districtAvgM2Minor) })}</div>
             </div>
           )}
           {!data && loading && <Skeleton className="h-48 w-full" />}
@@ -99,7 +101,7 @@ export function InsightsPanel({ initial, query }: { initial: Insights | null; qu
                 <div className="flex items-center justify-between gap-2">
                   <span className="flex items-center gap-2 text-[15px]">
                     <span className={cn('size-2.5 rounded-full', DOT[c.category] ?? 'bg-stone')} aria-hidden />
-                    {POI_LABELS_KA[c.category as PoiCategory] ?? c.label}
+                    {(POI_CATEGORIES as readonly string[]).includes(c.category) ? t(`poi.${c.category as PoiCategory}`) : c.label}
                   </span>
                   <span className="compact text-h3 font-semibold tabular">{c.count}</span>
                 </div>

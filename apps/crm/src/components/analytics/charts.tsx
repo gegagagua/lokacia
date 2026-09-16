@@ -26,7 +26,7 @@ export function HBarChart({ data, caption, valueHeader, className }: { data: Bar
         ))}
       </div>
       <figcaption className="sr-only">{caption}</figcaption>
-      <table className="sr-only">
+      <div className="sr-only"><table>
         <caption>{caption}</caption>
         <tbody>
           {data.map((d) => (
@@ -38,7 +38,7 @@ export function HBarChart({ data, caption, valueHeader, className }: { data: Bar
             </tr>
           ))}
         </tbody>
-      </table>
+      </table></div>
     </figure>
   );
 }
@@ -68,7 +68,7 @@ export function ColumnChart({ data, caption, height = 160, className }: { data: 
           </div>
         ))}
       </div>
-      <table className="sr-only">
+      <div className="sr-only"><table>
         <caption>{caption}</caption>
         <tbody>
           {data.map((d) => (
@@ -78,7 +78,7 @@ export function ColumnChart({ data, caption, height = 160, className }: { data: 
             </tr>
           ))}
         </tbody>
-      </table>
+      </table></div>
     </figure>
   );
 }

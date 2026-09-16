@@ -2,12 +2,18 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { ResultView } from './result-view';
 import { getSession } from '@/lib/session';
+import { getTranslations } from 'next-intl/server';
+import { getAppLocale } from '@/i18n/server';
+import { localizePath } from '@/i18n/locale';
 
-export const metadata: Metadata = { title: 'გადახდის შედეგი', robots: { index: false, follow: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('meta.titles');
+  return { title: t('checkoutResult'), robots: { index: false, follow: false } };
+}
 
 export default async function CheckoutResultPage({ searchParams }: { searchParams: Promise<{ invoice?: string; status?: string; return?: string }> }) {
   const sp = await searchParams;
-  if (!(await getSession())) redirect(`/login?next=${encodeURIComponent(`/checkout/result?invoice=${sp.invoice ?? ''}${sp.status ? `&status=${sp.status}` : ''}`)}`);
+  if (!(await getSession())) redirect(localizePath(`/login?next=${encodeURIComponent(`/checkout/result?invoice=${sp.invoice ?? ''}${sp.status ? `&status=${sp.status}` : ''}`)}`, await getAppLocale()));
   const back = sp.return && sp.return.startsWith('/') && !sp.return.startsWith('//') ? sp.return : null;
   return (
     <div className="drawing-grid min-h-[60dvh] py-12">

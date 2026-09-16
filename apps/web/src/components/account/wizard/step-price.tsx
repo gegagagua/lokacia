@@ -3,7 +3,8 @@ import * as React from 'react';
 import useSWR from 'swr';
 import { useTranslations } from 'next-intl';
 import { Plus, Trash2, TrendingDown, TrendingUp, Scale } from 'lucide-react';
-import { formatMoney, type SessionUser } from '@lokacia/contracts';
+import type { SessionUser } from '@lokacia/contracts';
+import { useFormat } from '@/i18n/use-format';
 import { Button, Checkbox, Field, IconButton, Input, Select, cn } from '@lokacia/ui';
 import { fetcher } from '@/lib/api-client';
 import { SlotsManager } from '../listings/slots-manager';
@@ -24,6 +25,7 @@ function useDebounced<T>(value: T, ms: number) {
 
 export function StepPrice({ form, set, types, user, listingId, errors }: { form: WizardForm; set: (p: Partial<WizardForm>) => void; types: BusinessTypeOption[]; user: SessionUser; listingId: string | null; errors: Record<string, string> }) {
   const t = useTranslations('wizard.price');
+  const f = useFormat();
   const priceMinor = money(form.price);
   const area = parseNum(form.areaM2);
   const q = form.lat != null && form.lng != null && priceMinor && area && ['rent', 'short_term'].includes(form.dealType)
@@ -83,7 +85,7 @@ export function StepPrice({ form, set, types, user, listingId, errors }: { form:
                 <>
                   <div className={cn('font-medium', check.verdict === 'above' && 'text-danger')}>{check.messageKa}</div>
                   <div className="mt-1 text-small text-muted tabular">
-                    {t('recommended', { price: formatMoney(check.recommendedMinor) })} · {t('perM2', { price: formatMoney(check.perM2Minor) })}
+                    {t('recommended', { price: f.money(check.recommendedMinor) })} · {t('perM2', { price: f.money(check.perM2Minor) })}
                   </div>
                 </>
               ) : (
@@ -124,7 +126,7 @@ export function StepPrice({ form, set, types, user, listingId, errors }: { form:
             <Button variant="secondary" icon={<Plus className="size-4" strokeWidth={1.5} aria-hidden />} onClick={() => set({ equipment: [...form.equipment, { name: '', qty: '1', price: '' }] })}>
               {t('equipmentAdd')}
             </Button>
-            {eqTotal > 0 && <span className="font-medium tabular">{t('equipmentTotal', { total: formatMoney(eqTotal) })}</span>}
+            {eqTotal > 0 && <span className="font-medium tabular">{t('equipmentTotal', { total: f.money(eqTotal) })}</span>}
           </div>
         </StepSection>
       )}

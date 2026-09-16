@@ -7,7 +7,7 @@ import { ENV, type Env } from '../../../config/env';
 import { CHANNELS, type MessageChannel } from '../../../integrations/channels/channels';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { ActivityService } from '../shared/activity.service';
-import type { CrmCtx } from '../shared/crm-access';
+import { visibleContact, type CrmCtx } from '../shared/crm-access';
 import { CrmEventsService } from '../shared/crm-events.service';
 
 type ConvRow = typeof conversations.$inferSelect;
@@ -38,6 +38,16 @@ export class InboxService {
     return sql`(${conversations.orgId} = ${orgId} OR (${conversations.channel} = 'portal' AND ${conversations.listingId} IN (SELECT id FROM listings WHERE org_id = ${orgId})))`;
   }
 
+  /**
+   * Agent visibility (C17, mirrors ContactsService.scope): conversations of contacts assigned to the agent, or ones the agent
+   * takes part in. Evaluated inside an org transaction so the crm_contacts subquery passes RLS.
+   */
+  private scope(ctx: CrmCtx): SQL[] {
+    const where: SQL[] = [isNull(conversations.deletedAt), this.visible(ctx.orgId)];
+    if (ctx.ownContactsOnly) where.push(sql`(${conversations.contactId} IN (SELECT id FROM crm_contacts WHERE owner_agent_id = ${ctx.userId} AND deleted_at IS NULL AND merged_into_id IS NULL) OR ${ctx.userId}::uuid = ANY(${conversations.participantIds}))`);
+    return where;
+  }
+
   private unreadExpr(members: string[]) {
     const arr = `{${members.join(',')}}`;
     return sql<number>`(SELECT count(*)::int FROM messages m WHERE m.conversation_id = "conversations"."id" AND m.read_at IS NULL AND m.deleted_at IS NULL AND (m.direction = 'in' OR (m.sender_id IS NOT NULL AND NOT (m.sender_id = ANY(${arr}::uuid[])))))`;
@@ -45,14 +55,16 @@ export class InboxService {
 
   async list(ctx: CrmCtx, q: { q?: string; channel?: string } = {}): Promise<InboxConversation[]> {
     const members = await this.memberIds(ctx.orgId);
-    const where: SQL[] = [isNull(conversations.deletedAt), this.visible(ctx.orgId)];
+    const where = this.scope(ctx);
     if (q.channel) where.push(eq(conversations.channel, q.channel as InboxChannel));
-    const rows = await this.dbs.db
-      .select({ c: conversations, unread: this.unreadExpr(members), last: sql<string | null>`(SELECT body FROM messages m WHERE m.conversation_id = "conversations"."id" AND m.deleted_at IS NULL ORDER BY m.created_at DESC LIMIT 1)` })
-      .from(conversations)
-      .where(and(...where))
-      .orderBy(sql`${conversations.lastMessageAt} desc nulls last`)
-      .limit(300);
+    const rows = await this.dbs.org(ctx.orgId, (tx) =>
+      tx
+        .select({ c: conversations, unread: this.unreadExpr(members), last: sql<string | null>`(SELECT body FROM messages m WHERE m.conversation_id = "conversations"."id" AND m.deleted_at IS NULL ORDER BY m.created_at DESC LIMIT 1)` })
+        .from(conversations)
+        .where(and(...where))
+        .orderBy(sql`${conversations.lastMessageAt} desc nulls last`)
+        .limit(300),
+    );
     const out = await this.toDtos(ctx, rows.map((r) => r.c), members, new Map(rows.map((r) => [r.c.id, { unread: Number(r.unread), last: r.last }])));
     const term = q.q?.trim().toLowerCase();
     return term ? out.filter((c) => [c.contactName, c.counterpart, c.subject, c.listingTitle, c.lastMessage, c.externalId].some((v) => v?.toLowerCase().includes(term))) : out;
@@ -91,7 +103,7 @@ export class InboxService {
 
   private async findConv(ctx: CrmCtx, id: string) {
     if (!/^[0-9a-f-]{36}$/i.test(id)) throw problems.notFound('საუბარი');
-    const [row] = await this.dbs.db.select().from(conversations).where(and(eq(conversations.id, id), isNull(conversations.deletedAt), this.visible(ctx.orgId)));
+    const [row] = await this.dbs.org(ctx.orgId, (tx) => tx.select().from(conversations).where(and(eq(conversations.id, id), ...this.scope(ctx))));
     if (!row) throw problems.notFound('საუბარი');
     return row;
   }
@@ -155,8 +167,7 @@ export class InboxService {
   async link(ctx: CrmCtx, id: string, contactId: string | null) {
     const conv = await this.findConv(ctx, id);
     if (contactId) {
-      const c = await this.dbs.org(ctx.orgId, (tx) => tx.query.crmContacts.findFirst({ where: and(eq(crmContacts.id, contactId), isNull(crmContacts.deletedAt)) }));
-      if (!c) throw problems.notFound('კონტაქტი');
+      await this.dbs.org(ctx.orgId, (tx) => visibleContact(tx, ctx, contactId));
     }
     await this.dbs.db.update(conversations).set({ contactId, orgId: conv.orgId ?? ctx.orgId }).where(eq(conversations.id, id));
     return this.get(ctx, id);

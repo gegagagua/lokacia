@@ -2,8 +2,9 @@
 import * as React from 'react';
 import useSWR from 'swr';
 import { useTranslations } from 'next-intl';
-import { convertMinor, DISPLAY_CURRENCIES, formatCurrencyAmount, formatMoney, type DisplayCurrency, type FxRatesResponse } from '@lokacia/contracts';
+import { convertMinor, DISPLAY_CURRENCIES, type DisplayCurrency, type FxRatesResponse } from '@lokacia/contracts';
 import { fetcher } from '@/lib/api-client';
+import { useFormat } from '@/i18n/use-format';
 
 const KEY = 'lk-currency';
 const EVENT = 'lk-currency-change';
@@ -19,6 +20,7 @@ function readStored(): DisplayCurrency {
 
 /** Display currency chosen by the visitor (GEL default) + current FX rates (GEL per unit). */
 export function useDisplayCurrency() {
+  const fmt = useFormat();
   const [currency, setCurrencyState] = React.useState<DisplayCurrency>('GEL');
   React.useEffect(() => {
     setCurrencyState(readStored());
@@ -41,8 +43,8 @@ export function useDisplayCurrency() {
     window.dispatchEvent(new Event(EVENT));
   }, []);
   const format = React.useCallback(
-    (minor: number) => (currency === 'GEL' || !fx ? formatMoney(minor) : formatCurrencyAmount(convertMinor(minor, currency, fx.rates), currency)),
-    [currency, fx],
+    (minor: number) => (currency === 'GEL' || !fx ? fmt.money(minor) : fmt.money(Math.round(convertMinor(minor, currency, fx.rates)) * 100, currency)),
+    [currency, fx, fmt],
   );
   return { currency, setCurrency, rates: fx?.rates ?? null, format };
 }
@@ -50,8 +52,9 @@ export function useDisplayCurrency() {
 /** Amount in tetri rendered in the visitor's display currency; GEL original in the title. */
 export function Money({ minor, className }: { minor: number; className?: string }) {
   const { currency, format } = useDisplayCurrency();
+  const fmt = useFormat();
   return (
-    <span className={className} title={currency === 'GEL' ? undefined : formatMoney(minor)}>
+    <span className={className} title={currency === 'GEL' ? undefined : fmt.money(minor)}>
       {format(minor)}
     </span>
   );

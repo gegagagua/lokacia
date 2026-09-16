@@ -82,6 +82,16 @@
   a {
     color: inherit;
   }
+  /* Grid items default to min-width:auto and blow out narrow screens; zero-specificity reset. */
+  :where(.grid) > * {
+    min-width: 0;
+  }
+  /* Horizontal scrollers must be allowed to shrink inside flex/grid parents. */
+  :where(.overflow-x-auto, .overflow-x-scroll) {
+    position: relative;
+    min-width: 0;
+    max-width: 100%;
+  }
   table, .tabular {
     font-variant-numeric: tabular-nums;
   }

@@ -7,7 +7,7 @@ import { DbService } from '../../../common/db.service';
 import { problems } from '../../../common/problem';
 import { ApiZodBody, ZBody, ZQuery } from '../../../common/zod';
 import { ActivityService } from './activity.service';
-import { Crm, Ctx, type CrmCtx } from './crm-access';
+import { Crm, Ctx, visibleContact, visibleDeal, type CrmCtx } from './crm-access';
 
 const activitiesQuery = z.object({ entity: z.enum(['contact', 'deal', 'listing']), entityId: z.string().uuid() });
 const searchQuery = z.object({ q: z.string().trim().min(1).max(100) });
@@ -40,13 +40,15 @@ export class CrmSharedController {
   }
 
   @Get('activities')
-  list(@Ctx() ctx: CrmCtx, @ZQuery(activitiesQuery) q: z.infer<typeof activitiesQuery>) {
+  async list(@Ctx() ctx: CrmCtx, @ZQuery(activitiesQuery) q: z.infer<typeof activitiesQuery>) {
+    await this.assertVisible(ctx, q.entity, q.entityId);
     return this.activities.list(ctx.orgId, q.entity, [q.entityId]);
   }
 
   @Post('activities')
   @ApiZodBody(activityCreateSchema)
   async create(@Ctx() ctx: CrmCtx, @ZBody(activityCreateSchema) body: z.infer<typeof activityCreateSchema>) {
+    await this.assertVisible(ctx, body.entity, body.entityId);
     const row = await this.activities.log(ctx.orgId, { ...body, createdBy: ctx.userId });
     if (body.entity === 'contact') await this.touchContact(ctx.orgId, body.entityId);
     return row;
@@ -82,6 +84,16 @@ export class CrmSharedController {
         .limit(6);
       return { contacts: contacts.map((c) => ({ id: c.id, name: c.name, phone: c.phones[0] ?? null, type: c.type })), deals, listings: ls };
     });
+  }
+
+  /** Timeline access follows record visibility (agents: own contacts/deals; listings: the org's own). 404 otherwise. */
+  private async assertVisible(ctx: CrmCtx, entity: 'contact' | 'deal' | 'listing', entityId: string) {
+    if (entity === 'contact') await this.dbs.org(ctx.orgId, (tx) => visibleContact(tx, ctx, entityId));
+    else if (entity === 'deal') await this.dbs.org(ctx.orgId, (tx) => visibleDeal(tx, ctx, entityId));
+    else {
+      const l = /^[0-9a-f-]{36}$/i.test(entityId) ? await this.dbs.db.query.listings.findFirst({ where: and(eq(listings.id, entityId), eq(listings.orgId, ctx.orgId), isNull(listings.deletedAt)), columns: { id: true } }) : null;
+      if (!l) throw problems.notFound('ფართი');
+    }
   }
 
   async touchContact(orgId: string, contactId: string) {

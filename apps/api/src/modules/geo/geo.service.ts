@@ -87,12 +87,15 @@ export class GeoService implements OnModuleInit {
 
   /** P23 free part: live per-district stats, optionally filtered. */
   async districtStats(q: { city?: string; businessType?: string; dealType?: string }) {
-    const rows = await this.dbs.db.execute<{ id: string; slug: string; name_ka: string; center_lat: number; center_lng: number; avg_m2: string | null; active: string; vacancy: string; median_area: string | null }>(sql`
+    const rows = await this.dbs.db.execute<{ id: string; slug: string; name_ka: string; center_lat: number; center_lng: number; avg_m2: string | null; active: string; vacancy: string; median_area: string | null; avg_daily_traffic: string | null }>(sql`
       SELECT d.id, d.slug, d.name_ka, d.center_lat, d.center_lng,
         avg(l.price_minor / NULLIF(l.area_m2, 0)) FILTER (WHERE l.deal_type = ${q.dealType ?? 'rent'}) AS avg_m2,
         count(l.id) FILTER (WHERE l.status = 'active') AS active,
         count(l.id) FILTER (WHERE l.status IN ('active', 'stale') AND l.deal_type IN ('rent', 'short_term')) AS vacancy,
-        percentile_cont(0.5) WITHIN GROUP (ORDER BY l.area_m2) AS median_area
+        percentile_cont(0.5) WITHIN GROUP (ORDER BY l.area_m2) AS median_area,
+        (SELECT round(sum(ts.count)::numeric / 7 / NULLIF(count(DISTINCT ts.listing_id), 0))
+           FROM traffic_samples ts JOIN listings tl ON tl.id = ts.listing_id
+          WHERE tl.district_id = d.id AND ts.deleted_at IS NULL) AS avg_daily_traffic
       FROM districts d
       LEFT JOIN listings l ON l.district_id = d.id AND l.deleted_at IS NULL AND l.status IN ('active', 'stale', 'rented')
         ${q.businessType ? sql`AND l.business_types @> ARRAY[${q.businessType}]::text[]` : sql``}
@@ -107,6 +110,7 @@ export class GeoService implements OnModuleInit {
       activeCount: Number(r.active),
       vacancyCount: Number(r.vacancy),
       medianAreaM2: r.median_area ? Math.round(Number(r.median_area)) : null,
+      avgDailyTraffic: r.avg_daily_traffic ? Number(r.avg_daily_traffic) : null,
     }));
   }
 

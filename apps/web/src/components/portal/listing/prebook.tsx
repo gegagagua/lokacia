@@ -1,16 +1,19 @@
 'use client';
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Building, CheckCircle2 } from 'lucide-react';
-import { formatDateKa } from '@lokacia/contracts';
 import { Button, Dialog, Field, Input, Textarea } from '@lokacia/ui';
 import { apiFetch, ClientApiError } from '@/lib/api-client';
+import { useLocalizedPath } from '@/i18n/link';
+import { useFormat } from '@/i18n/use-format';
 
 /** P8: off-plan project block with pre-booking request. */
 export function ProjectBlock({ listingId, project }: { listingId: string; project: { name: string; slug: string; completionDate: string } }) {
   const t = useTranslations('listing.project');
+  const fmt = useFormat();
+  const lp = useLocalizedPath();
   const router = useRouter();
   const pathname = usePathname();
   const [open, setOpen] = React.useState(false);
@@ -26,7 +29,7 @@ export function ProjectBlock({ listingId, project }: { listingId: string; projec
       setState({ done: r.duplicate ? 'duplicate' : 'ok' });
     } catch (err) {
       if (err instanceof ClientApiError && err.status === 401) {
-        router.push(`/login?next=${encodeURIComponent(pathname)}`);
+        router.push(lp(`/login?next=${encodeURIComponent(pathname)}`));
         return;
       }
       setState({ error: err instanceof ClientApiError ? (err.problem?.detail ?? err.problem?.title ?? t('error')) : t('error') });
@@ -44,7 +47,7 @@ export function ProjectBlock({ listingId, project }: { listingId: string; projec
           <Link href={`/projects/${project.slug}`} className="text-h3 font-semibold hover:text-link hover:underline">
             {project.name}
           </Link>
-          <p className="text-small text-muted tabular">{t('completion', { date: formatDateKa(project.completionDate) })}</p>
+          <p className="text-small text-muted tabular">{t('completion', { date: fmt.date(project.completionDate) })}</p>
         </div>
       </div>
       <div className="flex flex-wrap gap-2">

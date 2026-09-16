@@ -1,10 +1,11 @@
 'use client';
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import useSWR from 'swr';
 import { useTranslations } from 'next-intl';
 import { ArrowLeft, Sparkles } from 'lucide-react';
-import { formatMoney, type AdviceItem, type ListingStatsDto, type StatsTotals } from '@lokacia/contracts';
+import { type AdviceItem, type ListingStatsDto, type StatsTotals } from '@lokacia/contracts';
+import { useFormat } from '@/i18n/use-format';
 import { Badge, Button, cn } from '@lokacia/ui';
 import { apiFetch, ClientApiError, fetcher } from '@/lib/api-client';
 import { AccountPageHeader } from '../page-header';
@@ -168,6 +169,7 @@ function DistrictCompare({ totals, avg }: { totals: StatsTotals; avg: ListingSta
 
 function PriceCard({ data }: { data: ListingStatsDto }) {
   const t = useTranslations('stats.price');
+  const f = useFormat();
   const p = data.price;
   return (
     <section className={cn('rounded-card border bg-surface p-4', p?.verdict === 'above' ? 'border-accent' : 'border-border')}>
@@ -182,15 +184,15 @@ function PriceCard({ data }: { data: ListingStatsDto }) {
           <dl className="mt-3 grid grid-cols-1 gap-2 text-small sm:grid-cols-3">
             <div className="rounded-button bg-surface-2 p-2">
               <dt className="text-muted">{t('perM2')}</dt>
-              <dd className="font-medium tabular">{formatMoney(p.perM2Minor)}</dd>
+              <dd className="font-medium tabular">{f.money(p.perM2Minor)}</dd>
             </div>
             <div className="rounded-button bg-surface-2 p-2">
               <dt className="text-muted">{t('avgM2')}</dt>
-              <dd className="font-medium tabular">{formatMoney(p.districtAvgM2Minor)}</dd>
+              <dd className="font-medium tabular">{f.money(p.districtAvgM2Minor)}</dd>
             </div>
             <div className="rounded-button bg-surface-2 p-2">
               <dt className="text-muted">{t('recommended')}</dt>
-              <dd className="font-medium tabular">{formatMoney(p.recommendedMinor)}</dd>
+              <dd className="font-medium tabular">{f.money(p.recommendedMinor)}</dd>
             </div>
           </dl>
           {p.verdict !== 'fair' && (

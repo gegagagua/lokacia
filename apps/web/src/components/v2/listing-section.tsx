@@ -1,6 +1,6 @@
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import { getTranslations } from 'next-intl/server';
-import { FINANCE_KIND_LABELS_KA, type FinanceProductDto, type ListingDetail, type ScanDto, type ScoreResponse, type TrafficResponse } from '@lokacia/contracts';
+import type { FinanceProductDto, ListingDetail, ScanDto, ScoreResponse, TrafficResponse } from '@lokacia/contracts';
 import { Badge, Card } from '@lokacia/ui';
 import { apiOrNull } from '@/lib/api-server';
 import { TrafficChart } from './traffic-chart';
@@ -92,7 +92,7 @@ export async function ListingV2Section({ listing }: { listing: ListingDetail }) 
             {products.slice(0, 3).map((p) => (
               <Link key={p.id} href={`/finance?listing=${listing.id}&product=${p.id}`} className="block rounded-card border border-border bg-surface p-4 transition-colors hover:border-border-strong">
                 <div className="text-small text-muted">
-                  {FINANCE_KIND_LABELS_KA[p.kind]} · {p.partner}
+                  {t(`finance.kinds.${p.kind}`)} · {p.partner}
                 </div>
                 <div className="mt-1 font-medium">{p.name}</div>
                 {p.rateText && <div className="mt-2 text-small tabular">{p.rateText}</div>}

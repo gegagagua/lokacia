@@ -112,8 +112,9 @@ export class AdminUsersController {
 
   @Post('users/:id/unban')
   @HttpCode(200)
-  async unban(@Param('id') id: string) {
+  async unban(@CurrentUser() me: AuthUser, @Param('id') id: string) {
     const u = await this.user(id);
+    if (u.role === 'admin' || (u.role === 'moderator' && me.role !== 'admin')) throw problems.forbidden('ამ მომხმარებლის განბლოკვა შეუძლებელია');
     const [row] = await this.dbs.db.update(users).set({ bannedAt: null, banReason: null }).where(eq(users.id, u.id)).returning();
     return this.row(row!);
   }
@@ -125,7 +126,7 @@ export class AdminUsersController {
   async impersonate(@CurrentUser() me: AuthUser, @Param('id') id: string, @ClientIp() ip: string, @Req() req: AppRequest, @Res({ passthrough: true }) res: Response) {
     if (me.impersonatorId) throw problems.conflict('ჯერ გამოდით მიმდინარე ადმინის რეჟიმიდან');
     const u = await this.user(id);
-    if (u.id === me.id || u.role === 'admin') throw problems.forbidden('ადმინის ანგარიშზე შესვლა შეუძლებელია');
+    if (u.id === me.id || u.role === 'admin' || u.role === 'moderator') throw problems.forbidden('ადმინის ანგარიშზე შესვლა შეუძლებელია');
     if (u.bannedAt) throw problems.conflict('მომხმარებელი დაბლოკილია');
     const issued = await this.auth.issue(u.id, u.role, { ip, userAgent: req.headers['user-agent'] }, undefined, me.id);
     this.tokens.setAuthCookies(res, issued.access, issued.refresh);

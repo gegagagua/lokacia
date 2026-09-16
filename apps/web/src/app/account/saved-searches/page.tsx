@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
+import { getAppLocale } from '@/i18n/server';
+import { localizePath } from '@/i18n/locale';
 import { getTranslations } from 'next-intl/server';
 import type { SavedSearchDto } from '@lokacia/contracts';
 import { api } from '@/lib/api-server';
@@ -14,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function SavedSearchesPage() {
   const session = await getSession();
-  if (!session) redirect('/login?next=/account/saved-searches');
+  if (!session) redirect(localizePath('/login?next=/account/saved-searches', await getAppLocale()));
   const t = await getTranslations('alerts');
   const [items, names] = await Promise.all([api<SavedSearchDto[]>('/v1/saved-searches'), getNames()]);
   return (

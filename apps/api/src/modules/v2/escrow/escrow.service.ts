@@ -10,7 +10,7 @@ import { ESIGN, type ESignProvider } from '../../../integrations/esign/esign';
 import { PAYMENTS, type PaymentProvider } from '../../../integrations/payments/payments';
 import { STORAGE, type Storage } from '../../../integrations/storage/storage';
 import { NotificationsService } from '../../notifications/notifications.service';
-import { BillingService } from '../../billing/billing.service';
+import { BillingService, MAX_INVOICE_MINOR } from '../../billing/billing.service';
 import { createPdf, footer, heading, keyValues, paragraph, PDF_COLORS, toBuffer } from '../../billing/pdf';
 
 type EscrowRow = typeof escrowAccounts.$inferSelect;
@@ -31,7 +31,14 @@ export class EscrowService implements OnModuleInit {
 
   onModuleInit() {
     this.billing.registerHandler('escrow', async (inv) => {
-      if (inv.refId) await this.transition(inv.refId, 'funded', null, { memo: 'დეპოზიტის ჩარიცხვა', invoiceId: inv.id });
+      if (!inv.refId) return;
+      const e = await this.dbs.db.query.escrowAccounts.findFirst({ where: eq(escrowAccounts.id, inv.refId) });
+      if (e && e.status !== 'pending') {
+        // a second deposit for an escrow that is already funded/closed: never re-post the ledger, flag for refund
+        this.logger.error(`escrow ${e.id} is ${e.status}; payment for invoice ${inv.id} needs a refund`);
+        return;
+      }
+      await this.transition(inv.refId, 'funded', null, { memo: 'დეპოზიტის ჩარიცხვა', invoiceId: inv.id });
     });
     this.queue.register('v2.ledger.reconcile', () => this.reconcile());
     this.queue.every('v2.ledger.reconcile', 24 * 3600_000);
@@ -89,13 +96,23 @@ export class EscrowService implements OnModuleInit {
     const ownerId = l.ownerId;
     const tenantId = offer.fromUserId === ownerId ? offer.toUserId : offer.fromUserId;
     const amountMinor = Math.round(offer.priceMinor * Math.max(1, l.depositMonths || 1));
+    if (!Number.isSafeInteger(amountMinor) || amountMinor <= 0 || amountMinor > MAX_INVOICE_MINOR) throw problems.badRequest('დეპოზიტის თანხა არასწორია');
     const id = uuidv7();
+    // one escrow per offer, even under concurrent requests (no unique index yet → transaction-scoped advisory lock)
+    const created = await this.dbs.db.transaction(async (tx) => {
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`escrow:offer:${offer.id}`}))`);
+      const [again] = await tx.select().from(escrowAccounts).where(eq(escrowAccounts.offerId, offer.id)).limit(1);
+      if (again) return { row: again, isNew: false };
+      const [row] = await tx
+        .insert(escrowAccounts)
+        .values({ id, offerId: offer.id, listingId: l.id, tenantId, ownerId, amountMinor, status: 'pending', provider: this.payments.name, contractUrl: `/api/v1/escrow/${id}/contract.pdf`, history: [] })
+        .returning();
+      return { row: row!, isNew: true };
+    });
+    if (!created.isNew) return created.row;
     const tenant = await this.dbs.db.query.users.findFirst({ where: eq(users.id, tenantId) });
     const sent = await this.esign.send({ id, title: `იჯარის ხელშეკრულება — ${l.title}`, signerName: tenant?.name ?? 'მოიჯარე', signerPhone: tenant?.phone });
-    const [row] = await this.dbs.db
-      .insert(escrowAccounts)
-      .values({ id, offerId: offer.id, listingId: l.id, tenantId, ownerId, amountMinor, status: 'pending', provider: this.payments.name, esignRef: sent.ref, contractUrl: `/api/v1/escrow/${id}/contract.pdf`, history: [] })
-      .returning();
+    const [row] = await this.dbs.db.update(escrowAccounts).set({ esignRef: sent.ref }).where(eq(escrowAccounts.id, id)).returning();
     for (const uid of [tenantId, ownerId]) {
       await this.notify.notify({ userId: uid, template: 'escrow_update', vars: { status: `ხელშეკრულება მზად არის ხელმოსაწერად: ${l.title}` }, link: '/account/billing', channels: ['in_app'] });
     }
@@ -119,6 +136,11 @@ export class EscrowService implements OnModuleInit {
     if (this.roleOf(e, user) !== 'tenant') throw problems.forbidden('დეპოზიტს ჩარიცხავს მოიჯარე');
     if (e.status !== 'pending') throw problems.conflict('დეპოზიტი უკვე ჩარიცხულია');
     if (!e.tenantSignedAt || !e.ownerSignedAt) throw problems.conflict('ჯერ ორივე მხარე ხელს უნდა აწერს ხელშეკრულებას');
+    if (e.invoiceId) {
+      // an unpaid checkout already exists → return it instead of issuing a second deposit invoice (double charge)
+      const open = await this.billing.openCheckout(e.invoiceId);
+      if (open) return open;
+    }
     const l = await this.dbs.db.query.listings.findFirst({ where: eq(listings.id, e.listingId) });
     const res = await this.billing.createPayment({
       userId: user.id, purpose: 'escrow', refId: e.id, allowPromo: false, returnPath: '/account/billing', idempotencyKey: `escrow:${e.id}:${e.invoiceId ?? 'first'}`,

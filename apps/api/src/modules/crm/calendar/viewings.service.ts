@@ -1,5 +1,6 @@
+import { createHash } from 'node:crypto';
 import { Inject, Injectable } from '@nestjs/common';
-import { and, asc, crmContacts, crmDeals, crmViewings, eq, gte, inArray, isNull, listings, lte, ne, organizations, users, type SQL, type Tx } from '@lokacia/db';
+import { and, asc, crmContacts, crmDeals, crmViewings, eq, gte, inArray, isNull, listings, lte, memberships, ne, organizations, users, type SQL, type Tx } from '@lokacia/db';
 import type { CrmRoute, CrmRouteStop, CrmViewing, CrmViewingCreate } from '@lokacia/contracts';
 import { DbService } from '../../../common/db.service';
 import { problems } from '../../../common/problem';
@@ -8,7 +9,7 @@ import { TokensService } from '../../../common/tokens.service';
 import { ENV, type Env } from '../../../config/env';
 import { CALENDAR, type CalendarSync } from '../../../integrations/calendar/ics';
 import { ActivityService } from '../shared/activity.service';
-import type { CrmCtx } from '../shared/crm-access';
+import { usableListing, visibleContact, visibleDeal, type CrmCtx } from '../shared/crm-access';
 import { CrmEventsService } from '../shared/crm-events.service';
 import { buildIcsFeed } from './ics-feed';
 import { haversineKm, optimizeRoute, pathKm, TBILISI_CENTER } from './route';
@@ -103,15 +104,12 @@ export class ViewingsService {
       let listingId = input.listingId ?? null;
       let agentId = input.agentId ?? ctx.userId;
       if (ctx.ownDealsOnly) agentId = ctx.userId;
-      if (input.dealId) {
-        const deal = await tx.query.crmDeals.findFirst({ where: and(eq(crmDeals.id, input.dealId), isNull(crmDeals.deletedAt)) });
-        if (!deal) throw problems.notFound('გარიგება');
-        contactId ??= deal.contactId;
-        listingId ??= deal.listingId;
-      }
-      if (contactId && !(await tx.query.crmContacts.findFirst({ where: eq(crmContacts.id, contactId) }))) throw problems.notFound('კონტაქტი');
-      const listing = listingId ? await this.dbs.db.query.listings.findFirst({ where: eq(listings.id, listingId) }) : null;
-      if (listingId && !listing) throw problems.notFound('ფართი');
+      // linked records must be visible to the caller (agents: own deals/contacts; listings: own org or publicly active)
+      const deal = input.dealId ? await visibleDeal(tx, ctx, input.dealId) : null;
+      if (contactId && contactId !== deal?.contactId) await visibleContact(tx, ctx, contactId);
+      contactId ??= deal?.contactId ?? null;
+      const listing = listingId && listingId !== deal?.listingId ? await usableListing(tx, ctx, listingId) : (listingId ?? deal?.listingId) ? await tx.query.listings.findFirst({ where: eq(listings.id, (listingId ?? deal?.listingId)!) }) : null;
+      listingId ??= deal?.listingId ?? null;
       const start = new Date(input.startsAt);
       const end = input.endsAt ? new Date(input.endsAt) : new Date(start.getTime() + (input.durationMin ?? 45) * MIN);
       if (end <= start) throw problems.badRequest('ჩვენების დასრულება დაწყებამდე არ შეიძლება');
@@ -251,8 +249,13 @@ export class ViewingsService {
 
   /* ---------- ICS feed & Google connect ---------- */
 
+  /** Domain-separated key: the ICS signature is never the same HMAC as anything else keyed with the refresh secret. */
+  private icsKey() {
+    return createHash('sha256').update(`ics:${this.env.JWT_REFRESH_SECRET}`).digest('hex');
+  }
+
   feedToken(userId: string, orgId: string) {
-    return `${userId}.${orgId}.${this.tokens.hmac(`ics:${userId}:${orgId}`).slice(0, 32)}`;
+    return `${userId}.${orgId}.${this.tokens.hmac(`ics:${userId}:${orgId}`, this.icsKey()).slice(0, 32)}`;
   }
 
   feedUrl(ctx: CrmCtx) {
@@ -263,12 +266,15 @@ export class ViewingsService {
     const [userId, orgId, sig] = token.split('.');
     if (!userId || !orgId || !sig || !/^[0-9a-f-]{36}$/i.test(userId) || !/^[0-9a-f-]{36}$/i.test(orgId)) throw problems.notFound('კალენდარი');
     if (!this.tokens.safeEqual(this.feedToken(userId, orgId), token)) throw problems.notFound('კალენდარი');
-    const org = await this.dbs.db.query.organizations.findFirst({ where: eq(organizations.id, orgId) });
+    // a removed/deactivated member's subscription stops working immediately
+    const member = await this.dbs.db.query.memberships.findFirst({ where: and(eq(memberships.orgId, orgId), eq(memberships.userId, userId), eq(memberships.active, true), isNull(memberships.deletedAt)) });
+    const org = member ? await this.dbs.db.query.organizations.findFirst({ where: and(eq(organizations.id, orgId), isNull(organizations.deletedAt)) }) : null;
+    if (!member || !org) throw problems.notFound('კალენდარი');
     const since = new Date(Date.now() - 30 * 24 * 60 * MIN);
     const rows = await this.dbs.org(orgId, (tx) =>
       tx.select().from(crmViewings).where(and(eq(crmViewings.agentId, userId), isNull(crmViewings.deletedAt), gte(crmViewings.startsAt, since), ne(crmViewings.status, 'cancelled'))).orderBy(asc(crmViewings.startsAt)).limit(500),
     );
-    return buildIcsFeed(`lokacia CRM — ${org?.name ?? ''}`, rows.map((r) => ({ uid: r.id, start: r.startsAt, end: r.endsAt, title: r.title, location: r.address ?? undefined, url: `${this.env.CRM_URL}/calendar?viewing=${r.id}` })));
+    return buildIcsFeed(`lokacia CRM — ${org.name}`, rows.map((r) => ({ uid: r.id, start: r.startsAt, end: r.endsAt, title: r.title, location: r.address ?? undefined, url: `${this.env.CRM_URL}/calendar?viewing=${r.id}` })));
   }
 
   async googleStatus(ctx: CrmCtx) {

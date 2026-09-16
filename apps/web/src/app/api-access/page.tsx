@@ -1,23 +1,19 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import { pageMetadata } from '@/components/portal/seo';
+import Link from '@/i18n/link';
 import { getTranslations } from 'next-intl/server';
-import { API_SCOPE_LABELS_KA, API_SCOPES, formatMoney, type PlansResponse } from '@lokacia/contracts';
+import { API_SCOPES, type PlansResponse } from '@lokacia/contracts';
+import { getFormat } from '@/i18n/server';
 import { Badge, Button, Card } from '@lokacia/ui';
 import { apiOrNull } from '@/lib/api-server';
 import { getSession } from '@/lib/session';
-import { absUrl, SITE_NAME } from '@/lib/site';
+import { absUrl } from '@/lib/site';
 import { KeyManager } from './key-manager';
 import { PlanBuyButton } from '../pricing/plan-buy-button';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('developers');
-  return {
-    title: t('metaTitle'),
-    description: t('metaDescription'),
-    alternates: { canonical: '/api-access' },
-    openGraph: { images: ['/opengraph-image'],  title: `${t('metaTitle')} · ${SITE_NAME}`, description: t('metaDescription'), url: absUrl('/api-access'), type: 'website' },
-    twitter: { card: 'summary', title: t('metaTitle'), description: t('metaDescription') },
-  };
+  return pageMetadata({ title: t('metaTitle'), description: t('metaDescription'), path: '/api-access' });
 }
 
 const ENDPOINTS = [
@@ -49,6 +45,7 @@ const SAMPLE = `{
 
 export default async function ApiAccessPage() {
   const t = await getTranslations('developers');
+  const fmt = await getFormat();
   const [session, plans] = await Promise.all([getSession(), apiOrNull<PlansResponse>('/v1/billing/plans', { auth: false, revalidate: 60 }).catch(() => null)]);
   const apiPlans = (plans?.plans ?? []).filter((p) => p.audience === 'api' && p.active);
   const apiBase = `${absUrl('/api')}/v1`;
@@ -108,7 +105,7 @@ export default async function ApiAccessPage() {
             {API_SCOPES.map((s) => (
               <li key={s} className="flex justify-between gap-3 border-b border-border py-1.5">
                 <code>{s}</code>
-                <span className="text-muted">{API_SCOPE_LABELS_KA[s]}</span>
+                <span className="text-muted">{t(`scopeLabels.${s}`)}</span>
               </li>
             ))}
           </ul>
@@ -167,7 +164,7 @@ export default async function ApiAccessPage() {
               <Card key={p.key} className="flex flex-col p-5">
                 <h3 className="text-h3 font-semibold">{p.nameKa}</h3>
                 <div className="compact mt-2 text-h2 font-semibold tabular">
-                  {formatMoney(p.priceMinor)} <span className="text-small font-normal text-muted">{t('perMonth')}</span>
+                  {fmt.money(p.priceMinor)} <span className="text-small font-normal text-muted">{t('perMonth')}</span>
                 </div>
                 <ul className="mt-3 flex flex-1 list-disc flex-col gap-1 pl-5 text-small">
                   {p.features.map((f) => (

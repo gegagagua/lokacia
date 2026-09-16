@@ -139,17 +139,18 @@ export const money = (s: string) => {
 export { num as parseNum };
 
 /** Provisional title for autosaved drafts before the owner writes one. */
-export function suggestTitle(f: WizardForm, types: BusinessTypeOption[]) {
-  const bt = types.find((t) => t.slug === f.businessTypes[0])?.nameKa ?? 'კომერციული ფართი';
+export type TitleLabels = { fallback: string; areaUnit: string };
+export function suggestTitle(f: WizardForm, types: BusinessTypeOption[], labels: TitleLabels) {
+  const bt = types.find((t) => t.slug === f.businessTypes[0])?.nameKa ?? labels.fallback;
   const area = num(f.areaM2);
-  return [`${bt}${area ? `, ${area} მ²` : ''}`, f.districtName].filter(Boolean).join(' — ');
+  return [`${bt}${area ? `, ${area} ${labels.areaUnit}` : ''}`, f.districtName].filter(Boolean).join(' — ');
 }
 
 /** Wizard form → API listing input (full object; the wizard diffs it before PATCH). */
-export function toPayload(f: WizardForm, types: BusinessTypeOption[]) {
+export function toPayload(f: WizardForm, types: BusinessTypeOption[], labels: TitleLabels) {
   const passport: Record<string, boolean | number | null> = {};
   for (const k of PASSPORT_KEYS) passport[k] = f.passport[k] ?? null;
-  const title = f.title.trim().length >= 5 ? f.title.trim() : suggestTitle(f, types);
+  const title = f.title.trim().length >= 5 ? f.title.trim() : suggestTitle(f, types, labels);
   return {
     businessTypes: f.businessTypes,
     dealType: f.dealType,

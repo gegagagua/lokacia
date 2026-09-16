@@ -1,25 +1,20 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import { pageMetadata } from '@/components/portal/seo';
+import Link from '@/i18n/link';
 import { getTranslations } from 'next-intl/server';
 import { Check, Minus } from 'lucide-react';
-import { formatDateKa, formatMoney, type PlanDto, type PlansResponse } from '@lokacia/contracts';
+import type { PlanDto, PlansResponse } from '@lokacia/contracts';
+import { getFormat } from '@/i18n/server';
 import { Badge, Button, Card } from '@lokacia/ui';
 import { apiOrNull } from '@/lib/api-server';
 import { getSession } from '@/lib/session';
-import { absUrl, SITE_NAME } from '@/lib/site';
 import { PlanBuyButton } from './plan-buy-button';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('billing.pricing');
   const title = t('metaTitle');
   const description = t('metaDescription');
-  return {
-    title,
-    description,
-    alternates: { canonical: '/pricing' },
-    openGraph: { images: ['/opengraph-image'],  title: `${title} · ${SITE_NAME}`, description, url: absUrl('/pricing'), type: 'website' },
-    twitter: { card: 'summary', title, description },
-  };
+  return pageMetadata({ title, description, path: '/pricing' });
 }
 
 const MATRIX: { key: string; plans: Record<string, boolean | string> }[] = [
@@ -37,6 +32,7 @@ const FAQ = ['promo', 'cancel', 'vip', 'reports', 'payment', 'invoice', 'commiss
 
 export default async function PricingPage() {
   const t = await getTranslations('billing.pricing');
+  const fmt = await getFormat();
   const [data, session] = await Promise.all([apiOrNull<PlansResponse>('/v1/billing/plans', { auth: false, revalidate: 60 }).catch(() => null), getSession()]);
   const plans = new Map((data?.plans ?? []).filter((p) => p.active).map((p) => [p.key, p]));
   const promo = !!data?.promoActive;
@@ -45,7 +41,7 @@ export default async function PricingPage() {
     !p ? '—' : (
       <>
         {promo && <span className="mr-2">0 ₾</span>}
-        <span className={promo ? 'text-body font-normal text-muted line-through decoration-1' : ''}>{formatMoney(p.priceMinor)}</span>
+        <span className={promo ? 'text-body font-normal text-muted line-through decoration-1' : ''}>{fmt.money(p.priceMinor)}</span>
         {suffix && <span className="text-small font-normal text-muted"> {suffix}</span>}
       </>
     );
@@ -75,7 +71,7 @@ export default async function PricingPage() {
         <div role="status" className="mt-6 flex flex-col gap-1 rounded-card border border-accent bg-accent/10 p-4 md:flex-row md:items-center md:justify-between">
           <div>
             <div className="font-semibold">{t('promoTitle')}</div>
-            <div className="text-small text-muted">{t('promoText', { date: data?.promoUntil ? formatDateKa(data.promoUntil) : '' })}</div>
+            <div className="text-small text-muted">{t('promoText', { date: data?.promoUntil ? fmt.date(data.promoUntil) : '' })}</div>
           </div>
           <Badge tone="accent">{t('promoBadge')}</Badge>
         </div>

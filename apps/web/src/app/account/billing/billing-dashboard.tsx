@@ -1,13 +1,13 @@
 'use client';
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import useSWR from 'swr';
 import { useTranslations } from 'next-intl';
 import { AlertTriangle, Download } from 'lucide-react';
 import {
-  FINANCE_KIND_LABELS_KA, FINANCE_STATUS_LABELS_KA, formatDateKa, formatMoney, INVOICE_PURPOSE_LABELS_KA, INVOICE_STATUS_LABELS_KA, SUBSCRIPTION_STATUS_LABELS_KA,
   type BillingOverview, type FinanceApplicationDto, type SubscriptionDto,
 } from '@lokacia/contracts';
+import { useFormat } from '@/i18n/use-format';
 import { Badge, Button, Card, EmptyState, Skeleton, useToast, type BadgeTone } from '@lokacia/ui';
 import { apiFetch, ClientApiError, fetcher } from '@/lib/api-client';
 import { MyReports } from '@/app/reports/my-reports';
@@ -19,6 +19,8 @@ const FIN_TONE: Record<string, BadgeTone> = { approved: 'success', rejected: 'da
 
 export function BillingDashboard() {
   const t = useTranslations('billing.account');
+  const f = useFormat();
+  const tl = useTranslations('account.billingLabels');
   const toast = useToast();
   const { data, mutate, error } = useSWR<BillingOverview>('/billing/overview', fetcher);
   const { data: apps } = useSWR<FinanceApplicationDto[]>('/finance/applications', fetcher);
@@ -40,7 +42,7 @@ export function BillingDashboard() {
     <div className="mt-6 flex min-w-0 flex-col gap-10 [&>*]:min-w-0">
       {data?.promoActive && (
         <p role="status" className="rounded-card border border-accent bg-accent/10 px-4 py-3 text-small">
-          {t('promo', { date: data.promoUntil ? formatDateKa(data.promoUntil) : '' })}
+          {t('promo', { date: data.promoUntil ? f.date(data.promoUntil) : '' })}
         </p>
       )}
 
@@ -64,20 +66,20 @@ export function BillingDashboard() {
                     <div className="font-semibold">{s.planName}</div>
                     <div className="text-small text-muted">
                       {s.orgName ?? t('personal')}
-                      {s.seats > 1 ? ` · ${t('seats', { n: s.seats })}` : ''} · {formatMoney(s.priceMinor)} {t('perMonth')}
+                      {s.seats > 1 ? ` · ${t('seats', { n: s.seats })}` : ''} · {f.money(s.priceMinor)} {t('perMonth')}
                     </div>
                   </div>
-                  <Badge tone={SUB_TONE[s.status] ?? 'neutral'}>{SUBSCRIPTION_STATUS_LABELS_KA[s.status]}</Badge>
+                  <Badge tone={SUB_TONE[s.status] ?? 'neutral'}>{tl(`subscriptionStatus.${s.status}`)}</Badge>
                 </div>
                 {s.periodEnd && (
                   <p className="mt-3 text-small">
-                    {s.cancelAtPeriodEnd ? t('endsOn', { date: formatDateKa(s.periodEnd) }) : t('renewsOn', { date: formatDateKa(s.periodEnd) })}
+                    {s.cancelAtPeriodEnd ? t('endsOn', { date: f.date(s.periodEnd) }) : t('renewsOn', { date: f.date(s.periodEnd) })}
                   </p>
                 )}
                 {(s.status === 'past_due' || s.status === 'grace') && (
                   <p className="mt-2 flex items-start gap-2 rounded-button border border-danger/40 bg-danger/5 px-3 py-2 text-small">
                     <AlertTriangle className="mt-0.5 size-4 shrink-0 text-danger" strokeWidth={1.5} aria-hidden />
-                    {t('graceWarning', { date: s.graceUntil ? formatDateKa(s.graceUntil) : '—' })}
+                    {t('graceWarning', { date: s.graceUntil ? f.date(s.graceUntil) : '—' })}
                   </p>
                 )}
                 {['active', 'past_due', 'grace'].includes(s.status) && (
@@ -115,14 +117,14 @@ export function BillingDashboard() {
                   <tr key={inv.id} className="border-b border-border last:border-0">
                     <td className="p-3 tabular">{inv.number}</td>
                     <td className="p-3">
-                      {INVOICE_PURPOSE_LABELS_KA[inv.purpose] ?? inv.purpose}
+                      {tl.has(`invoicePurpose.${inv.purpose}`) ? tl(`invoicePurpose.${inv.purpose}`) : inv.purpose}
                       <div className="text-muted">{inv.lines.map((l) => l.name).join(', ')}</div>
                     </td>
-                    <td className="p-3 text-right tabular">{formatMoney(inv.amountMinor)}</td>
+                    <td className="p-3 text-right tabular">{f.money(inv.amountMinor)}</td>
                     <td className="p-3">
-                      <Badge tone={INV_TONE[inv.status] ?? 'neutral'}>{INVOICE_STATUS_LABELS_KA[inv.status]}</Badge>
+                      <Badge tone={INV_TONE[inv.status] ?? 'neutral'}>{tl(`invoiceStatus.${inv.status}`)}</Badge>
                     </td>
-                    <td className="p-3 tabular">{formatDateKa(inv.paidAt ?? inv.createdAt)}</td>
+                    <td className="p-3 tabular">{f.date(inv.paidAt ?? inv.createdAt)}</td>
                     <td className="p-3">
                       <div className="flex justify-end gap-1">
                         {(inv.status === 'open' || inv.status === 'failed') && inv.lastPaymentId && (
@@ -171,14 +173,14 @@ export function BillingDashboard() {
                   <div>
                     <div className="font-medium">{a.product.name}</div>
                     <div className="text-small text-muted">
-                      {FINANCE_KIND_LABELS_KA[a.product.kind]} · {a.product.partner}
+                      {tl(`financeKind.${a.product.kind}`)} · {a.product.partner}
                     </div>
                   </div>
-                  <Badge tone={FIN_TONE[a.status] ?? 'neutral'}>{FINANCE_STATUS_LABELS_KA[a.status]}</Badge>
+                  <Badge tone={FIN_TONE[a.status] ?? 'neutral'}>{tl(`financeStatus.${a.status}`)}</Badge>
                 </div>
                 <div className="mt-2 text-small tabular">
-                  {formatMoney(a.amountMinor)}
-                  {a.termMonths ? ` · ${t('months', { n: a.termMonths })}` : ''} · {formatDateKa(a.createdAt)}
+                  {f.money(a.amountMinor)}
+                  {a.termMonths ? ` · ${t('months', { n: a.termMonths })}` : ''} · {f.date(a.createdAt)}
                 </div>
                 {a.listing && (
                   <Link href={`/listings/${a.listing.slug}`} className="mt-1 block text-small text-link hover:underline">

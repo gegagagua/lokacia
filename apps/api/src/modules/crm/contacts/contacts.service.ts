@@ -31,7 +31,8 @@ function localDigits(q: string) {
   return d;
 }
 
-export const newPortalToken = () => randomBytes(12).toString('base64url');
+/** 256-bit portal tokens (older 96-bit tokens stay valid until rotated). */
+export const newPortalToken = () => randomBytes(32).toString('base64url');
 
 @Injectable()
 export class ContactsService {
@@ -49,10 +50,11 @@ export class ContactsService {
     return w;
   }
 
-  private async agentNames(ids: (string | null)[]) {
+  /** Pass `tx` when called inside a transaction (avoid a nested pool connection → pool deadlock under load). */
+  private async agentNames(ids: (string | null)[], tx?: Tx) {
     const uniq = [...new Set(ids.filter((x): x is string => !!x))];
     if (!uniq.length) return new Map<string, string | null>();
-    const rows = await this.dbs.db.select({ id: users.id, name: users.name }).from(users).where(inArray(users.id, uniq));
+    const rows = await (tx ?? this.dbs.db).select({ id: users.id, name: users.name }).from(users).where(inArray(users.id, uniq));
     return new Map(rows.map((r) => [r.id, r.name]));
   }
 
@@ -133,7 +135,7 @@ export class ContactsService {
       const deals = await tx
         .select({ id: crmDeals.id, title: crmDeals.title, stage: crmDeals.stage, valueMinor: crmDeals.valueMinor, agentId: crmDeals.agentId, updatedAt: crmDeals.updatedAt })
         .from(crmDeals)
-        .where(and(eq(crmDeals.contactId, c.id), isNull(crmDeals.deletedAt)))
+        .where(and(eq(crmDeals.contactId, c.id), isNull(crmDeals.deletedAt), ctx.ownDealsOnly ? eq(crmDeals.agentId, ctx.userId) : undefined))
         .orderBy(desc(crmDeals.updatedAt));
       const tasks = await tx
         .select({ id: crmTasks.id, title: crmTasks.title, dueAt: crmTasks.dueAt, doneAt: crmTasks.doneAt, priority: crmTasks.priority })
@@ -284,7 +286,7 @@ export class ContactsService {
         const r = find(id);
         groups.set(r, [...(groups.get(r) ?? []), id]);
       }
-      const names = await this.agentNames(all.map((c) => c.ownerAgentId));
+      const names = await this.agentNames(all.map((c) => c.ownerAgentId), tx);
       return [...groups.entries()]
         .filter(([, ids]) => ids.length > 1)
         .map(([key, ids]) => {
@@ -316,13 +318,11 @@ export class ContactsService {
         ownerAgentId: target.ownerAgentId ?? sources.find((s) => s.ownerAgentId)?.ownerAgentId ?? null,
         requirements: target.requirements && Object.keys(target.requirements).length ? target.requirements : (sources.find((s) => s.requirements)?.requirements ?? null),
         notes: [target.notes, ...sources.map((s) => s.notes)].filter(Boolean).join('\n\n') || null,
-        portalToken: target.portalToken ?? sources.find((s) => s.portalToken)?.portalToken ?? null,
+        // portal links handed to the duplicates die with them; the survivor keeps (or gets) its own token
+        portalToken: target.portalToken ?? newPortalToken(),
         lastContactedAt: all.map((c) => c.lastContactedAt).filter((d): d is Date => !!d).sort((a, b) => b.getTime() - a.getTime())[0] ?? null,
       };
-      if (!target.portalToken && set.portalToken) {
-        // move the token: clear it on the source first (unique index)
-        await tx.update(crmContacts).set({ portalToken: null }).where(inArray(crmContacts.id, ids));
-      }
+      await tx.update(crmContacts).set({ portalToken: null }).where(inArray(crmContacts.id, ids));
       const moved: Record<string, number> = {};
       const count = (k: string, rows: unknown[]) => (moved[k] = rows.length);
       count('deals', await tx.update(crmDeals).set({ contactId: target.id }).where(inArray(crmDeals.contactId, ids)).returning({ id: crmDeals.id }));

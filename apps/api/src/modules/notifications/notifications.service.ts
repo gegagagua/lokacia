@@ -47,6 +47,9 @@ export class NotificationsService implements OnModuleInit {
     const category = input.category ?? input.template.split('_')[0]!;
     const prefs = user?.notificationPrefs?.[category];
     const channels = [...new Set<Channel>(input.channels ?? (prefs as Channel[] | undefined) ?? DEFAULT_CHANNELS[category] ?? ['in_app'])];
+    // Mobile (V7): users with a registered device also get in-app notifications as push.
+    const pushTokens = user?.notificationPrefs?.pushTokens ?? [];
+    if (pushTokens.length && channels.includes('in_app') && !channels.includes('push')) channels.push('push');
     const address = (c: Channel): string | null => {
       if (input.to?.[c]) return input.to[c]!;
       if (!user) return null;
@@ -54,6 +57,7 @@ export class NotificationsService implements OnModuleInit {
       if (c === 'email') return user.email;
       if (c === 'telegram') return user.telegramChatId;
       if (c === 'viber') return user.viberId;
+      if (c === 'push' && pushTokens.length) return pushTokens.join(',');
       return user.id;
     };
     const link = input.link ? (input.link.startsWith('http') ? input.link : `${this.env.APP_URL}${input.link}`) : undefined;

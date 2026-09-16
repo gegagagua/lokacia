@@ -1,0 +1,68 @@
+{
+  "site": {
+    "title": "lokacia.ge — commercial real estate in Georgia",
+    "ogTitle": "lokacia.ge — commercial spaces",
+    "description": "Commercial spaces in Georgia — offices, retail, warehouses and restaurant spaces. Filters by business type, technical passport and location analytics."
+  },
+  "a11y": {
+    "skipToContent": "Skip to main content",
+    "breadcrumbs": "Breadcrumbs",
+    "mainNav": "Main navigation",
+    "homeLink": "lokacia.ge — home",
+    "languages": "Language versions"
+  },
+  "cities": {
+    "tbilisi": "Tbilisi",
+    "batumi": "Batumi",
+    "kutaisi": "Kutaisi",
+    "rustavi": "Rustavi"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "titleUnread": "Notifications ({count})",
+    "empty": "No new notifications",
+    "new": "New"
+  },
+  "userMenu": {
+    "listings": "My listings",
+    "offers": "Offers",
+    "messages": "Messages"
+  },
+  "titles": {
+    "account": "My account",
+    "accountTemplate": "{page} · My account · lokacia.ge",
+    "overview": "Overview",
+    "offers": "Offers",
+    "negotiation": "Negotiation",
+    "messages": "Messages",
+    "property": "Property management",
+    "lease": "Lease details",
+    "org": "Organization",
+    "favorites": "Favorites",
+    "viewings": "Viewings",
+    "profile": "Profile",
+    "myDemand": "My requests",
+    "services": "Services",
+    "billing": "Payments and invoices",
+    "demandNew": "Add a request",
+    "sendOffer": "Send an offer",
+    "bookViewing": "Book a viewing",
+    "checkoutResult": "Payment result",
+    "testPayment": "Test payment",
+    "login": "Log in",
+    "compare": "Comparison",
+    "notFound": "Page not found",
+    "listingNotFound": "Listing not found",
+    "projectNotFound": "Project not found",
+    "provider": "Service provider"
+  },
+  "listing": {
+    "ceiling": "ceiling {value} m",
+    "power": "{value} kW",
+    "verified": "Verified"
+  },
+  "errors": {
+    "favoriteSave": "Couldn't save to favorites",
+    "retry": "Please try again."
+  }
+}

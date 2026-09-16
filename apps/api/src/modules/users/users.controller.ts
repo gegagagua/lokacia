@@ -1,13 +1,15 @@
-import { Controller, Delete, Get, HttpCode, Param, Patch, Post, Put, Res } from '@nestjs/common';
+import { Controller, Delete, Get, Headers, HttpCode, Inject, Param, Patch, Post, Put, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { randomBytes } from 'node:crypto';
 import { z } from 'zod';
 import {
-  and, consents, eq, favorites, isNull, listings, messages, offers, savedSearches, sessions, tenantProfiles, users, viewings, demandRequests, notifications, reviews,
+  and, consents, eq, isNull, listings, offers, tenantProfiles, users, viewings,
 } from '@lokacia/db';
-import { profileUpdateSchema, tenantProfileSchema } from '@lokacia/contracts';
-import { ClientIp, CurrentUser, Public } from '../../common/decorators';
+import { addPushToken, profileUpdateSchema, pushTokenSchema, tenantProfileSchema } from '@lokacia/contracts';
+import { ClientIp, CurrentUser, NoImpersonation, Public } from '../../common/decorators';
+import { anonymizeUser, exportUserData } from './privacy';
+import { ENV, type Env } from '../../config/env';
 import { DbService } from '../../common/db.service';
 import { problems } from '../../common/problem';
 import type { AuthUser } from '../../common/request';
@@ -22,13 +24,44 @@ export class UsersController {
   constructor(
     private readonly dbs: DbService,
     private readonly tokens: TokensService,
+    @Inject(ENV) private readonly env: Env,
   ) {}
 
   @Patch('me')
   @ApiZodBody(profileUpdateSchema)
   async update(@CurrentUser() user: AuthUser, @ZBody(profileUpdateSchema) body: z.infer<typeof profileUpdateSchema>) {
+    if (body.notificationPrefs) {
+      // Device push tokens live in notification_prefs.pushTokens (mobile, V7) — settings forms must not wipe them.
+      const cur = await this.dbs.db.query.users.findFirst({ where: eq(users.id, user.id), columns: { notificationPrefs: true } });
+      const pushTokens = cur?.notificationPrefs?.pushTokens;
+      body = { ...body, notificationPrefs: { ...body.notificationPrefs, ...(pushTokens ? { pushTokens } : {}) } };
+    }
     const [u] = await this.dbs.db.update(users).set(body).where(eq(users.id, user.id)).returning();
     return { id: u!.id, name: u!.name, email: u!.email, avatarUrl: u!.avatarUrl, locale: u!.locale, notificationPrefs: u!.notificationPrefs, bio: u!.bio };
+  }
+
+  /** Registers an Expo push token for this device (mobile app, V7). Stored in notification_prefs.pushTokens. */
+  @Post('me/push-token')
+  @HttpCode(200)
+  @ApiZodBody(pushTokenSchema)
+  async addPushToken(@CurrentUser() user: AuthUser, @ZBody(pushTokenSchema) body: z.infer<typeof pushTokenSchema>) {
+    const u = await this.dbs.db.query.users.findFirst({ where: eq(users.id, user.id), columns: { notificationPrefs: true } });
+    if (!u) throw problems.notFound();
+    const pushTokens = addPushToken(u.notificationPrefs.pushTokens, body.token);
+    await this.dbs.db.update(users).set({ notificationPrefs: { ...u.notificationPrefs, pushTokens }, updatedAt: new Date() }).where(eq(users.id, user.id));
+    return { ok: true, devices: pushTokens.length };
+  }
+
+  /** Unregisters a device token (logout on the phone). */
+  @Delete('me/push-token')
+  @HttpCode(200)
+  @ApiZodBody(pushTokenSchema)
+  async removePushToken(@CurrentUser() user: AuthUser, @ZBody(pushTokenSchema) body: z.infer<typeof pushTokenSchema>) {
+    const u = await this.dbs.db.query.users.findFirst({ where: eq(users.id, user.id), columns: { notificationPrefs: true } });
+    if (!u) throw problems.notFound();
+    const pushTokens = (u.notificationPrefs.pushTokens ?? []).filter((t) => t !== body.token);
+    await this.dbs.db.update(users).set({ notificationPrefs: { ...u.notificationPrefs, pushTokens }, updatedAt: new Date() }).where(eq(users.id, user.id));
+    return { ok: true, devices: pushTokens.length };
   }
 
   @Get('me/settings')
@@ -93,42 +126,20 @@ export class UsersController {
 
   /** Personal data export (Georgian PDP law). */
   @Get('me/export')
+  @NoImpersonation()
   async export(@CurrentUser() user: AuthUser, @Res() res: Response) {
-    const db = this.dbs.db;
-    const data = {
-      exportedAt: new Date().toISOString(),
-      user: await db.query.users.findFirst({ where: eq(users.id, user.id) }),
-      tenantProfile: await db.query.tenantProfiles.findFirst({ where: eq(tenantProfiles.userId, user.id) }),
-      listings: await db.query.listings.findMany({ where: eq(listings.ownerId, user.id) }),
-      favorites: await db.query.favorites.findMany({ where: eq(favorites.userId, user.id) }),
-      savedSearches: await db.query.savedSearches.findMany({ where: eq(savedSearches.userId, user.id) }),
-      demandRequests: await db.query.demandRequests.findMany({ where: eq(demandRequests.userId, user.id) }),
-      offers: await db.query.offers.findMany({ where: eq(offers.fromUserId, user.id) }),
-      viewings: await db.query.viewings.findMany({ where: eq(viewings.userId, user.id) }),
-      messages: await db.query.messages.findMany({ where: eq(messages.senderId, user.id) }),
-      consents: await db.query.consents.findMany({ where: eq(consents.userId, user.id) }),
-    };
+    const data = await exportUserData(this.dbs, user.id);
     res.setHeader('content-disposition', `attachment; filename="lokacia-data-${user.id}.json"`);
+    res.setHeader('cache-control', 'no-store');
     res.json(data);
   }
 
-  /** Account deletion: anonymize personal data, archive listings, revoke sessions. */
+  /** Account deletion: anonymize personal data across portal tables, archive listings, revoke sessions. */
   @Delete('me')
+  @NoImpersonation()
   @HttpCode(200)
   async remove(@CurrentUser() user: AuthUser) {
-    await this.dbs.db.transaction(async (tx) => {
-      await tx
-        .update(users)
-        .set({ phone: null, email: null, name: 'წაშლილი მომხმარებელი', avatarUrl: null, googleId: null, telegramChatId: null, viberId: null, bio: null, slug: null, deletedAt: new Date() })
-        .where(eq(users.id, user.id));
-      await tx.delete(tenantProfiles).where(eq(tenantProfiles.userId, user.id));
-      await tx.update(listings).set({ status: 'archived' }).where(and(eq(listings.ownerId, user.id), isNull(listings.orgId)));
-      await tx.delete(savedSearches).where(eq(savedSearches.userId, user.id));
-      await tx.delete(favorites).where(eq(favorites.userId, user.id));
-      await tx.delete(notifications).where(eq(notifications.userId, user.id));
-      await tx.update(reviews).set({ authorId: null }).where(eq(reviews.authorId, user.id));
-      await tx.update(sessions).set({ revokedAt: new Date() }).where(eq(sessions.userId, user.id));
-    });
+    await this.dbs.db.transaction((tx) => anonymizeUser(tx, user.id));
     return { ok: true };
   }
 
@@ -143,7 +154,10 @@ export class UsersController {
   @Public()
   @Post('telegram/webhook')
   @HttpCode(200)
-  async telegramWebhook(@ZBody(z.object({ message: z.object({ chat: z.object({ id: z.union([z.number(), z.string()]) }), text: z.string().optional() }).optional() }).passthrough()) body: { message?: { chat: { id: number | string }; text?: string } }) {
+  async telegramWebhook(@Headers('x-telegram-bot-api-secret-token') secret: string | undefined, @ZBody(z.object({ message: z.object({ chat: z.object({ id: z.union([z.number(), z.string()]) }), text: z.string().optional() }).optional() }).passthrough()) body: { message?: { chat: { id: number | string }; text?: string } }) {
+    // Telegram sends the secret configured with setWebhook(secret_token); required in production
+    const expected = this.env.TELEGRAM_WEBHOOK_SECRET;
+    if ((expected || this.env.NODE_ENV === 'production') && (!expected || !secret || !this.tokens.safeEqual(secret, expected))) throw problems.forbidden('webhook secret');
     const text = body.message?.text ?? '';
     const token = text.startsWith('/start ') ? text.slice(7).trim() : null;
     if (token) await this.dbs.db.update(users).set({ telegramChatId: String(body.message!.chat.id), telegramLinkToken: null }).where(eq(users.telegramLinkToken, token));
@@ -153,6 +167,7 @@ export class UsersController {
   /** Demo helper for the mock channel: link Telegram without a real bot. */
   @Post('me/telegram-link/mock-confirm')
   async mockTelegram(@CurrentUser() user: AuthUser) {
+    if (this.env.NODE_ENV === 'production') throw problems.notFound('მარშრუტი');
     await this.dbs.db.update(users).set({ telegramChatId: `mock-${user.id.slice(0, 8)}`, telegramLinkToken: null }).where(eq(users.id, user.id));
     return { ok: true };
   }
@@ -167,6 +182,7 @@ export class UsersController {
   /** Demo helper for the mock channel: link Viber without a real bot. */
   @Post('me/viber-link/mock-confirm')
   async mockViber(@CurrentUser() user: AuthUser) {
+    if (this.env.NODE_ENV === 'production') throw problems.notFound('მარშრუტი');
     await this.dbs.db.update(users).set({ viberId: `mock-${user.id.slice(0, 8)}` }).where(eq(users.id, user.id));
     return { ok: true };
   }

@@ -5,11 +5,13 @@ import { useTranslations } from 'next-intl';
 import { Star } from 'lucide-react';
 import { Button, Card, Field, Textarea } from '@lokacia/ui';
 import { apiFetch, ClientApiError } from '@/lib/api-client';
+import { useLocalizedPath } from '@/i18n/link';
 
 /** "შეფასების დატოვება": 1–5 stars (radio group) + comment. `endpoint` is relative to /api/v1. */
 export function ReviewForm({ endpoint }: { endpoint: string }) {
   const t = useTranslations('profiles.review');
   const router = useRouter();
+  const lp = useLocalizedPath();
   const pathname = usePathname();
   const [rating, setRating] = React.useState(0);
   const [body, setBody] = React.useState('');
@@ -28,7 +30,7 @@ export function ReviewForm({ endpoint }: { endpoint: string }) {
       setBody('');
       router.refresh();
     } catch (err) {
-      if (err instanceof ClientApiError && err.status === 401) return router.push(`/login?next=${encodeURIComponent(pathname)}`);
+      if (err instanceof ClientApiError && err.status === 401) return router.push(lp(`/login?next=${encodeURIComponent(pathname)}`));
       const status = err instanceof ClientApiError ? err.status : 0;
       setMsg({ tone: 'err', text: status === 409 ? t('already') : status === 400 ? t('own') : t('error') });
     } finally {

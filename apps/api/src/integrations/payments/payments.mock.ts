@@ -1,5 +1,5 @@
-import { createHmac, timingSafeEqual } from 'node:crypto';
 import type { CheckoutRequest, PaymentProvider, WebhookEvent } from './payments';
+import { hmacHex, optionalMinor, parseJsonObject, requireString, verifyHmacSignature } from './payments';
 
 /**
  * Mock PSP with the same shape as the real ones: hosted checkout page (rendered by apps/web at
@@ -19,14 +19,21 @@ export class MockPayments implements PaymentProvider {
   }
 
   sign(rawBody: string) {
-    return createHmac('sha256', this.secret).update(rawBody).digest('hex');
+    return hmacHex(this.secret, rawBody);
   }
 
   parseWebhook(headers: Record<string, string | string[] | undefined>, rawBody: string): WebhookEvent {
-    const sig = String(headers['x-signature'] ?? '');
-    const expected = this.sign(rawBody);
-    if (sig.length !== expected.length || !timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) throw new Error('invalid signature');
-    const body = JSON.parse(rawBody) as { id: string; ref: string; status: WebhookEvent['status']; amount?: number };
-    return { eventId: body.id, providerRef: body.ref, status: body.status, amountMinor: body.amount, raw: body };
+    if (!verifyHmacSignature(this.secret, rawBody, headers['x-signature'])) throw new Error('invalid signature');
+    const body = parseJsonObject(rawBody);
+    const status = body.status;
+    if (status !== 'succeeded' && status !== 'failed' && status !== 'refunded') throw new Error('invalid status');
+    return {
+      eventId: requireString(body.id, 'id'),
+      providerRef: requireString(body.ref, 'ref'),
+      status,
+      amountMinor: optionalMinor(body.amount),
+      currency: typeof body.currency === 'string' ? body.currency.toUpperCase() : undefined,
+      raw: body,
+    };
   }
 }

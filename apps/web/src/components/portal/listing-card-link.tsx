@@ -1,6 +1,7 @@
 'use client';
-import Link from 'next/link';
-import type { ListingCard as Card } from '@lokacia/contracts';
+import Link from '@/i18n/link';
+import { useLocale } from 'next-intl';
+import { toAppLocale, type ListingCard as Card } from '@lokacia/contracts';
 import { ListingCard } from '@lokacia/ui';
 import { useFavorites } from './favorites';
 
@@ -21,11 +22,13 @@ export function ListingCardLink({
   favorite?: boolean;
 }) {
   const fav = useFavorites();
+  const locale = toAppLocale(useLocale());
   return (
     <ListingCard
       listing={listing}
       href={`/listings/${listing.slug}`}
       LinkComponent={Link}
+      locale={locale}
       businessTypeName={(s) => typeNames[s] ?? s}
       layout={layout}
       priority={priority}

@@ -3,7 +3,7 @@ import { ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { z } from 'zod';
 import { escrowCreateSchema, escrowDisputeSchema } from '@lokacia/contracts';
-import { CurrentUser } from '../../../common/decorators';
+import { CurrentUser, NoImpersonation } from '../../../common/decorators';
 import type { AuthUser } from '../../../common/request';
 import { ApiZodBody, ZBody } from '../../../common/zod';
 import { EscrowService } from './escrow.service';
@@ -32,24 +32,28 @@ export class EscrowController {
   }
 
   @Post(':id/sign')
+  @NoImpersonation()
   @HttpCode(200)
   async sign(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     return this.escrow.dto(await this.escrow.sign(user, uuid.parse(id)), user);
   }
 
   @Post(':id/fund')
+  @NoImpersonation()
   @HttpCode(200)
   fund(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     return this.escrow.fund(user, uuid.parse(id));
   }
 
   @Post(':id/release')
+  @NoImpersonation()
   @HttpCode(200)
   async release(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     return this.escrow.dto(await this.escrow.release(user, uuid.parse(id)), user);
   }
 
   @Post(':id/refund')
+  @NoImpersonation()
   @HttpCode(200)
   async refund(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     return this.escrow.dto(await this.escrow.refund(user, uuid.parse(id)), user);

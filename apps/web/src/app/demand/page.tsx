@@ -1,14 +1,14 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import { getTranslations } from 'next-intl/server';
 import { Plus, Search } from 'lucide-react';
-import { DEAL_TYPES, DEAL_TYPE_LABELS_KA } from '@lokacia/contracts';
+import { DEAL_TYPES } from '@lokacia/contracts';
 import { Button, EmptyState, Input, Select } from '@lokacia/ui';
 import { getDemandList, getNames } from '@/components/portal/data';
 import { Breadcrumbs, pageMetadata } from '@/components/portal/seo';
 import { DemandCard } from '@/components/portal/demand/demand-card';
 import { DemandLoadMore } from '@/components/portal/demand/demand-load-more';
-import { CITY_NAMES_KA } from '@/lib/site';
+import { getFormat } from '@/i18n/server';
 
 type SP = Promise<Record<string, string | string[] | undefined>>;
 const KEYS = ['businessType', 'dealType', 'districtId', 'areaMin', 'budgetMax', 'q'] as const;
@@ -23,6 +23,7 @@ export async function generateMetadata({ searchParams }: { searchParams: SP }): 
 export default async function DemandBoardPage({ searchParams }: { searchParams: SP }) {
   const sp = await searchParams;
   const t = await getTranslations('demand');
+  const f = await getFormat();
   const qs = new URLSearchParams();
   for (const k of KEYS) {
     const v = sp[k];
@@ -63,7 +64,7 @@ export default async function DemandBoardPage({ searchParams }: { searchParams: 
         </label>
         <label className="flex flex-col gap-1.5 text-small font-medium">
           {t('filters.dealType')}
-          <Select name="dealType" defaultValue={val('dealType')} placeholder={t('filters.any')} options={DEAL_TYPES.map((d) => ({ value: d, label: DEAL_TYPE_LABELS_KA[d] }))} />
+          <Select name="dealType" defaultValue={val('dealType')} placeholder={t('filters.any')} options={DEAL_TYPES.map((d) => ({ value: d, label: f.dealType(d) }))} />
         </label>
         <label className="flex flex-col gap-1.5 text-small font-medium">
           {t('filters.district')}
@@ -74,7 +75,7 @@ export default async function DemandBoardPage({ searchParams }: { searchParams: 
           >
             <option value="">{t('filters.any')}</option>
             {cities.map((c) => (
-              <optgroup key={c} label={CITY_NAMES_KA[c] ?? c}>
+              <optgroup key={c} label={f.city(c)}>
                 {districts
                   .filter((d) => d.city === c)
                   .map((d) => (
@@ -88,7 +89,7 @@ export default async function DemandBoardPage({ searchParams }: { searchParams: 
         </label>
         <label className="flex flex-col gap-1.5 text-small font-medium">
           {t('filters.areaMin')}
-          <Input name="areaMin" type="number" inputMode="numeric" min={0} defaultValue={val('areaMin')} suffix="მ²" />
+          <Input name="areaMin" type="number" inputMode="numeric" min={0} defaultValue={val('areaMin')} suffix={f.areaUnit} />
         </label>
         <label className="flex flex-col gap-1.5 text-small font-medium">
           {t('filters.budgetMax')}

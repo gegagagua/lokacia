@@ -195,7 +195,9 @@ export class DemandService implements OnModuleInit {
     if (r.userId === user.id) throw problems.badRequest('საკუთარ მოთხოვნაზე გამოხმაურება შეუძლებელია');
     await this.rate.hit(`demand-contact:${user.id}`, 30, 3600);
     const me = await this.dbs.db.query.users.findFirst({ where: eq(users.id, user.id) });
-    const listing = listingId ? await this.dbs.db.query.listings.findFirst({ where: and(eq(listings.id, listingId), isNull(listings.deletedAt)) }) : null;
+    const found = listingId ? await this.dbs.db.query.listings.findFirst({ where: and(eq(listings.id, listingId), isNull(listings.deletedAt)) }) : null;
+    // only a public listing can be attached (never leak the title/slug of someone else's draft)
+    const listing = found && ['active', 'stale'].includes(found.status) ? found : null;
     const text = listing ? `${body}\n\nფართი: ${listing.title} — /listings/${listing.slug}` : body;
     const conversationId = await this.dbs.db.transaction(async (tx) => {
       const existing = await tx

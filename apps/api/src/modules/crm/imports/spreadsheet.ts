@@ -27,7 +27,8 @@ export async function parseSpreadsheet(buf: Buffer, fileName: string): Promise<s
       else if (typeof v === 'object' && 'result' in (v as object)) s = String((v as { result: unknown }).result ?? '');
       else if (v instanceof Date) s = v.toISOString().slice(0, 10);
       else s = String(v);
-      out.push(s.trim());
+      // undo the export-side formula guard (csvSafe) so exported files re-import cleanly
+      out.push(s.trim().replace(/^'(?=[=+\-@])/, ''));
     }
     if (out.some(Boolean)) rows.push(out);
   });
@@ -40,12 +41,22 @@ function detectDelimiter(text: string) {
   return counts[0]![0];
 }
 
+/**
+ * CSV/formula injection guard: a text cell starting with = + - @ TAB or CR is evaluated as a formula by Excel/Sheets,
+ * so it is prefixed with an apostrophe. Numbers and phone-like values are left alone. (XLSX string cells are written as literal strings.)
+ */
+export function csvSafe<T extends string | number | null>(v: T): T {
+  // plain signed numbers / phone numbers ("+995 555 12 34 56", "-15") cannot carry a payload and stay readable
+  return (typeof v === 'string' && /^[=+\-@\t\r]/.test(v) && !/^[+-][\d\s().]*\d[\d\s().]*$/.test(v) ? `'${v}` : v) as T;
+}
+
 export async function buildWorkbook(sheetName: string, headers: string[], rows: (string | number | null)[][], format: 'xlsx' | 'csv'): Promise<Buffer> {
   const wb = new ExcelJS.Workbook();
   wb.creator = 'lokacia CRM';
   const ws = wb.addWorksheet(sheetName);
-  ws.addRow(headers).font = { bold: true };
-  rows.forEach((r) => ws.addRow(r));
+  const cell = format === 'csv' ? csvSafe : <T,>(v: T) => v;
+  ws.addRow(headers.map(cell)).font = { bold: true };
+  rows.forEach((r) => ws.addRow(r.map(cell)));
   ws.columns.forEach((col) => (col.width = 22));
   if (format === 'csv') return Buffer.concat([Buffer.from('﻿'), Buffer.from(await wb.csv.writeBuffer())]);
   return Buffer.from(await wb.xlsx.writeBuffer());

@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { and, asc, conversations, desc, eq, inArray, isNull, listingMedia, listings, messages, sql, users } from '@lokacia/db';
 import { decodeCursor, encodeCursor, type ConversationDto, type MessageDto } from '@lokacia/contracts';
 import { DbService } from '../../common/db.service';
 import { problems } from '../../common/problem';
+import { RateLimitService } from '../../common/redis.service';
+import { STORAGE, type Storage } from '../../integrations/storage/storage';
 import type { AuthUser } from '../../common/request';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PUBLIC_STATUSES } from '../listings/listing-read.service';
@@ -25,7 +27,24 @@ export class MessagingService {
     private readonly dbs: DbService,
     private readonly notify: NotificationsService,
     private readonly rt: RealtimeGateway,
+    private readonly rate: RateLimitService,
+    @Inject(STORAGE) private readonly storage: Storage,
   ) {}
+
+  /** Direct messages are only for counterparts: offer parties, viewing visitor ↔ listing host/org, lease/escrow parties, service orders, or an existing thread. */
+  async related(a: string, b: string) {
+    const [r] = await this.dbs.db.execute<{ ok: boolean }>(sql`SELECT (
+      EXISTS (SELECT 1 FROM offers o WHERE o.deleted_at IS NULL AND ((o.from_user_id = ${a} AND o.to_user_id = ${b}) OR (o.from_user_id = ${b} AND o.to_user_id = ${a})))
+      OR EXISTS (SELECT 1 FROM viewings v JOIN listings l ON l.id = v.listing_id WHERE v.deleted_at IS NULL AND (
+        (v.user_id = ${a} AND (l.owner_id = ${b} OR l.agent_id = ${b} OR EXISTS (SELECT 1 FROM memberships m WHERE m.org_id = l.org_id AND m.user_id = ${b} AND m.active AND m.deleted_at IS NULL)))
+        OR (v.user_id = ${b} AND (l.owner_id = ${a} OR l.agent_id = ${a} OR EXISTS (SELECT 1 FROM memberships m WHERE m.org_id = l.org_id AND m.user_id = ${a} AND m.active AND m.deleted_at IS NULL)))))
+      OR EXISTS (SELECT 1 FROM leases le WHERE le.deleted_at IS NULL AND ((le.owner_id = ${a} AND le.tenant_id = ${b}) OR (le.owner_id = ${b} AND le.tenant_id = ${a})))
+      OR EXISTS (SELECT 1 FROM escrow_accounts e WHERE e.deleted_at IS NULL AND ((e.owner_id = ${a} AND e.tenant_id = ${b}) OR (e.owner_id = ${b} AND e.tenant_id = ${a})))
+      OR EXISTS (SELECT 1 FROM service_orders so JOIN service_providers sp ON sp.id = so.provider_id WHERE so.deleted_at IS NULL AND ((so.requester_id = ${a} AND sp.user_id = ${b}) OR (so.requester_id = ${b} AND sp.user_id = ${a})))
+      OR EXISTS (SELECT 1 FROM conversations c WHERE c.deleted_at IS NULL AND c.channel = 'portal' AND c.participant_ids @> ARRAY[${a}, ${b}]::uuid[])
+    ) AS ok`);
+    return !!r?.ok;
+  }
 
   private async participantOf(user: AuthUser, id: string) {
     if (!/^[0-9a-f-]{36}$/i.test(id)) throw problems.notFound('საუბარი');
@@ -109,6 +128,14 @@ export class MessagingService {
     return this.startWithUser(user, contactId, body, l.id, l.title);
   }
 
+  /** `/with-user` entry point: counterparts only (prevents unsolicited DMs to any user id seen on the portal). */
+  async startWithCounterpart(user: AuthUser, otherId: string, body: string, listingId: string | null) {
+    if (otherId !== user.id && user.role !== 'admin' && user.role !== 'moderator' && !(await this.related(user.id, otherId))) {
+      throw problems.forbidden('შეტყობინება შესაძლებელია მხოლოდ გარიგების მონაწილესთან');
+    }
+    return this.startWithUser(user, otherId, body, listingId);
+  }
+
   async startWithUser(user: AuthUser, otherId: string, body: string, listingId: string | null, subject?: string) {
     if (otherId === user.id) throw problems.badRequest('საკუთარ თავს შეტყობინება შეუძლებელია');
     const other = await this.dbs.db.query.users.findFirst({ where: and(eq(users.id, otherId), isNull(users.deletedAt)) });
@@ -124,6 +151,7 @@ export class MessagingService {
     if (!conv) {
       let subj = subject ?? null;
       if (!subj && listingId) subj = (await this.dbs.db.query.listings.findFirst({ where: eq(listings.id, listingId) }))?.title ?? null;
+      await this.rate.hit(`conv-start:${user.id}`, 20, 3600);
       [conv] = await this.dbs.db.insert(conversations).values({ listingId, participantIds: [user.id, otherId], channel: 'portal', subject: subj }).returning();
     }
     const message = await this.send(user, conv!.id, body, []);
@@ -153,6 +181,13 @@ export class MessagingService {
 
   async send(user: AuthUser, id: string, body: string, attachments: { url: string; name: string; type: string }[]) {
     const conv = await this.participantOf(user, id);
+    await this.rate.hit(`msg-send:${user.id}`, 30, 60);
+    await this.rate.hit(`msg-send:h:${user.id}`, 300, 3600);
+    // attachments must point at our own uploaded media (no arbitrary/phishing links dressed up as files)
+    const mediaPrefix = this.storage.publicUrl('uploads/');
+    for (const a of attachments) {
+      if (!a.url.startsWith(mediaPrefix) || a.url.includes('..') || !/^[\w:/.%-]+$/.test(a.url)) throw problems.badRequest('დანართის ბმული არასწორია');
+    }
     const now = new Date();
     const [m] = await this.dbs.db.insert(messages).values({ conversationId: id, senderId: user.id, body, attachments: attachments.length ? attachments : null, direction: 'out', createdAt: now }).returning();
     await this.dbs.db.update(conversations).set({ lastMessageAt: now }).where(eq(conversations.id, id));

@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import { useTranslations } from 'next-intl';
 import { CalendarCheck, Heart, HandCoins, MessageSquare, Pencil, Phone, Share2 } from 'lucide-react';
 import type { ListingDetail } from '@lokacia/contracts';

@@ -1,37 +1,13 @@
 {
-  "title": "",
-  "subtitle": "",
-  "share": "",
-  "tabs": {
-    "incoming": "",
-    "outgoing": "",
-    "shared": ""
-  },
-  "empty": {
-    "incoming": "",
-    "outgoing": "",
-    "shared": ""
-  },
-  "cols": {
-    "listing": "",
-    "partner": "",
-    "split": "",
-    "status": "",
-    "date": "",
-    "actions": ""
-  },
-  "accept": "",
-  "decline": "",
-  "revoke": "",
-  "createDeal": "",
-  "form": {
-    "listing": "",
-    "org": "",
-    "orgSearch": "",
-    "split": "",
-    "preview": "",
-    "note": "",
-    "submit": "",
-    "sent": ""
-  }
+  "title": "Совместный брокеридж",
+  "subtitle": "Поделитесь помещением с другим агентством с заранее согласованным разделом комиссии.",
+  "share": "Поделиться помещением",
+  "tabs": { "incoming": "Входящие", "outgoing": "Отправленные", "shared": "Доступные помещения" },
+  "empty": { "incoming": "Входящих предложений нет", "outgoing": "Вы ещё не поделились ни одним помещением", "shared": "Полученных помещений нет" },
+  "cols": { "listing": "Помещение", "partner": "Партнёр", "split": "Раздел", "status": "Статус", "date": "Дата", "actions": "Действия" },
+  "accept": "Принять",
+  "decline": "Отклонить",
+  "revoke": "Отозвать",
+  "createDeal": "Создать сделку",
+  "form": { "listing": "Ваше помещение", "org": "Агентство", "orgSearch": "Найдите агентство…", "split": "Доля партнёра, %", "preview": "Вы {mine}% · партнёр {theirs}%", "note": "Заметка", "submit": "Отправить предложение", "sent": "Предложение отправлено" }
 }

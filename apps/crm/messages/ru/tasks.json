@@ -1,64 +1,64 @@
 {
-  "title": "",
-  "subtitle": "",
+  "title": "Задачи",
+  "subtitle": "Сроки, напоминания и следующие шаги",
   "tabs": {
-    "today": "",
-    "overdue": "",
-    "upcoming": "",
-    "done": ""
+    "today": "Сегодня",
+    "overdue": "Просроченные",
+    "upcoming": "Предстоящие",
+    "done": "Выполненные"
   },
   "scope": {
-    "mine": "",
-    "all": ""
+    "mine": "Мои",
+    "all": "Команды"
   },
   "add": {
-    "title": "",
-    "placeholder": "",
-    "due": "",
-    "priority": "",
-    "assignee": "",
-    "contact": "",
-    "submit": "",
-    "created": ""
+    "title": "Новая задача",
+    "placeholder": "напр.: позвонить Нино, чтобы подтвердить показ",
+    "due": "Срок",
+    "priority": "Приоритет",
+    "assignee": "Исполнитель",
+    "contact": "Контакт",
+    "submit": "Добавить задачу",
+    "created": "Задача добавлена"
   },
   "priority": {
-    "low": "",
-    "normal": "",
-    "high": ""
+    "low": "Низкий",
+    "normal": "Средний",
+    "high": "Высокий"
   },
-  "complete": "",
-  "reopen": "",
-  "snooze": "",
+  "complete": "Отметить как выполненную",
+  "reopen": "Открыть заново",
+  "snooze": "Отложить",
   "snoozeOptions": {
-    "hour": "",
-    "tomorrow": "",
-    "week": ""
+    "hour": "На 1 час",
+    "tomorrow": "Завтра в 9:00",
+    "week": "На неделю"
   },
-  "snoozed": "",
-  "deleted": "",
-  "delete": "",
-  "noDue": "",
-  "overdueBy": "",
+  "snoozed": "Задача отложена",
+  "deleted": "Задача удалена",
+  "delete": "Удалить задачу",
+  "noDue": "Без срока",
+  "overdueBy": "Просрочено",
   "empty": {
-    "today": "",
-    "overdue": "",
-    "upcoming": "",
-    "done": ""
+    "today": "На сегодня задач нет",
+    "overdue": "Просроченных задач нет",
+    "upcoming": "Предстоящих задач нет",
+    "done": "Выполненных задач пока нет"
   },
-  "emptyHint": "",
+  "emptyHint": "Добавьте задачу выше — напоминание придёт за 15 минут.",
   "reminders": {
-    "title": "",
-    "body": "",
-    "enablePush": "",
-    "pushEnabled": "",
-    "pushDenied": "",
-    "pushUnsupported": "",
-    "test": "",
-    "testTitle": "",
-    "testBody": ""
+    "title": "Напоминания",
+    "body": "Напоминания приходят в CRM, в Telegram и в виде уведомлений браузера за 15 минут до срока.",
+    "enablePush": "Включить уведомления браузера",
+    "pushEnabled": "Уведомления браузера включены",
+    "pushDenied": "Браузер заблокировал уведомления — включите их в настройках сайта",
+    "pushUnsupported": "Этот браузер не поддерживает уведомления",
+    "test": "Тестовое напоминание",
+    "testTitle": "lokacia CRM: напоминание",
+    "testBody": "Так будет выглядеть напоминание перед сроком задачи."
   },
   "linked": {
-    "deal": "",
-    "contact": ""
+    "deal": "Сделка",
+    "contact": "Контакт"
   }
 }

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   and, asc, availabilitySlots, desc, eq, gte, inArray, isNull, listingEvents, listingHistory, listingMedia, listings, livenessChecks, memberships,
-  ownerVerifications, spacePassports, sql, transferEquipment, users, type Tx,
+  ownerVerifications, projects, spacePassports, sql, transferEquipment, users, type Tx,
 } from '@lokacia/db';
 import {
   BUSINESS_TYPE_BY_SLUG, canTransition, slugify, type ListingInput, type ListingStatus, type PassportKey,
@@ -136,6 +136,12 @@ export class ListingsService {
     return this.read.detail(listing);
   }
 
+  /** A listing may only join a project of its own organization. */
+  private async assertProjectOf(projectId: string, orgId: string | null) {
+    const p = await this.dbs.db.query.projects.findFirst({ where: and(eq(projects.id, projectId), isNull(projects.deletedAt)) });
+    if (!p || !orgId || p.orgId !== orgId) throw problems.forbidden('პროექტი არ ეკუთვნის თქვენ ორგანიზაციას');
+  }
+
   async update(user: AuthUser, id: string, input: Partial<ListingInput>) {
     const l = await this.getManageable(id, user);
     const { passport: _p, history: _h, equipment: _e, mediaIds: _m, ...fields } = input;
@@ -145,7 +151,9 @@ export class ListingsService {
     if (input.equipment && (input.dealType ?? l.dealType) === 'transfer') patch.equipmentPriceMinor = input.equipment.reduce((a, e) => a + e.priceMinor * e.qty, 0);
     // Material changes to an active listing by a non-moderator go back to review (title/description/photos/price stay live: only type/location)
     const material = input.address !== undefined || input.businessTypes !== undefined || input.dealType !== undefined;
-    if (material && l.status === 'active' && user.role !== 'admin' && user.role !== 'moderator') patch.status = 'pending_review';
+    if (material && (l.status === 'active' || l.status === 'stale') && user.role !== 'admin' && user.role !== 'moderator') patch.status = 'pending_review';
+    if (input.projectId) await this.assertProjectOf(input.projectId, l.orgId);
+    if (l.orgId && input.isOwner) patch.isOwner = false; // agency listings cannot claim to be the owner
     const updated = await this.dbs.db.transaction(async (tx) => {
       const [row] = await tx.update(listings).set(patch).where(eq(listings.id, l.id)).returning();
       await this.writeChildren(tx, l.id, input, user.id);
@@ -250,6 +258,10 @@ export class ListingsService {
     if (!l) throw problems.notFound('განცხადება');
     const check = await this.dbs.db.query.livenessChecks.findFirst({ where: and(eq(livenessChecks.listingId, l.id), eq(livenessChecks.token, token)) });
     if (!check) throw new ProblemException(410, 'link-expired', 'ბმული არასწორია ან ვადა გაუვიდა');
+    // single use (a repeated tap just shows the result); usable while pending or after the grace period hid the listing
+    // (`expired`), but not later than 30 days after sending and only for listings still on the market
+    if (check.result === 'confirmed' || check.result === 'rented') return { ok: true, status: l.status, title: l.title, slug: l.slug };
+    if (check.sentAt.getTime() + 30 * 86_400_000 < Date.now() || !['active', 'stale'].includes(l.status)) throw new ProblemException(410, 'link-expired', 'ბმული არასწორია ან ვადა გაუვიდა');
     const now = new Date();
     await this.dbs.db.update(livenessChecks).set({ confirmedAt: now, result: answer === 'rented' ? 'rented' : 'confirmed' }).where(eq(livenessChecks.id, check.id));
     const patch: Partial<typeof listings.$inferInsert> =

@@ -1,12 +1,14 @@
 'use client';
 import type { Problem } from '@lokacia/contracts';
 
+const ERROR_WORD: Record<string, string> = { ka: 'შეცდომა', en: 'Error', ru: 'Ошибка' };
+
 export class ClientApiError extends Error {
   constructor(
     public status: number,
     public problem: Problem | null,
   ) {
-    super(problem?.detail ?? problem?.title ?? `შეცდომა ${status}`);
+    super(problem?.detail ?? problem?.title ?? `${ERROR_WORD[typeof document === 'undefined' ? 'ka' : document.documentElement.lang] ?? ERROR_WORD.ka} ${status}`);
   }
 }
 

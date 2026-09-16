@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, desc, eq, isNull, listings, reviews, serviceOrders, serviceProviders, sql, users, type SQL } from '@lokacia/db';
+import { and, auditLog, desc, eq, isNull, listings, reviews, serviceOrders, serviceProviders, sql, users, type SQL } from '@lokacia/db';
 import {
   SERVICE_CATEGORIES, SERVICE_ORDER_TRANSITIONS, decodeCursor, encodeCursor, formatMoney, type ProviderDetailDto, type ProviderDto, type ReviewDto,
   type ServiceOrderDto, type ServiceOrderStatus,
@@ -102,7 +102,19 @@ export class ServicesService {
   async provider(slug: string, user?: AuthUser): Promise<ProviderDetailDto> {
     const p = await this.providerBySlug(slug);
     const completed = await this.completedCounts([p.id]);
-    return { ...this.providerDto(p, completed.get(p.id) ?? 0), reviews: await this.reviewsOf('provider', p.id), phone: user ? p.phone : null, isMine: !!user && user.id === p.userId };
+    // phone is shown to logged-in users only; every disclosure is logged and capped per user (anti-scraping, PDP law)
+    let phone: string | null = null;
+    if (user && p.phone) {
+      if (user.id === p.userId) phone = p.phone;
+      else {
+        const allowed = await this.rate.hit(`provider-phone:${user.id}`, 60, 3600).then(() => true, () => false);
+        if (allowed) {
+          phone = p.phone;
+          await this.dbs.db.insert(auditLog).values({ actorId: user.id, action: 'reveal_phone', entity: 'service_provider', entityId: p.id, impersonatorId: user.impersonatorId ?? null });
+        }
+      }
+    }
+    return { ...this.providerDto(p, completed.get(p.id) ?? 0), reviews: await this.reviewsOf('provider', p.id), phone, isMine: !!user && user.id === p.userId };
   }
 
   async myProvider(user: AuthUser) {

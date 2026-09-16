@@ -12,6 +12,7 @@ import { NotificationsBell } from './notifications-bell';
 import { OfflineBanner } from './offline-banner';
 import { OrgSwitcher } from './org-switcher';
 import { ThemeToggle } from './theme-toggle';
+import { LanguageSwitcher } from './language-switcher';
 import { UserMenu } from './user-menu';
 
 function isActive(pathname: string, href: string) {
@@ -174,6 +175,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="ml-auto flex items-center gap-1">
             <OrgSwitcher />
             <NotificationsBell />
+            <LanguageSwitcher />
             <ThemeToggle />
             <UserMenu />
           </div>

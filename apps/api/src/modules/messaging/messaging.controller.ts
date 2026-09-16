@@ -33,7 +33,7 @@ export class MessagingController {
   @Post('with-user')
   @ApiZodBody(conversationWithUserSchema)
   withUser(@CurrentUser() user: AuthUser, @ZBody(conversationWithUserSchema) body: z.infer<typeof conversationWithUserSchema>) {
-    return this.chat.startWithUser(user, body.userId, body.body, body.listingId ?? null);
+    return this.chat.startWithCounterpart(user, body.userId, body.body, body.listingId ?? null);
   }
 
   @Get(':id')

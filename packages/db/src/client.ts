@@ -6,8 +6,13 @@ import * as schema from './schema/index';
 export type Db = PostgresJsDatabase<typeof schema>;
 export type Tx = Parameters<Parameters<Db['transaction']>[0]>[0];
 
-export function createDb(url: string, opts: { max?: number } = {}) {
-  const client = postgres(url, { max: opts.max ?? 10, onnotice: () => undefined });
+export function createDb(url: string, opts: { max?: number; idleInTransactionTimeoutMs?: number } = {}) {
+  const client = postgres(url, {
+    max: opts.max ?? 10,
+    onnotice: () => undefined,
+    // server-side guard: a transaction left idle (e.g. waiting on another pool connection) is aborted instead of pinning the pool forever
+    ...(opts.idleInTransactionTimeoutMs ? { connection: { idle_in_transaction_session_timeout: opts.idleInTransactionTimeoutMs } } : {}),
+  });
   const db = drizzle(client, { schema, casing: undefined });
   return { db, client };
 }

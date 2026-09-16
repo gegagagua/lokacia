@@ -1,21 +1,24 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { BadgeCheck } from 'lucide-react';
 import {
-  DEAL_TYPE_LABELS_KA, PASSPORT_FIELDS, formatDateKa, formatMoney, formatNumber, type CompareListingDto, type PassportKey,
+  PASSPORT_FIELDS, type CompareListingDto, type PassportKey,
 } from '@lokacia/contracts';
 import { EmptyState, SpacePlan } from '@lokacia/ui';
 import { getCompareShared } from '@/components/portal/data';
 import { CopyLinkButton } from '@/components/portal/copy-link-button';
+import { getFormat } from '@/i18n/server';
+import { localizeListing } from '@/i18n/content';
 
 type Props = { params: Promise<{ token: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { token } = await params;
   const data = await getCompareShared(token);
-  return { title: data ? data.name : 'შედარება', robots: { index: false, follow: false } };
+  const t = await getTranslations('favorites.table');
+  return { title: data ? data.name : t('metaTitle'), robots: { index: false, follow: false } };
 }
 
 type Row = {
@@ -41,12 +44,15 @@ export default async function ComparePage({ params }: Props) {
   const data = await getCompareShared(token);
   if (!data) notFound();
   const t = await getTranslations('favorites.table');
-  const L: CompareListingDto[] = data.listings;
+  const f = await getFormat();
+  const formatNumber = f.number;
+  const formatMoney = f.money;
+  const L: CompareListingDto[] = data.listings.map((l) => localizeListing(l, f.locale));
   const yesNo = (v: boolean | null | undefined) => (v == null ? t('dash') : v ? t('yes') : t('no'));
   const num = (v: number | null | undefined, unit?: string) => (v == null ? t('dash') : `${formatNumber(v, Number.isInteger(v) ? 0 : 1)}${unit ? ` ${unit}` : ''}`);
 
   const rows: Row[] = [
-    { key: 'price', label: t('price'), values: L.map((l) => `${formatMoney(l.priceMinor, l.currency)}${l.pricePeriod === 'month' ? ' / თვე' : ''}`), numbers: L.map((l) => l.priceMinor), best: 'min' },
+    { key: 'price', label: t('price'), values: L.map((l) => `${formatMoney(l.priceMinor, l.currency)}${l.pricePeriod === 'month' ? f.period('month') : ''}`), numbers: L.map((l) => l.priceMinor), best: 'min' },
     {
       key: 'ppm',
       label: t('pricePerM2'),
@@ -67,8 +73,8 @@ export default async function ComparePage({ params }: Props) {
       numbers: L.map((l) => l.pricePerM2Minor),
       best: 'min',
     },
-    { key: 'area', label: t('area'), values: L.map((l) => `${formatNumber(l.areaM2)} მ²`), numbers: L.map((l) => l.areaM2), best: 'max' },
-    { key: 'deal', label: t('dealType'), values: L.map((l) => DEAL_TYPE_LABELS_KA[l.dealType]) },
+    { key: 'area', label: t('area'), values: L.map((l) => `${formatNumber(l.areaM2)} ${f.areaUnit}`), numbers: L.map((l) => l.areaM2), best: 'max' },
+    { key: 'deal', label: t('dealType'), values: L.map((l) => f.dealType(l.dealType)) },
     { key: 'district', label: t('district'), values: L.map((l) => l.districtName ?? t('dash')) },
     { key: 'floor', label: t('floor'), values: L.map((l) => num(l.floor)) },
     { key: 'fee', label: t('serviceFee'), values: L.map((l) => (l.serviceFeeMinor ? formatMoney(l.serviceFeeMinor) : t('dash'))), numbers: L.map((l) => l.serviceFeeMinor), best: 'min' },
@@ -76,10 +82,10 @@ export default async function ComparePage({ params }: Props) {
     { key: 'utilities', label: t('utilities'), values: L.map((l) => yesNo(l.utilitiesIncluded)) },
   ];
   const maxBetter: PassportKey[] = ['powerKw', 'ceilingM', 'parking', 'wetPoints', 'facadeM', 'gateWM'];
-  const passportRows: Row[] = PASSPORT_FIELDS.filter((f) => L.some((l) => l.passportFull[f.key] != null)).map((f) => {
-    const vals = L.map((l) => l.passportFull[f.key] as number | boolean | null | undefined);
-    if (f.kind === 'boolean') return { key: f.key, label: f.labelKa, values: vals.map((v) => yesNo(v as boolean | null)) };
-    return { key: f.key, label: f.labelKa, values: vals.map((v) => num(v as number | null, f.unit)), numbers: vals.map((v) => (typeof v === 'number' ? v : null)), best: maxBetter.includes(f.key) ? 'max' : undefined };
+  const passportRows: Row[] = PASSPORT_FIELDS.filter((pf) => L.some((l) => l.passportFull[pf.key] != null)).map((pf) => {
+    const vals = L.map((l) => l.passportFull[pf.key] as number | boolean | null | undefined);
+    if (pf.kind === 'boolean') return { key: pf.key, label: f.passport(pf.key), values: vals.map((v) => yesNo(v as boolean | null)) };
+    return { key: pf.key, label: f.passport(pf.key), values: vals.map((v) => num(v as number | null, f.unit(pf.unit))), numbers: vals.map((v) => (typeof v === 'number' ? v : null)), best: maxBetter.includes(pf.key) ? 'max' : undefined };
   });
   const trustRows: Row[] = [
     {
@@ -101,7 +107,7 @@ export default async function ComparePage({ params }: Props) {
         ),
       ),
     },
-    { key: 'confirmed', label: t('confirmed'), values: L.map((l) => (l.lastConfirmedAt ? formatDateKa(l.lastConfirmedAt) : t('dash'))), numbers: L.map((l) => (l.lastConfirmedAt ? new Date(l.lastConfirmedAt).setHours(0, 0, 0, 0) : null)), best: 'max' },
+    { key: 'confirmed', label: t('confirmed'), values: L.map((l) => (l.lastConfirmedAt ? f.date(l.lastConfirmedAt) : t('dash'))), numbers: L.map((l) => (l.lastConfirmedAt ? new Date(l.lastConfirmedAt).setHours(0, 0, 0, 0) : null)), best: 'max' },
     { key: 'score', label: t('score'), values: L.map((l) => num(l.locationScore)), numbers: L.map((l) => l.locationScore), best: 'max' },
   ];
 
@@ -130,7 +136,7 @@ export default async function ComparePage({ params }: Props) {
           <p className="text-small text-muted">{t('title')}</p>
           <h1 className="text-h2 font-semibold md:text-h1">{data.name}</h1>
           <p className="mt-1 text-small text-muted">
-            {t('readOnly')} {t('updated', { date: formatDateKa(data.updatedAt) })}
+            {t('readOnly')} {t('updated', { date: f.date(data.updatedAt) })}
           </p>
         </div>
         <CopyLinkButton path={`/compare/${token}`} label={t('copy')} copiedLabel={t('copied')} />
@@ -150,7 +156,7 @@ export default async function ComparePage({ params }: Props) {
                 {L.map((l) => (
                   <th key={l.id} scope="col" className="min-w-44 px-3 py-3 text-left align-top font-normal">
                     <div className="drawing-grid mb-2 rounded-photo border border-border bg-bg p-1">
-                      <SpacePlan compact areaM2={l.areaM2} widthM={l.passport.widthM} depthM={l.passport.depthM} />
+                      <SpacePlan compact areaM2={l.areaM2} widthM={l.passport.widthM} depthM={l.passport.depthM} locale={f.locale} />
                     </div>
                     <Link href={`/listings/${l.slug}`} className="line-clamp-3 font-semibold leading-snug hover:text-link">
                       {l.title}

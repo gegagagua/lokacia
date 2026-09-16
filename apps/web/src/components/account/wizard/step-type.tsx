@@ -1,12 +1,14 @@
 'use client';
 import { useTranslations } from 'next-intl';
-import { DEAL_TYPES, DEAL_TYPE_LABELS_KA, type SessionUser } from '@lokacia/contracts';
+import { DEAL_TYPES, type SessionUser } from '@lokacia/contracts';
+import { useFormat } from '@/i18n/use-format';
 import { Field, Input, RadioGroup, Select } from '@lokacia/ui';
 import { ChipToggle, StepSection } from './parts';
 import type { BusinessTypeOption, WizardForm } from './types';
 
 export function StepType({ form, set, types, user, isEdit, errors }: { form: WizardForm; set: (p: Partial<WizardForm>) => void; types: BusinessTypeOption[]; user: SessionUser; isEdit: boolean; errors: Record<string, string> }) {
   const t = useTranslations('wizard.type');
+  const f = useFormat();
   const orgs = user.orgs;
   const toggle = (slug: string) => {
     const has = form.businessTypes.includes(slug);
@@ -37,7 +39,7 @@ export function StepType({ form, set, types, user, isEdit, errors }: { form: Wiz
         <div className="mt-3 flex flex-wrap gap-2">
           {DEAL_TYPES.map((d) => (
             <ChipToggle key={d} selected={form.dealType === d} onClick={() => set({ dealType: d })}>
-              {DEAL_TYPE_LABELS_KA[d]}
+              {f.dealType(d)}
             </ChipToggle>
           ))}
         </div>

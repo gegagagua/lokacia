@@ -1,10 +1,11 @@
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import { getTranslations } from 'next-intl/server';
 import { Logo } from '@lokacia/ui';
 
 export async function SiteFooter() {
   const t = await getTranslations('common.footer');
   const n = await getTranslations('common.nav');
+  const c = await getTranslations('meta.cities');
   const cols = [
     { title: t('product'), links: [{ href: '/search', label: n('search') }, { href: '/map', label: n('map') }, { href: '/demand', label: n('demand') }, { href: '/services', label: n('services') }, { href: '/projects', label: n('developers') }] },
     { title: t('brokers'), links: [{ href: '/pricing', label: t('pricing') }, { href: '/reports', label: t('reports') }, { href: '/api-access', label: t('api') }, { href: '/brokers', label: t('brokers') }] },
@@ -35,7 +36,7 @@ export async function SiteFooter() {
       <div className="border-t border-border">
         <div className="container-page flex flex-wrap items-center justify-between gap-2 py-4 text-small text-muted">
           <span>© {new Date().getFullYear()} lokacia.ge. {t('rights')}</span>
-          <span>თბილისი · ბათუმი · ქუთაისი · რუსთავი</span>
+          <span>{[c('tbilisi'), c('batumi'), c('kutaisi'), c('rustavi')].join(' · ')}</span>
         </div>
       </div>
     </footer>

@@ -74,5 +74,13 @@
     "byEndpoint": "მოთხოვნები მეთოდების მიხედვით",
     "endpoint": "მეთოდი",
     "requests": "მოთხოვნები"
+  },
+  "scopeLabels": {
+    "districts:read": "რაიონების სტატისტიკა",
+    "prices:read": "ფასების ინდექსი",
+    "vacancy:read": "ვაკანსიები",
+    "traffic:read": "ფეხით მოსიარულეთა ნაკადი",
+    "scores:read": "ლოკაციის ქულები",
+    "reports:read": "PDF ბაზრის რეპორტები"
   }
 }

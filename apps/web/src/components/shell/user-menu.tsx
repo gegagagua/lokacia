@@ -1,5 +1,5 @@
 'use client';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import { useTranslations } from 'next-intl';
 import type { SessionUser } from '@lokacia/contracts';
 import { Avatar, Popover } from '@lokacia/ui';
@@ -7,14 +7,15 @@ import { apiFetch } from '@/lib/api-client';
 
 export function UserMenu({ user }: { user: SessionUser }) {
   const t = useTranslations('common.nav');
+  const m = useTranslations('meta.userMenu');
   const crmUrl = process.env.NEXT_PUBLIC_CRM_URL ?? 'http://localhost:3101';
   const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL ?? 'http://localhost:3102';
   const links = [
     { href: '/account', label: t('account') },
-    { href: '/account/listings', label: 'ჩემი განცხადებები' },
+    { href: '/account/listings', label: m('listings') },
     { href: '/account/favorites', label: t('favorites') },
-    { href: '/account/offers', label: 'შეთავაზებები' },
-    { href: '/account/messages', label: 'შეტყობინებები' },
+    { href: '/account/offers', label: m('offers') },
+    { href: '/account/messages', label: m('messages') },
   ];
   return (
     <Popover

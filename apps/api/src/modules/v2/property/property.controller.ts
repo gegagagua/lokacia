@@ -3,7 +3,7 @@ import { ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { z } from 'zod';
 import { leaseCreateSchema, leaseMessageSchema, leaseUpdateSchema, maintenanceCreateSchema, maintenanceUpdateSchema, utilityReadingSchema } from '@lokacia/contracts';
-import { CurrentUser, SkipAudit } from '../../../common/decorators';
+import { CurrentUser, NoImpersonation, SkipAudit } from '../../../common/decorators';
 import type { AppRequest, AuthUser } from '../../../common/request';
 import { ApiZodBody, ZBody } from '../../../common/zod';
 import { PropertyService } from './property.service';
@@ -38,6 +38,7 @@ export class PropertyController {
   }
 
   @Post('rent-invoices/:id/pay')
+  @NoImpersonation()
   @HttpCode(200)
   pay(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     return this.property.pay(user, uuid.parse(id));

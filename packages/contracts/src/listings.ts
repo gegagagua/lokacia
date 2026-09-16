@@ -21,6 +21,13 @@ export const SEARCH_SORT_LABELS_KA: Record<SearchSort, string> = {
   score_desc: 'ლოკაციის ქულა',
 };
 
+/** Sort labels per locale (Phase 22). */
+export const SEARCH_SORT_LABELS: Record<'ka' | 'en' | 'ru', Record<SearchSort, string>> = {
+  ka: SEARCH_SORT_LABELS_KA,
+  en: { relevance: 'Relevance', newest: 'Newest', price_asc: 'Price: low to high', price_desc: 'Price: high to low', area_desc: 'Area: largest first', price_m2_asc: 'Price per m²', score_desc: 'Location score' },
+  ru: { relevance: 'По релевантности', newest: 'Сначала новые', price_asc: 'Цена: по возрастанию', price_desc: 'Цена: по убыванию', area_desc: 'Площадь: по убыванию', price_m2_asc: 'Цена за м²', score_desc: 'Оценка локации' },
+};
+
 /** Passport filters: booleans must be true; numerics are minimums (`ceilingM=3` → ceiling ≥ 3 m). */
 const passportFilterShape = Object.fromEntries(
   PASSPORT_KEYS.map((k) => [k, z.union([boolish, numish]).optional()]),
@@ -182,6 +189,9 @@ export type ListingCard = {
   id: string;
   slug: string;
   title: string;
+  /** Per-locale title (Phase 22); UI falls back to `title` (ka) when empty. */
+  titleEn?: string | null;
+  titleRu?: string | null;
   dealType: DealType;
   status: ListingStatus;
   businessTypes: string[];
@@ -193,6 +203,8 @@ export type ListingCard = {
   address: string;
   districtName: string | null;
   districtSlug: string | null;
+  districtNameEn?: string | null;
+  districtNameRu?: string | null;
   lat: number | null;
   lng: number | null;
   isOwner: boolean;

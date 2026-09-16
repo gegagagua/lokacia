@@ -2,8 +2,9 @@
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
 import { Calculator } from 'lucide-react';
-import { estimateMonthlyCost, formatMoney, formatNumber, type ListingDetail } from '@lokacia/contracts';
+import { estimateMonthlyCost, type ListingDetail } from '@lokacia/contracts';
 import { Switch, cn } from '@lokacia/ui';
+import { useFormat } from '@/i18n/use-format';
 
 export type CalcType = { slug: string; nameKa: string; utilityCoef: number; fitoutPerM2Minor: number };
 
@@ -24,6 +25,9 @@ function Row({ label, value, strong, hint }: { label: string; value: string; str
 /** P9: real monthly cost — rent + utilities (area × business-type coefficient) + service fee + deposit + fit-out. */
 export function CostCalculator({ listing: l, types }: { listing: ListingDetail; types: CalcType[] }) {
   const t = useTranslations('listing.calculator');
+  const fmt = useFormat();
+  const formatMoney = fmt.money;
+  const formatNumber = fmt.number;
   const [slug, setSlug] = React.useState(types[0]?.slug ?? '');
   const [months, setMonths] = React.useState<(typeof FITOUT_MONTHS)[number]>(24);
   const [withFitout, setWithFitout] = React.useState(true);
@@ -40,7 +44,7 @@ export function CostCalculator({ listing: l, types }: { listing: ListingDetail; 
           {t('saleTitle')}
         </h2>
         <dl className="mt-3">
-          <Row label={t('pricePerM2')} value={`${formatMoney(perM2, l.currency)} / მ²`} />
+          <Row label={t('pricePerM2')} value={`${formatMoney(perM2, l.currency)} / ${fmt.areaUnit}`} />
           <Row label={t('spacePrice')} value={formatMoney(l.priceMinor, l.currency)} />
           {equipmentMinor > 0 && <Row label={t('equipmentPrice')} value={formatMoney(equipmentMinor, l.currency)} />}
           {equipmentMinor > 0 && <Row strong label={t('total')} value={formatMoney(l.priceMinor + equipmentMinor, l.currency)} />}

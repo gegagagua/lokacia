@@ -12,6 +12,7 @@ import { ENV, type Env } from '../../config/env';
 import { DbService } from '../../common/db.service';
 import { problems, ProblemException } from '../../common/problem';
 import { QueueService } from '../../common/queue.service';
+import { RateLimitService } from '../../common/redis.service';
 import { SettingsService } from '../../common/settings.service';
 import type { AuthUser } from '../../common/request';
 import { PAYMENTS, type PaymentProvider } from '../../integrations/payments/payments';
@@ -55,6 +56,8 @@ registerTemplates({
 });
 
 export const PROMO_LINE_KA = 'უფასო პრომო-პერიოდში';
+/** invoices/payments.amount_minor are int4 columns (≈ 21.4M ₾). */
+export const MAX_INVOICE_MINOR = 2_000_000_000;
 
 @Injectable()
 export class BillingService implements OnModuleInit {
@@ -71,6 +74,7 @@ export class BillingService implements OnModuleInit {
     private readonly reports: ReportsService,
     @Inject(PAYMENTS) readonly provider: PaymentProvider,
     @Inject(ENV) private readonly env: Env,
+    private readonly rate: RateLimitService,
   ) {}
 
   onModuleInit() {
@@ -126,6 +130,14 @@ export class BillingService implements OnModuleInit {
     if (!(await this.managedOrgIds(user.id)).includes(orgId)) throw problems.forbidden('ორგანიზაციის გამოწერას მართავს მხოლოდ მენეჯერი');
   }
 
+  private async assertOrgMember(user: AuthUser, orgId: string) {
+    if (user.role === 'admin') return;
+    const m = await this.dbs.db.query.memberships.findFirst({
+      where: and(eq(memberships.orgId, orgId), eq(memberships.userId, user.id), eq(memberships.active, true), isNull(memberships.deletedAt)),
+    });
+    if (!m) throw problems.forbidden('თქვენ არ ხართ ამ ორგანიზაციის წევრი');
+  }
+
   private async canSeeInvoice(user: AuthUser, inv: InvoiceRow) {
     if (user.role === 'admin') return true;
     if (inv.userId === user.id) return true;
@@ -140,6 +152,8 @@ export class BillingService implements OnModuleInit {
       const existing = await this.dbs.db.query.payments.findFirst({ where: eq(payments.idempotencyKey, idem) });
       if (existing) return this.responseFor(existing);
     }
+    // invoice/checkout spam (and launch-promo abuse: every promo checkout settles instantly)
+    await this.rate.hit(`checkout:user:${user.id}`, 30, 3600);
     const plan = await this.plan(input.planKey);
     const returnPath = input.returnPath ?? '/account/billing';
     const base = { userId: user.id, returnPath, idempotencyKey: idem, allowPromo: true, provider: input.provider };
@@ -157,6 +171,7 @@ export class BillingService implements OnModuleInit {
         if (!input.districtId) throw problems.badRequest('districtId სავალდებულოია');
         const district = await this.dbs.db.query.districts.findFirst({ where: (d, { eq: e }) => e(d.id, input.districtId!) });
         if (!district) throw problems.notFound('რაიონი');
+        if (input.orgId) await this.assertOrgMember(user, input.orgId);
         const [purchase] = await this.dbs.db
           .insert(reportPurchases)
           .values({ userId: user.id, orgId: input.orgId ?? null, districtId: district.id, businessType: input.businessType ?? null, productKey: plan.key, status: 'pending' })
@@ -224,14 +239,27 @@ export class BillingService implements OnModuleInit {
     };
   }
 
+  /** Checkout response for an invoice that still has an unpaid in-flight payment (re-used instead of issuing a second invoice). */
+  async openCheckout(invoiceId: string): Promise<CheckoutResponse | null> {
+    const inv = await this.dbs.db.query.invoices.findFirst({ where: eq(invoices.id, invoiceId) });
+    if (!inv || inv.status !== 'open') return null;
+    const p = await this.dbs.db.query.payments.findFirst({ where: and(eq(payments.invoiceId, invoiceId), inArray(payments.status, ['created', 'pending'])), orderBy: desc(payments.createdAt) });
+    return p ? this.responseFor(p) : null;
+  }
+
   /** Invoice + payment (idempotent) → provider hosted checkout; instant settlement for promo / zero amount. */
   async createPayment(input: PaymentInput): Promise<CheckoutResponse> {
     if (input.idempotencyKey) {
       const existing = await this.dbs.db.query.payments.findFirst({ where: eq(payments.idempotencyKey, input.idempotencyKey) });
       if (existing) return this.responseFor(existing);
     }
+    for (const l of input.lines) {
+      if (!Number.isSafeInteger(l.amountMinor) || l.amountMinor < 0 || !Number.isSafeInteger(l.qty) || l.qty < 1) throw problems.badRequest('არასწორი თანხა');
+    }
     const promo = input.allowPromo && (await this.settings.promoActive());
     const total = input.lines.reduce((a, l) => a + l.amountMinor * l.qty, 0);
+    // invoices.amount_minor is int4: refuse instead of failing with a DB overflow
+    if (total > MAX_INVOICE_MINOR) throw new ProblemException(422, 'amount-too-large', 'თანხა ძალიან დიდია', `max ${MAX_INVOICE_MINOR} tetri`);
     const free = promo || total === 0;
     const lines = free && total > 0 ? [...input.lines.map((l) => ({ ...l, name: `${l.name} (${PROMO_LINE_KA})`, amountMinor: 0 }))] : input.lines;
     const amountMinor = free ? 0 : total;
@@ -239,16 +267,26 @@ export class BillingService implements OnModuleInit {
     const paymentId = uuidv7();
     const now = new Date();
     const provider = free ? 'promo' : this.provider.name;
-    await this.dbs.db.transaction(async (tx) => {
-      await tx.insert(invoices).values({
-        id: invoiceId, number: this.invoiceNumber(), orgId: input.orgId ?? null, userId: input.userId, subscriptionId: input.subscriptionId ?? null, purpose: input.purpose, refId: input.refId ?? null,
-        lines, amountMinor, status: 'open', dueAt: new Date(now.getTime() + 3 * 86_400_000),
+    try {
+      await this.dbs.db.transaction(async (tx) => {
+        await tx.insert(invoices).values({
+          id: invoiceId, number: this.invoiceNumber(), orgId: input.orgId ?? null, userId: input.userId, subscriptionId: input.subscriptionId ?? null, purpose: input.purpose, refId: input.refId ?? null,
+          lines, amountMinor, status: 'open', dueAt: new Date(now.getTime() + 3 * 86_400_000),
+        });
+        await tx.insert(payments).values({
+          id: paymentId, invoiceId, amountMinor, provider, idempotencyKey: input.idempotencyKey ?? `pay:${paymentId}`, status: 'created',
+          raw: { ...input.meta, returnPath: input.returnPath, description: input.description, promo, originalAmountMinor: total },
+        });
       });
-      await tx.insert(payments).values({
-        id: paymentId, invoiceId, amountMinor, provider, idempotencyKey: input.idempotencyKey ?? `pay:${paymentId}`, status: 'created',
-        raw: { ...input.meta, returnPath: input.returnPath, description: input.description, promo, originalAmountMinor: total },
-      });
-    });
+    } catch (e) {
+      // a concurrent request with the same idempotency key won the unique index → return its payment instead of a 500
+      const err = e as { code?: string; cause?: { code?: string } };
+      if ((err.code ?? err.cause?.code) === '23505' && input.idempotencyKey) {
+        const existing = await this.dbs.db.query.payments.findFirst({ where: eq(payments.idempotencyKey, input.idempotencyKey) });
+        if (existing) return this.responseFor(existing);
+      }
+      throw e;
+    }
     if (free) {
       await this.markPaid(paymentId, { providerRef: `promo_${paymentId}` });
     } else {
@@ -297,18 +335,43 @@ export class BillingService implements OnModuleInit {
       .values({ provider: providerName, eventId: event.eventId, payload: event.raw as object })
       .onConflictDoNothing()
       .returning({ id: webhookEvents.id });
-    if (!inserted.length) return { ok: true, duplicate: true };
-    const payment = await this.dbs.db.query.payments.findFirst({ where: and(eq(payments.providerRef, event.providerRef), eq(payments.provider, providerName)) });
-    if (payment) {
-      if (event.amountMinor !== undefined && event.amountMinor !== payment.amountMinor && event.status === 'succeeded') {
-        this.logger.warn(`amount mismatch for payment ${payment.id}: ${event.amountMinor} != ${payment.amountMinor}`);
-        await this.markFailed(payment.id, 'amount mismatch');
-      } else if (event.status === 'succeeded') await this.markPaid(payment.id, {});
-      else if (event.status === 'failed') await this.markFailed(payment.id, 'provider declined');
-      else if (event.status === 'refunded') await this.dbs.db.update(payments).set({ status: 'refunded' }).where(eq(payments.id, payment.id));
+    let eventRowId = inserted[0]?.id;
+    if (!eventRowId) {
+      // Replay of a processed event is a no-op. An event recorded but never processed (crash mid-way) is processed again:
+      // every state change below is a conditional update, so duplicate/concurrent processing stays idempotent.
+      const prev = await this.dbs.db.query.webhookEvents.findFirst({ where: and(eq(webhookEvents.provider, providerName), eq(webhookEvents.eventId, event.eventId)) });
+      if (!prev || prev.processedAt) return { ok: true, duplicate: true };
+      eventRowId = prev.id;
     }
-    await this.dbs.db.update(webhookEvents).set({ processedAt: new Date() }).where(eq(webhookEvents.id, inserted[0]!.id));
-    return { ok: true, duplicate: false, matched: !!payment };
+    const payment = await this.dbs.db.query.payments.findFirst({ where: and(eq(payments.providerRef, event.providerRef), eq(payments.provider, providerName)) });
+    let outcome = payment ? 'ignored' : 'unknown-payment';
+    if (payment) {
+      const inv = await this.dbs.db.query.invoices.findFirst({ where: eq(invoices.id, payment.invoiceId) });
+      if (event.status === 'succeeded') {
+        // settle only when the PSP confirms exactly the invoiced amount and currency
+        const amountOk = event.amountMinor !== undefined && event.amountMinor === payment.amountMinor;
+        const currencyOk = !event.currency || event.currency === (inv?.currency ?? 'GEL');
+        if (!amountOk || !currencyOk) {
+          this.logger.warn(`amount/currency mismatch for payment ${payment.id}: ${event.amountMinor} ${event.currency ?? ''} != ${payment.amountMinor} ${inv?.currency ?? ''}`);
+          await this.markFailed(payment.id, 'amount mismatch');
+          outcome = 'mismatch';
+        } else {
+          await this.markPaid(payment.id, {});
+          outcome = 'succeeded';
+        }
+      } else if (event.status === 'failed') {
+        await this.markFailed(payment.id, 'provider declined');
+        outcome = 'failed';
+      } else if (event.status === 'refunded') {
+        // forward-only: only a settled payment can become refunded
+        const [r] = await this.dbs.db.update(payments).set({ status: 'refunded' }).where(and(eq(payments.id, payment.id), eq(payments.status, 'succeeded'))).returning({ id: payments.id });
+        outcome = r ? 'refunded' : 'ignored';
+      }
+    } else {
+      this.logger.warn(`webhook ${providerName} event ${event.eventId} for unknown payment ref ${event.providerRef}`);
+    }
+    await this.dbs.db.update(webhookEvents).set({ processedAt: new Date() }).where(eq(webhookEvents.id, eventRowId));
+    return { ok: true, duplicate: false, matched: !!payment, outcome };
   }
 
   /** Dev helper for the hosted mock checkout page: sign a webhook the same way the PSP would and process it. */
@@ -326,14 +389,27 @@ export class BillingService implements OnModuleInit {
   }
 
   async markPaid(paymentId: string, patch: { providerRef?: string }) {
+    // forward-only: created/pending/failed → succeeded (a refunded or already-succeeded payment never settles again)
     const [p] = await this.dbs.db
       .update(payments)
       .set({ status: 'succeeded', ...(patch.providerRef ? { providerRef: patch.providerRef } : {}) })
-      .where(and(eq(payments.id, paymentId), sql`${payments.status} <> 'succeeded'`))
+      .where(and(eq(payments.id, paymentId), inArray(payments.status, ['created', 'pending', 'failed'])))
       .returning();
     if (!p) return; // already processed (idempotent)
-    const [inv] = await this.dbs.db.update(invoices).set({ status: 'paid', paidAt: new Date() }).where(eq(invoices.id, p.invoiceId)).returning();
-    if (!inv) return;
+    // the invoice settles (and its effects run) exactly once, even if several payment attempts for it succeed
+    const [inv] = await this.dbs.db
+      .update(invoices)
+      .set({ status: 'paid', paidAt: new Date() })
+      .where(and(eq(invoices.id, p.invoiceId), ne(invoices.status, 'paid'), ne(invoices.status, 'void')))
+      .returning();
+    if (!inv) {
+      this.logger.error(`payment ${p.id} succeeded for an invoice that is already settled — needs a refund`);
+      await this.dbs.db
+        .update(payments)
+        .set({ raw: sql`coalesce(${payments.raw}, '{}'::jsonb) || ${JSON.stringify({ duplicateSettlement: true, needsRefund: true })}::jsonb` })
+        .where(eq(payments.id, p.id));
+      return;
+    }
     try {
       await this.applyEffects(inv);
     } catch (e) {

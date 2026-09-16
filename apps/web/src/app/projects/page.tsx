@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Building2 } from 'lucide-react';
@@ -6,7 +6,8 @@ import { EmptyState } from '@lokacia/ui';
 import { getProjects } from '@/components/portal/data';
 import { ProjectCard } from '@/components/portal/projects/project-card';
 import { Breadcrumbs, JsonLd, pageMetadata } from '@/components/portal/seo';
-import { CITY_NAMES_KA, absUrl } from '@/lib/site';
+import { absUrl } from '@/lib/site';
+import { getFormat } from '@/i18n/server';
 
 export const revalidate = 300;
 
@@ -18,6 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function ProjectsPage({ searchParams }: { searchParams: Promise<{ city?: string }> }) {
   const { city } = await searchParams;
   const t = await getTranslations('projects');
+  const f = await getFormat();
   const all = await getProjects().catch(() => []);
   const cities = [...new Set(all.map((p) => p.city).filter((c): c is string => !!c))];
   const items = city ? all.filter((p) => p.city === city) : all;
@@ -37,7 +39,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
           </Link>
           {cities.map((c) => (
             <Link key={c} href={`/projects?city=${c}`} className={chip(city === c)} aria-current={city === c ? 'page' : undefined}>
-              {CITY_NAMES_KA[c] ?? c}
+              {f.city(c)}
             </Link>
           ))}
         </nav>

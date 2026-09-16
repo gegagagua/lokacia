@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import { useTranslations } from 'next-intl';
 import { Button, Select } from '@lokacia/ui';
 import { CheckoutButton } from '@/components/billing/checkout-button';

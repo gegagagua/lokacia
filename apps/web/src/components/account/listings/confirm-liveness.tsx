@@ -1,15 +1,17 @@
 'use client';
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import { useTranslations } from 'next-intl';
 import { CheckCircle2, CircleOff, LinkIcon } from 'lucide-react';
-import { formatDateTimeKa, relativeDaysKa, type ListingStatus, type LivenessCheckInfo } from '@lokacia/contracts';
+import type { ListingStatus, LivenessCheckInfo } from '@lokacia/contracts';
+import { useFormat } from '@/i18n/use-format';
 import { Button } from '@lokacia/ui';
 import { apiFetch, ClientApiError } from '@/lib/api-client';
 import { ListingStatusBadge } from '../status-badges';
 
 export function ConfirmLiveness({ info, token }: { info: LivenessCheckInfo; token: string }) {
   const t = useTranslations('myListings.confirm');
+  const f = useFormat();
   const l = info.listing;
   const [busy, setBusy] = React.useState<null | 'available' | 'rented'>(null);
   const [done, setDone] = React.useState<null | { status: string; answer: 'available' | 'rented' }>(null);
@@ -40,7 +42,7 @@ export function ConfirmLiveness({ info, token }: { info: LivenessCheckInfo; toke
           </div>
           <h1 className="text-h3 font-semibold leading-snug">{l.title}</h1>
           <p className="mt-1 text-small text-muted">{l.address}</p>
-          <p className="mt-1 text-small text-muted">{l.lastConfirmedAt ? t('lastConfirmed', { when: relativeDaysKa(l.lastConfirmedAt) }) : t('never')}</p>
+          <p className="mt-1 text-small text-muted">{l.lastConfirmedAt ? t('lastConfirmed', { when: f.relativeDays(l.lastConfirmedAt) }) : t('never')}</p>
         </div>
 
         <div aria-live="polite">
@@ -78,7 +80,7 @@ export function ConfirmLiveness({ info, token }: { info: LivenessCheckInfo; toke
               )}
               {info.check.result === 'pending' && (
                 <p className="text-small text-muted">
-                  {t('expiresAt', { date: formatDateTimeKa(info.check.expiresAt) })}. {t('hiddenNote')}
+                  {t('expiresAt', { date: f.dateTime(info.check.expiresAt) })}. {t('hiddenNote')}
                 </p>
               )}
             </div>

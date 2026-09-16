@@ -13,7 +13,7 @@ function cookieValue(header: string | undefined, name: string) {
   return undefined;
 }
 
-const origins = [process.env.APP_URL ?? 'http://localhost:3100', process.env.CRM_URL ?? 'http://localhost:3101', process.env.ADMIN_URL ?? 'http://localhost:3102'];
+const origins = [process.env.APP_URL ?? 'http://localhost:3100', process.env.CRM_URL ?? 'http://localhost:3101', process.env.ADMIN_URL ?? 'http://localhost:3102', process.env.MOBILE_WEB_URL || (process.env.NODE_ENV !== 'production' ? 'http://localhost:8190' : '')].filter(Boolean);
 
 /**
  * WebSocket gateway (`/v1/ws`, socket.io). Authenticates from the `lk_at` cookie or `auth.token`,

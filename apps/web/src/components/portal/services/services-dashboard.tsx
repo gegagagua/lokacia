@@ -1,16 +1,16 @@
 'use client';
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import useSWR, { type KeyedMutator } from 'swr';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Check } from 'lucide-react';
-import {
-  SERVICE_ORDER_STATUS_LABELS_KA, formatDateKa, formatMoney, type ProviderDto, type ServiceOrderDto, type ServiceOrderStatus,
-} from '@lokacia/contracts';
+import type { ProviderDto, ServiceOrderDto, ServiceOrderStatus } from '@lokacia/contracts';
 import { Badge, Button, EmptyState, Field, Input, Skeleton, Stat, Tabs, Textarea, useToast } from '@lokacia/ui';
 import { apiFetch, ClientApiError, fetcher } from '@/lib/api-client';
-import { categoryName } from './provider-card';
+import { useLocalizedPath } from '@/i18n/link';
+import { useFormat } from '@/i18n/use-format';
+import { useCategoryName } from './provider-card';
 
 type MyProvider = ProviderDto & { ledger: { revenueMinor: number; commissionMinor: number; completed: number } };
 const FLOW: ServiceOrderStatus[] = ['requested', 'quoted', 'accepted', 'in_progress', 'completed'];
@@ -30,7 +30,7 @@ function Timeline({ status }: { status: ServiceOrderStatus }) {
           <span className={`grid size-5 place-items-center rounded-full border ${i <= idx ? 'border-primary bg-primary text-primary-contrast' : 'border-border-strong text-muted'}`}>
             {i < idx ? <Check className="size-3" strokeWidth={2} aria-hidden /> : <span className="tabular">{i + 1}</span>}
           </span>
-          <span className={i === idx ? 'font-medium' : 'text-muted'}>{SERVICE_ORDER_STATUS_LABELS_KA[s]}</span>
+          <span className={i === idx ? 'font-medium' : 'text-muted'}>{t(`status.${s}`)}</span>
           {i < FLOW.length - 1 && <span aria-hidden className="mx-1 h-px w-4 bg-border-strong" />}
         </li>
       ))}
@@ -62,15 +62,17 @@ function useAction(mutate: KeyedMutator<ServiceOrderDto[]>) {
 
 function OrderHeader({ o }: { o: ServiceOrderDto }) {
   const t = useTranslations('services.orders');
+  const f = useFormat();
+  const catName = useCategoryName();
   return (
     <div className="flex flex-wrap items-start justify-between gap-2">
       <div className="min-w-0">
         <p className="text-small text-muted">
-          {categoryName(o.category)} · {t('created', { date: formatDateKa(o.createdAt) })}
+          {catName(o.category)} · {t('created', { date: f.date(o.createdAt) })}
         </p>
         <h3 className="mt-0.5 font-semibold">{o.role === 'requester' ? <Link href={`/services/${o.provider.slug}`} className="hover:text-link">{o.provider.name}</Link> : `${t('requester')}: ${o.requester.name}`}</h3>
       </div>
-      <Badge tone={statusTone(o.status)}>{SERVICE_ORDER_STATUS_LABELS_KA[o.status]}</Badge>
+      <Badge tone={statusTone(o.status)}>{t(`status.${o.status}`)}</Badge>
     </div>
   );
 }
@@ -128,6 +130,7 @@ function ReviewForm({ slug, onDone }: { slug: string; onDone: () => void }) {
 
 function RequesterOrders({ orders, mutate }: { orders: ServiceOrderDto[]; mutate: KeyedMutator<ServiceOrderDto[]> }) {
   const t = useTranslations('services.orders');
+  const f = useFormat();
   const { busy, run } = useAction(mutate);
   const [reviewing, setReviewing] = React.useState<string | null>(null);
   if (!orders.length)
@@ -160,7 +163,7 @@ function RequesterOrders({ orders, mutate }: { orders: ServiceOrderDto[]; mutate
           {o.quoteMinor != null && (
             <div className="mt-3 rounded-button border border-border bg-bg px-3 py-2">
               <p className="text-small text-muted">{t('quote')}</p>
-              <p className="compact text-h3 font-semibold tabular">{formatMoney(o.quoteMinor)}</p>
+              <p className="compact text-h3 font-semibold tabular">{f.money(o.quoteMinor)}</p>
               {o.quoteNote && <p className="text-small">{o.quoteNote}</p>}
             </div>
           )}
@@ -231,12 +234,13 @@ function QuoteForm({ o, onSubmit, busy }: { o: ServiceOrderDto; onSubmit: (amoun
 
 function ProviderPanel({ provider, orders, mutate }: { provider: MyProvider; orders: ServiceOrderDto[]; mutate: KeyedMutator<ServiceOrderDto[]> }) {
   const t = useTranslations('services');
+  const f = useFormat();
   const { busy, run } = useAction(mutate);
   return (
     <div className="flex flex-col gap-6">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label={t('ledger.revenue')} value={formatMoney(provider.ledger.revenueMinor)} />
-        <Stat label={t('ledger.commission')} value={formatMoney(provider.ledger.commissionMinor)} />
+        <Stat label={t('ledger.revenue')} value={f.money(provider.ledger.revenueMinor)} />
+        <Stat label={t('ledger.commission')} value={f.money(provider.ledger.commissionMinor)} />
         <Stat label={t('ledger.completed')} value={provider.ledger.completed} />
         <Stat label={t('ledger.rating')} value={provider.rating.toFixed(1)} hint={t('provider.reviewsCount', { count: provider.reviewsCount })} />
       </div>
@@ -266,11 +270,11 @@ function ProviderPanel({ provider, orders, mutate }: { provider: MyProvider; ord
                 <dl className="mt-3 grid grid-cols-2 gap-2 text-small">
                   <div>
                     <dt className="text-muted">{t('orders.amount')}</dt>
-                    <dd className="font-medium tabular">{formatMoney(o.amountMinor)}</dd>
+                    <dd className="font-medium tabular">{f.money(o.amountMinor)}</dd>
                   </div>
                   <div>
                     <dt className="text-muted">{t('orders.commission', { pct: o.commissionPct })}</dt>
-                    <dd className="font-medium tabular">{formatMoney(o.commissionMinor ?? 0)}</dd>
+                    <dd className="font-medium tabular">{f.money(o.commissionMinor ?? 0)}</dd>
                   </div>
                 </dl>
               )}
@@ -312,6 +316,7 @@ function ProviderPanel({ provider, orders, mutate }: { provider: MyProvider; ord
 export function ServicesDashboard({ initialTab }: { initialTab: 'mine' | 'provider' }) {
   const t = useTranslations('services.orders');
   const router = useRouter();
+  const lp = useLocalizedPath();
   const [tab, setTab] = React.useState(initialTab);
   const mine = useSWR<ServiceOrderDto[]>('/services/orders?role=requester', fetcher);
   const provider = useSWR<MyProvider | null>('/services/providers/me', fetcher);
@@ -360,7 +365,7 @@ export function ServicesDashboard({ initialTab }: { initialTab: 'mine' | 'provid
       value={provider.data ? tab : 'mine'}
       onValueChange={(v) => {
         setTab(v as 'mine' | 'provider');
-        router.replace(v === 'provider' ? '/account/services?tab=provider' : '/account/services', { scroll: false });
+        router.replace(lp(v === 'provider' ? '/account/services?tab=provider' : '/account/services'), { scroll: false });
       }}
     />
   );

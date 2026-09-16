@@ -1,22 +1,22 @@
 {
-  "title": "",
-  "subtitle": "",
-  "usersTotal": "",
-  "newUsers": "",
-  "activeListings": "",
-  "pendingHint": "",
-  "revenue30d": "",
-  "mrr": "",
-  "queuesTitle": "",
+  "title": "Обзор",
+  "subtitle": "Состояние платформы и очереди",
+  "usersTotal": "Пользователи",
+  "newUsers": "+{week} за неделю · +{month} за 30 дней",
+  "activeListings": "Активные объявления",
+  "pendingHint": "В очереди модерации: {count}",
+  "revenue30d": "Выручка, 30 дней",
+  "mrr": "Ежемесячная выручка от подписок",
+  "queuesTitle": "Очереди",
   "queues": {
-    "moderation": "",
-    "verifications": "",
-    "feedback": "",
-    "disputes": "",
-    "failedPayments": ""
+    "moderation": "Объявления на модерации",
+    "verifications": "Проверки собственников",
+    "feedback": "Новые отзывы",
+    "disputes": "Споры по эскроу",
+    "failedPayments": "Неуспешные платежи"
   },
-  "listingsByStatus": "",
-  "signups": "",
-  "events": "",
-  "noEvents": ""
+  "listingsByStatus": "Объявления по статусам",
+  "signups": "Регистрации, 30 дней",
+  "events": "События аналитики, 7 дней",
+  "noEvents": "Событий пока нет"
 }

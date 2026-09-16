@@ -4,11 +4,13 @@ import { useTranslations } from 'next-intl';
 import { Download, LogOut, Trash2 } from 'lucide-react';
 import { Button, Card, Dialog, Field, Input, Switch, useToast } from '@lokacia/ui';
 import { apiFetch, ClientApiError } from '@/lib/api-client';
+import { useLocalizedPath } from '@/i18n/link';
 
 const KINDS = ['terms', 'marketing', 'analytics'] as const;
 
 export function PrivacyPanel({ consents }: { consents: { kind: string; granted: boolean }[] }) {
   const t = useTranslations('account.profile');
+  const lp = useLocalizedPath();
   const toast = useToast();
   const [state, setState] = React.useState<Record<string, boolean>>(() => Object.fromEntries(KINDS.map((k) => [k, consents.find((c) => c.kind === k)?.granted ?? false])));
   const [confirmOpen, setConfirmOpen] = React.useState(false);
@@ -29,14 +31,14 @@ export function PrivacyPanel({ consents }: { consents: { kind: string; granted: 
   const logoutAll = async () => {
     setBusy('logout');
     await apiFetch('/auth/logout-all', { method: 'POST' }).catch(() => undefined);
-    window.location.href = '/login';
+    window.location.href = lp('/login');
   };
   const deleteAccount = async () => {
     setBusy('delete');
     try {
       await apiFetch('/users/me', { method: 'DELETE' });
       await apiFetch('/auth/logout', { method: 'POST' }).catch(() => undefined);
-      window.location.href = '/';
+      window.location.href = lp('/');
     } catch (e) {
       setBusy(null);
       toast({ title: e instanceof ClientApiError ? e.message : t('saveError'), tone: 'danger' });

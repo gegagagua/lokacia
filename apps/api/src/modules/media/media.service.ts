@@ -3,7 +3,7 @@ import sharp from 'sharp';
 import { v7 as uuidv7 } from 'uuid';
 import { and, eq, isNull, listingMedia } from '@lokacia/db';
 import { DbService } from '../../common/db.service';
-import { problems } from '../../common/problem';
+import { problems, ProblemException } from '../../common/problem';
 import { QueueService } from '../../common/queue.service';
 import { TokensService } from '../../common/tokens.service';
 import type { AuthUser } from '../../common/request';
@@ -13,6 +13,35 @@ import { ListingReadService } from '../listings/listing-read.service';
 export const MEDIA_KINDS = ['photo', 'video', 'plan', 'pano360', 'document'] as const;
 const ALLOWED = /^(image\/(jpeg|png|webp|heic|heif|avif)|video\/(mp4|webm|quicktime)|application\/pdf|model\/(gltf-binary|gltf\+json|obj|vnd\.usdz\+zip)|application\/octet-stream|audio\/(webm|mpeg|mp4|ogg|wav))$/;
 const VARIANTS = { sm: 480, md: 960, lg: 1600 } as const;
+const MAX_BYTES = 25 * 1024 * 1024;
+/** Stored extensions are an allow-list (the client file name is untrusted): no svg/html/js. */
+const SAFE_EXT = new Set(['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif', 'avif', 'mp4', 'webm', 'mov', 'pdf', 'glb', 'gltf', 'obj', 'usdz', 'm4a', 'mp3', 'ogg', 'wav', 'bin']);
+const IMAGE_FORMATS = new Set(['jpeg', 'png', 'webp', 'heif', 'avif', 'gif', 'tiff']);
+
+/** Content sniffing on the first bytes: rejects markup (SVG/HTML/XML) and files whose bytes contradict the declared type. */
+export function sniffUpload(body: Buffer, contentType: string): { ok: true } | { ok: false; reason: string } {
+  const head = body.subarray(0, 512).toString('latin1').replace(/^\uFEFF|^\xEF\xBB\xBF/, '').trimStart().toLowerCase();
+  const isGltfJson = contentType === 'model/gltf+json' || contentType === 'model/obj';
+  if (!isGltfJson && (head.startsWith('<') || /<(svg|html|script|iframe|body|\?xml)[\s>/]/.test(head))) return { ok: false, reason: 'markup' };
+  const b = body;
+  const at = (off: number, sig: string) => b.subarray(off, off + sig.length).toString('latin1') === sig;
+  if (contentType === 'application/pdf' && !at(0, '%PDF-')) return { ok: false, reason: 'not a pdf' };
+  if (contentType.startsWith('image/')) {
+    const jpeg = b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff;
+    const png = at(0, '\x89PNG');
+    const webp = at(0, 'RIFF') && at(8, 'WEBP');
+    const isoBmff = at(4, 'ftyp'); // heic/heif/avif
+    if (!(jpeg || png || webp || isoBmff)) return { ok: false, reason: 'not an image' };
+  }
+  if (contentType === 'video/mp4' || contentType === 'video/quicktime') {
+    if (!at(4, 'ftyp') && !at(4, 'moov') && !at(4, 'mdat') && !at(4, 'wide')) return { ok: false, reason: 'not a video' };
+  }
+  if (contentType === 'video/webm' || contentType === 'audio/webm') {
+    if (!(b[0] === 0x1a && b[1] === 0x45 && b[2] === 0xdf && b[3] === 0xa3)) return { ok: false, reason: 'not webm' };
+  }
+  if (contentType === 'model/gltf-binary' && !at(0, 'glTF')) return { ok: false, reason: 'not glb' };
+  return { ok: true };
+}
 
 @Injectable()
 export class MediaService implements OnModuleInit {
@@ -31,12 +60,13 @@ export class MediaService implements OnModuleInit {
 
   async createUpload(user: AuthUser, input: { kind: (typeof MEDIA_KINDS)[number]; contentType: string; fileName: string; listingId?: string | null; size?: number }) {
     if (!ALLOWED.test(input.contentType)) throw problems.badRequest('ფაილის ტიპი არ არის დაშვებული');
-    if (input.size && input.size > 25 * 1024 * 1024) throw problems.badRequest('ფაილი 25 მბ-ზე დიდია');
+    if (input.size && input.size > MAX_BYTES) throw problems.badRequest('ფაილი 25 მბ-ზე დიდია');
     if (input.listingId) {
       const l = await this.read.findRaw(input.listingId);
       if (!l || !(await this.read.canManage(l, user))) throw problems.forbidden();
     }
-    const ext = (input.fileName.split('.').pop() ?? 'bin').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 6) || 'bin';
+    const rawExt = input.fileName.includes('.') ? (input.fileName.split('.').pop() ?? '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 6) : '';
+    const ext = SAFE_EXT.has(rawExt) ? rawExt : 'bin';
     const id = uuidv7();
     const key = `uploads/${new Date().toISOString().slice(0, 7)}/${id}/original.${ext}`;
     await this.dbs.db.insert(listingMedia).values({ id, listingId: input.listingId ?? null, uploaderId: user.id, kind: input.kind, url: this.storage.publicUrl(key), storageKey: key, status: 'uploading', sort: 999 });
@@ -60,8 +90,14 @@ export class MediaService implements OnModuleInit {
     if (!this.verifyUploadToken(key, token)) throw problems.forbidden('ატვირთვის ბმულის ვადა გაუვიდა');
     const media = await this.dbs.db.query.listingMedia.findFirst({ where: eq(listingMedia.storageKey, key) });
     if (!media) throw problems.notFound('ფაილი');
+    if (media.status !== 'uploading' || media.deletedAt) throw problems.conflict('ფაილი უკვე ატვირთულია');
     if (!body.length) throw problems.badRequest('ფაილი ცარიელია');
-    await this.storage.put(key, body, contentType);
+    if (body.length > MAX_BYTES) throw problems.badRequest('ფაილი 25 მბ-ზე დიდია');
+    const ct = contentType.split(';')[0]!.trim().toLowerCase();
+    if (!ALLOWED.test(ct)) throw problems.badRequest('ფაილის ტიპი არ არის დაშვებული');
+    const sniff = sniffUpload(body, ct);
+    if (!sniff.ok) throw new ProblemException(415, 'invalid-file', 'ფაილის შიგთავსი არ ემთხვევა ტიპს', sniff.reason);
+    await this.storage.put(key, body, ct);
     await this.complete(media.id);
     return { id: media.id };
   }
@@ -81,6 +117,13 @@ export class MediaService implements OnModuleInit {
       await this.dbs.db.update(listingMedia).set({ status: 'failed' }).where(eq(listingMedia.id, mediaId));
       return;
     }
+    // also covers direct-to-bucket (S3) uploads that never pass through receiveLocal
+    if (original.length > MAX_BYTES || !sniffUpload(original, 'application/octet-stream').ok) {
+      this.logger.warn(`process ${mediaId}: rejected upload (size ${original.length} or markup content)`);
+      await this.storage.delete(m.storageKey);
+      await this.dbs.db.update(listingMedia).set({ status: 'failed' }).where(eq(listingMedia.id, mediaId));
+      return;
+    }
     const isImage = ['photo', 'plan', 'pano360'].includes(m.kind);
     if (!isImage) {
       await this.dbs.db.update(listingMedia).set({ status: 'ready' }).where(eq(listingMedia.id, mediaId));
@@ -89,6 +132,8 @@ export class MediaService implements OnModuleInit {
     try {
       const base = sharp(original, { failOn: 'none' }).rotate(); // rotate() applies EXIF orientation; output drops metadata
       const meta = await base.metadata();
+      // magic-byte check via libvips: only real raster images are processed (SVG is decodable by sharp → refused)
+      if (!meta.format || !IMAGE_FORMATS.has(meta.format)) throw new Error(`unsupported image format ${meta.format ?? 'unknown'}`);
       const variants: Record<string, string> = {};
       const dir = m.storageKey.replace(/\/[^/]+$/, '');
       for (const [name, width] of Object.entries(VARIANTS)) {

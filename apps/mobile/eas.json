@@ -1,0 +1,39 @@
+{
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "base": {
+      "node": "24.18.1",
+      "pnpm": "10.34.5"
+    },
+    "development": {
+      "extends": "base",
+      "developmentClient": true,
+      "distribution": "internal",
+      "channel": "development",
+      "env": { "APP_VARIANT": "development", "EXPO_PUBLIC_API_URL": "http://localhost:4000" },
+      "ios": { "simulator": true }
+    },
+    "preview": {
+      "extends": "base",
+      "distribution": "internal",
+      "channel": "preview",
+      "env": { "APP_VARIANT": "preview", "EXPO_PUBLIC_API_URL": "https://api.staging.lokacia.ge" },
+      "android": { "buildType": "apk" }
+    },
+    "production": {
+      "extends": "base",
+      "channel": "production",
+      "autoIncrement": true,
+      "env": { "APP_VARIANT": "production", "EXPO_PUBLIC_API_URL": "https://api.lokacia.ge" }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": { "ascAppId": "SET_IN_HUMAN_TODO", "appleTeamId": "SET_IN_HUMAN_TODO" },
+      "android": { "track": "internal", "serviceAccountKeyPath": "./secrets/play-service-account.json" }
+    }
+  }
+}

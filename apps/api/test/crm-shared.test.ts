@@ -40,11 +40,11 @@ describe('CRM shared: context, permissions, call log, search, tenant isolation',
     expect(res.status).toBe(201);
     const tl = await manager.get(`/v1/crm/activities?entity=contact&entityId=${contact!.id}`);
     expect(tl.body[0]).toMatchObject({ type: 'call', payload: { outcome: 'answered', durationSec: 95 } });
-    // cross-org: other agency cannot read this timeline (RLS returns nothing, guard blocks the header)
+    // cross-org: other agency cannot read this timeline (record not visible → 404, RLS would return nothing anyway)
     const other = await crmLogin(ctx.app, PHONES.agency2Manager);
     const leak = await other.get(`/v1/crm/activities?entity=contact&entityId=${contact!.id}`);
-    expect(leak.status).toBe(200);
-    expect(leak.body).toHaveLength(0);
+    expect(leak.status).toBe(404);
+    expect(leak.body.id).toBeUndefined();
   });
 
   it('searches contacts by name and phone digits', async () => {

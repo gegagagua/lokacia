@@ -1,7 +1,8 @@
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import { getTranslations } from 'next-intl/server';
 import { BadgeCheck, Building2, CalendarClock, MapPin } from 'lucide-react';
-import { formatDateKa, formatMoney, formatNumber, type ProjectDto } from '@lokacia/contracts';
+import type { ProjectDto } from '@lokacia/contracts';
+import { getFormat } from '@/i18n/server';
 import { Badge } from '@lokacia/ui';
 
 export function monthsUntil(date: string, now = new Date()) {
@@ -12,6 +13,7 @@ export function monthsUntil(date: string, now = new Date()) {
 /** Project card for the /projects list (cadastral style: facade drawing, precise figures). */
 export async function ProjectCard({ project: p, priority }: { project: ProjectDto; priority?: boolean }) {
   const t = await getTranslations('projects');
+  const f = await getFormat();
   const months = monthsUntil(p.completionDate);
   return (
     <article className="group relative flex h-full flex-col overflow-hidden rounded-card border border-border bg-surface transition-colors duration-150 hover:border-border-strong">
@@ -49,7 +51,7 @@ export async function ProjectCard({ project: p, priority }: { project: ProjectDt
         <dl className="mt-auto grid grid-cols-3 gap-2 border-t border-border pt-3 text-small">
           <div>
             <dt className="text-muted">{t('completion')}</dt>
-            <dd className="tabular font-medium">{formatDateKa(p.completionDate)}</dd>
+            <dd className="tabular font-medium">{f.date(p.completionDate)}</dd>
           </div>
           <div>
             <dt className="text-muted">{t('units')}</dt>
@@ -57,10 +59,10 @@ export async function ProjectCard({ project: p, priority }: { project: ProjectDt
           </div>
           <div>
             <dt className="text-muted">{t('col.area')}</dt>
-            <dd className="tabular font-medium">{p.minAreaM2 != null && p.maxAreaM2 != null ? t('areaRange', { min: formatNumber(p.minAreaM2), max: formatNumber(p.maxAreaM2) }) : '—'}</dd>
+            <dd className="tabular font-medium">{p.minAreaM2 != null && p.maxAreaM2 != null ? t('areaRange', { min: f.number(p.minAreaM2), max: f.number(p.maxAreaM2) }) : '—'}</dd>
           </div>
         </dl>
-        {p.minPriceMinor != null && <p className="compact text-[18px] font-semibold tabular">{t('priceFrom', { price: formatMoney(p.minPriceMinor) })}</p>}
+        {p.minPriceMinor != null && <p className="compact text-[18px] font-semibold tabular">{t('priceFrom', { price: f.money(p.minPriceMinor) })}</p>}
       </div>
     </article>
   );

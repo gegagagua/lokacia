@@ -1,26 +1,22 @@
 import type { Metadata } from 'next';
+import { pageMetadata } from '@/components/portal/seo';
 import { getTranslations } from 'next-intl/server';
 import type { PlansResponse } from '@lokacia/contracts';
 import { apiOrNull } from '@/lib/api-server';
 import { getSession } from '@/lib/session';
-import { absUrl, CITY_NAMES_KA, SITE_NAME } from '@/lib/site';
+import { getFormat } from '@/i18n/server';
 import { getBusinessTypes, getDistricts } from '@/lib/taxonomy';
 import { ReportBuilder } from './report-builder';
 import { MyReports } from './my-reports';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('billing.reports');
-  return {
-    title: t('metaTitle'),
-    description: t('metaDescription'),
-    alternates: { canonical: '/reports' },
-    openGraph: { images: ['/opengraph-image'],  title: `${t('metaTitle')} · ${SITE_NAME}`, description: t('metaDescription'), url: absUrl('/reports'), type: 'website' },
-    twitter: { card: 'summary', title: t('metaTitle'), description: t('metaDescription') },
-  };
+  return pageMetadata({ title: t('metaTitle'), description: t('metaDescription'), path: '/reports' });
 }
 
 export default async function ReportsPage() {
   const t = await getTranslations('billing.reports');
+  const fmt = await getFormat();
   const [districts, types, plans, session] = await Promise.all([
     getDistricts().catch(() => []),
     getBusinessTypes().catch(() => []),
@@ -37,7 +33,7 @@ export default async function ReportsPage() {
       </header>
       <ReportBuilder
         loggedIn={!!session}
-        cities={cities.map((c) => ({ value: c, label: CITY_NAMES_KA[c] ?? c }))}
+        cities={cities.map((c) => ({ value: c, label: fmt.city(c) }))}
         districts={districts.map((d) => ({ id: d.id, city: d.city, name: d.nameKa }))}
         types={types.map((b) => ({ value: b.slug, label: b.nameKa }))}
         products={products}

@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { randomBytes } from 'node:crypto';
-import { and, crmContacts, desc, eq, inArray, isNull, listings, organizations, presentations, sql, users } from '@lokacia/db';
+import { and, crmContacts, desc, eq, inArray, isNull, listings, or, organizations, presentations, sql, users, type SQL } from '@lokacia/db';
 import {
   DEAL_TYPE_LABELS_KA, formatArea, formatDateKa, formatMoney, formatNumber, PASSPORT_FIELDS, type PresentationCreate, type PresentationRow, type PublicPresentation, type PublicPresentationListing,
 } from '@lokacia/contracts';
@@ -10,7 +10,7 @@ import { ENV, type Env } from '../../../config/env';
 import { ListingReadService } from '../../listings/listing-read.service';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { ActivityService } from '../shared/activity.service';
-import type { CrmCtx } from '../shared/crm-access';
+import { visibleContact, type CrmCtx } from '../shared/crm-access';
 import { CRM_PDF_COLORS as C, createCrmPdf, pdfToBuffer } from './pdf-fonts';
 
 type Row = typeof presentations.$inferSelect;
@@ -61,27 +61,37 @@ export class PresentationsService {
     return this.toRows(ctx.orgId, rows);
   }
 
+  /** Agents only their own presentations (same rule as list). */
+  private scope(ctx: CrmCtx, id: string): SQL {
+    if (!/^[0-9a-f-]{36}$/i.test(id)) throw problems.notFound('პრეზენტაცია');
+    return and(eq(presentations.id, id), isNull(presentations.deletedAt), ctx.ownContactsOnly ? eq(presentations.createdBy, ctx.userId) : undefined)!;
+  }
+
   async get(ctx: CrmCtx, id: string) {
-    const row = await this.dbs.org(ctx.orgId, (tx) => tx.query.presentations.findFirst({ where: and(eq(presentations.id, id), isNull(presentations.deletedAt)) }));
+    const row = await this.dbs.org(ctx.orgId, (tx) => tx.query.presentations.findFirst({ where: this.scope(ctx, id) }));
     if (!row) throw problems.notFound('პრეზენტაცია');
     return (await this.toRows(ctx.orgId, [row]))[0]!;
   }
 
-  private async validateListings(ids: string[]) {
-    const found = await this.dbs.db.select({ id: listings.id }).from(listings).where(and(inArray(listings.id, ids), isNull(listings.deletedAt)));
+  /** Own-org listings in any status; other orgs' listings only while publicly active (no leaking drafts/archived spaces). */
+  private listingAllowed(orgId: string) {
+    return or(eq(listings.orgId, orgId), eq(listings.status, 'active'));
+  }
+
+  private async validateListings(orgId: string, ids: string[]) {
+    const found = await this.dbs.db.select({ id: listings.id }).from(listings).where(and(inArray(listings.id, ids), isNull(listings.deletedAt), this.listingAllowed(orgId)));
     if (found.length !== new Set(ids).size) throw problems.badRequest('ერთ-ერთი ფართი ვერ მოიძებნა');
   }
 
-  private async validateContact(orgId: string, contactId: string | null | undefined) {
+  private async validateContact(ctx: CrmCtx, contactId: string | null | undefined) {
     if (!contactId) return;
-    const c = await this.dbs.org(orgId, (tx) => tx.query.crmContacts.findFirst({ where: eq(crmContacts.id, contactId) }));
-    if (!c) throw problems.notFound('კონტაქტი');
+    await this.dbs.org(ctx.orgId, (tx) => visibleContact(tx, ctx, contactId));
   }
 
   async create(ctx: CrmCtx, input: PresentationCreate) {
     const ids = [...new Set(input.listingIds)];
-    await this.validateListings(ids);
-    await this.validateContact(ctx.orgId, input.contactId);
+    await this.validateListings(ctx.orgId, ids);
+    await this.validateContact(ctx, input.contactId);
     const row = await this.dbs.org(ctx.orgId, async (tx) => {
       const [p] = await tx
         .insert(presentations)
@@ -94,13 +104,13 @@ export class PresentationsService {
   }
 
   async update(ctx: CrmCtx, id: string, patch: Partial<PresentationCreate>) {
-    if (patch.listingIds) await this.validateListings(patch.listingIds);
-    await this.validateContact(ctx.orgId, patch.contactId);
+    if (patch.listingIds) await this.validateListings(ctx.orgId, patch.listingIds);
+    await this.validateContact(ctx, patch.contactId);
     const row = await this.dbs.org(ctx.orgId, async (tx) => {
       const [p] = await tx
         .update(presentations)
         .set({ ...patch, listingIds: patch.listingIds ? [...new Set(patch.listingIds)] : undefined })
-        .where(and(eq(presentations.id, id), isNull(presentations.deletedAt)))
+        .where(this.scope(ctx, id))
         .returning();
       return p;
     });
@@ -109,7 +119,7 @@ export class PresentationsService {
   }
 
   async remove(ctx: CrmCtx, id: string) {
-    const [row] = await this.dbs.org(ctx.orgId, (tx) => tx.update(presentations).set({ deletedAt: new Date() }).where(and(eq(presentations.id, id), isNull(presentations.deletedAt))).returning({ id: presentations.id }));
+    const [row] = await this.dbs.org(ctx.orgId, (tx) => tx.update(presentations).set({ deletedAt: new Date() }).where(this.scope(ctx, id)).returning({ id: presentations.id }));
     if (!row) throw problems.notFound('პრეზენტაცია');
     return { ok: true };
   }
@@ -130,7 +140,8 @@ export class PresentationsService {
     const out: PublicPresentationListing[] = [];
     for (const id of row.listingIds) {
       const raw = await this.read.findRaw(id);
-      if (!raw) continue;
+      // re-checked at render time: a listing that went private (or never was public) is not shown on the public page
+      if (!raw || (raw.orgId !== row.orgId && raw.status !== 'active')) continue;
       const d = await this.read.detail(raw);
       const specs = PASSPORT_FIELDS.flatMap((f) => {
         const v = d.passport[f.key];
@@ -186,7 +197,7 @@ export class PresentationsService {
   }
 
   async pdfById(ctx: CrmCtx, id: string) {
-    const row = await this.dbs.org(ctx.orgId, (tx) => tx.query.presentations.findFirst({ where: and(eq(presentations.id, id), isNull(presentations.deletedAt)) }));
+    const row = await this.dbs.org(ctx.orgId, (tx) => tx.query.presentations.findFirst({ where: this.scope(ctx, id) }));
     if (!row) throw problems.notFound('პრეზენტაცია');
     return this.pdf(await this.assemble(row));
   }

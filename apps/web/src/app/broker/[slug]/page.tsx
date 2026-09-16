@@ -1,9 +1,8 @@
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { BadgeCheck, Building2 } from 'lucide-react';
-import { formatDateKa } from '@lokacia/contracts';
 import { Avatar, EmptyState, Stat } from '@lokacia/ui';
 import { getBroker, getNames } from '@/components/portal/data';
 import { FavoritesProvider } from '@/components/portal/favorites';
@@ -14,6 +13,7 @@ import { ReviewsList } from '@/components/portal/profiles/reviews';
 import { Stars } from '@/components/portal/profiles/stars';
 import { Breadcrumbs, JsonLd, pageMetadata } from '@/components/portal/seo';
 import { absUrl } from '@/lib/site';
+import { getFormat } from '@/i18n/server';
 
 export const revalidate = 300;
 type Props = { params: Promise<{ slug: string }> };
@@ -21,15 +21,15 @@ type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const b = await getBroker(slug);
-  if (!b) return { title: 'ბროკერი ვერ მოიძებნა', robots: { index: false } };
+  if (!b) return { title: (await getTranslations('profiles'))('brokerNotFound'), robots: { index: false } };
   const t = await getTranslations('profiles');
   const desc = [b.bio, b.org?.name, t('activeListings', { n: b.stats.active }), b.stats.districts.slice(0, 4).join(', ')].filter(Boolean).join(' · ');
-  return { ...pageMetadata({ title: `${b.name} — ${t('brokersTitle')}`, description: desc, path: `/broker/${b.slug}`, type: 'article' }), ...(b.avatarUrl ? {} : {}) };
+  return { ...(await pageMetadata({ title: `${b.name} — ${t('brokersTitle')}`, description: desc, path: `/broker/${b.slug}`, type: 'article' })), ...(b.avatarUrl ? {} : {}) };
 }
 
 export default async function BrokerPage({ params }: Props) {
   const { slug } = await params;
-  const [b, t, names] = await Promise.all([getBroker(slug), getTranslations('profiles'), getNames()]);
+  const [b, t, names, f] = await Promise.all([getBroker(slug), getTranslations('profiles'), getNames(), getFormat()]);
   if (!b) notFound();
   return (
     <div className="container-page py-8 md:py-12">
@@ -50,13 +50,13 @@ export default async function BrokerPage({ params }: Props) {
               {b.rating != null ? (
                 <>
                   <Stars value={b.rating} label={t('review.stars', { n: b.rating })} />
-                  <span className="tabular text-text">{b.rating.toFixed(1).replace('.', ',')}</span>
+                  <span className="tabular text-text">{b.rating.toFixed(1).replace('.', f.locale === 'en' ? '.' : ',')}</span>
                   <span>· {t('reviewsCount', { n: b.reviewsCount })}</span>
                 </>
               ) : (
                 <span>{t('noRating')}</span>
               )}
-              <span>· {t('memberSince', { date: formatDateKa(b.memberSince) })}</span>
+              <span>· {t('memberSince', { date: f.date(b.memberSince) })}</span>
             </div>
             {b.bio && <p className="mt-3 max-w-2xl">{b.bio}</p>}
           </div>

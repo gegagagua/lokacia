@@ -1,0 +1,68 @@
+{
+  "site": {
+    "title": "lokacia.ge — коммерческая недвижимость в Грузии",
+    "ogTitle": "lokacia.ge — коммерческие помещения",
+    "description": "Коммерческие помещения в Грузии — офисы, магазины, склады и помещения под кафе. Фильтры по типу бизнеса, технический паспорт и аналитика локации."
+  },
+  "a11y": {
+    "skipToContent": "Перейти к основному содержимому",
+    "breadcrumbs": "Навигационная цепочка",
+    "mainNav": "Основная навигация",
+    "homeLink": "lokacia.ge — главная",
+    "languages": "Языковые версии"
+  },
+  "cities": {
+    "tbilisi": "Тбилиси",
+    "batumi": "Батуми",
+    "kutaisi": "Кутаиси",
+    "rustavi": "Рустави"
+  },
+  "notifications": {
+    "title": "Уведомления",
+    "titleUnread": "Уведомления ({count})",
+    "empty": "Новых уведомлений нет",
+    "new": "Новое"
+  },
+  "userMenu": {
+    "listings": "Мои объявления",
+    "offers": "Предложения",
+    "messages": "Сообщения"
+  },
+  "titles": {
+    "account": "Личный кабинет",
+    "accountTemplate": "{page} · Личный кабинет · lokacia.ge",
+    "overview": "Обзор",
+    "offers": "Предложения",
+    "negotiation": "Переговоры",
+    "messages": "Сообщения",
+    "property": "Управление недвижимостью",
+    "lease": "Детали аренды",
+    "org": "Организация",
+    "favorites": "Избранное",
+    "viewings": "Показы",
+    "profile": "Профиль",
+    "myDemand": "Мои запросы",
+    "services": "Услуги",
+    "billing": "Платежи и счета",
+    "demandNew": "Добавить запрос",
+    "sendOffer": "Отправить предложение",
+    "bookViewing": "Записаться на показ",
+    "checkoutResult": "Результат оплаты",
+    "testPayment": "Тестовый платёж",
+    "login": "Вход",
+    "compare": "Сравнение",
+    "notFound": "Страница не найдена",
+    "listingNotFound": "Объявление не найдено",
+    "projectNotFound": "Проект не найден",
+    "provider": "Исполнитель"
+  },
+  "listing": {
+    "ceiling": "потолок {value} м",
+    "power": "{value} кВт",
+    "verified": "Проверено"
+  },
+  "errors": {
+    "favoriteSave": "Не удалось добавить в избранное",
+    "retry": "Попробуйте ещё раз."
+  }
+}

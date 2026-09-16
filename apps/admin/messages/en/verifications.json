@@ -1,24 +1,24 @@
 {
-  "title": "",
-  "subtitle": "",
+  "title": "Owner verifications",
+  "subtitle": "Review public registry extracts. Once approved, the listing gets the verified owner badge.",
   "tabs": {
-    "pending": "",
-    "approved": "",
-    "rejected": ""
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected"
   },
   "status": {
-    "pending": "",
-    "approved": "",
-    "rejected": ""
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected"
   },
-  "preview": "",
-  "document": "",
-  "openDocument": "",
-  "approve": "",
-  "approved": "",
-  "reject": "",
-  "rejectTitle": "",
-  "rejected": "",
-  "emptyTitle": "",
-  "emptyText": ""
+  "preview": "View document",
+  "document": "Registry extract",
+  "openDocument": "Open document in a new window",
+  "approve": "Approve verification",
+  "approved": "Owner verified",
+  "reject": "Reject verification",
+  "rejectTitle": "Reject verification",
+  "rejected": "Verification rejected",
+  "emptyTitle": "No requests",
+  "emptyText": "No verification requests found with this status."
 }

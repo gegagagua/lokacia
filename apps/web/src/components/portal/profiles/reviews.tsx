@@ -1,9 +1,11 @@
 import { getTranslations } from 'next-intl/server';
-import { formatDateKa, type ReviewDto } from '@lokacia/contracts';
+import type { ReviewDto } from '@lokacia/contracts';
+import { getFormat } from '@/i18n/server';
 import { Stars } from './stars';
 
 export async function ReviewsList({ reviews }: { reviews: ReviewDto[] }) {
   const t = await getTranslations('profiles');
+  const f = await getFormat();
   if (!reviews.length) return <p className="text-muted">{t('noReviews')}</p>;
   return (
     <ul className="flex flex-col divide-y divide-border rounded-card border border-border bg-surface">
@@ -14,7 +16,7 @@ export async function ReviewsList({ reviews }: { reviews: ReviewDto[] }) {
             <Stars value={r.rating} label={t('review.stars', { n: r.rating })} size="size-3.5" />
           </div>
           {r.body && <p className="mt-1.5">{r.body}</p>}
-          <p className="mt-1 text-small text-muted tabular">{formatDateKa(r.createdAt)}</p>
+          <p className="mt-1 text-small text-muted tabular">{f.date(r.createdAt)}</p>
         </li>
       ))}
     </ul>

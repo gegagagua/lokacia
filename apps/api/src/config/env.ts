@@ -49,8 +49,14 @@ export const envSchema = z.object({
   OTP_DEV_CODE: z.string().default('123456'),
   TURNSTILE_SECRET: z.string().default(''),
   TELEGRAM_BOT_TOKEN: z.string().default(''),
+  /** secret_token passed to Telegram setWebhook; checked on POST /v1/users/telegram/webhook (required in production). */
+  TELEGRAM_WEBHOOK_SECRET: z.string().default(''),
   VIBER_BOT_TOKEN: z.string().default(''),
   WHATSAPP_CLOUD_TOKEN: z.string().default(''),
+  PUSH_PROVIDER: z.enum(['mock', 'expo']).default('mock'),
+  EXPO_ACCESS_TOKEN: z.string().default(''),
+  /** Expo web preview origin allowed by CORS; non-production falls back to http://localhost:8190. */
+  MOBILE_WEB_URL: z.string().default(''),
   SMTP_URL: z.string().default('smtp://localhost:1025'),
   PAYMENTS_PROVIDER: z.enum(['mock', 'bog', 'tbc', 'psp']).default('mock'),
   PAYMENTS_WEBHOOK_SECRET: z.string().default('dev_webhook_secret'),

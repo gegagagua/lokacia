@@ -1,25 +1,27 @@
 'use client';
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import { useTranslations } from 'next-intl';
 import { LayoutGrid, Rows3 } from 'lucide-react';
-import { DEAL_TYPE_LABELS_KA, formatMoney, formatNumber, type ListingCard } from '@lokacia/contracts';
+import type { ListingCard } from '@lokacia/contracts';
 import { Badge, Table, type Column } from '@lokacia/ui';
 import { FavoritesProvider } from '../favorites';
 import { ListingGrid } from '../listing-card-link';
+import { useFormat } from '@/i18n/use-format';
 
 const STATUS_TONE: Record<string, 'success' | 'outline' | 'neutral'> = { active: 'success', stale: 'outline', rented: 'neutral', sold: 'neutral' };
 
 /** Units of an off-plan project: sortable table or card grid. */
 export function UnitsView({ units, typeNames }: { units: ListingCard[]; typeNames: Record<string, string> }) {
   const t = useTranslations('projects');
+  const f = useFormat();
   const [view, setView] = React.useState<'table' | 'cards'>('table');
   const columns: Column<ListingCard>[] = [
     { key: 'floor', header: t('col.floor'), cell: (u) => (u.floor ?? '—'), sortValue: (u) => u.floor },
-    { key: 'area', header: t('col.area'), cell: (u) => `${formatNumber(u.areaM2)} მ²`, sortValue: (u) => u.areaM2, align: 'right' },
-    { key: 'deal', header: t('col.deal'), cell: (u) => DEAL_TYPE_LABELS_KA[u.dealType] },
-    { key: 'price', header: t('col.price'), cell: (u) => formatMoney(u.priceMinor, u.currency), sortValue: (u) => u.priceMinor, align: 'right' },
-    { key: 'm2', header: t('col.priceM2'), cell: (u) => formatMoney(Math.round(u.priceMinor / u.areaM2 / 100) * 100, u.currency), sortValue: (u) => u.priceMinor / u.areaM2, align: 'right' },
+    { key: 'area', header: t('col.area'), cell: (u) => `${f.number(u.areaM2)} ${f.areaUnit}`, sortValue: (u) => u.areaM2, align: 'right' },
+    { key: 'deal', header: t('col.deal'), cell: (u) => f.dealType(u.dealType) },
+    { key: 'price', header: t('col.price'), cell: (u) => f.money(u.priceMinor, u.currency), sortValue: (u) => u.priceMinor, align: 'right' },
+    { key: 'm2', header: t('col.priceM2'), cell: (u) => f.money(Math.round(u.priceMinor / u.areaM2 / 100) * 100, u.currency), sortValue: (u) => u.priceMinor / u.areaM2, align: 'right' },
     { key: 'status', header: t('col.status'), cell: (u) => <Badge tone={STATUS_TONE[u.status] ?? 'neutral'}>{t.has(`status.${u.status}`) ? t(`status.${u.status}` as 'status.active') : u.status}</Badge> },
     {
       key: 'open',

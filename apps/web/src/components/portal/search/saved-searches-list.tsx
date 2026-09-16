@@ -1,13 +1,15 @@
 'use client';
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import { useTranslations } from 'next-intl';
 import { BellRing, ExternalLink, Search, Trash2 } from 'lucide-react';
 import {
-  ALERT_CHANNELS, ALERT_CHANNEL_LABELS_KA, describeFilters, filtersToParams, formatDateTimeKa, formatNumber, type AlertChannel, type SavedSearchDto,
+  ALERT_CHANNELS, filtersToParams, type AlertChannel, type SavedSearchDto,
 } from '@lokacia/contracts';
 import { Badge, Button, Checkbox, EmptyState, Switch, cn, useToast } from '@lokacia/ui';
 import { apiFetch } from '@/lib/api-client';
+import { useFormat } from '@/i18n/use-format';
+import { describeFiltersFor } from './chips';
 
 export function SavedSearchesList({ initial, typeNames, districtNames }: { initial: SavedSearchDto[]; typeNames: Record<string, string>; districtNames: Record<string, string> }) {
   const t = useTranslations('alerts');
@@ -66,10 +68,12 @@ export function SavedSearchesList({ initial, typeNames, districtNames }: { initi
 
 function SavedSearchItem({ item: s, typeNames, districtNames, onUpdate, onDelete }: { item: SavedSearchDto; typeNames: Record<string, string>; districtNames: Record<string, string>; onUpdate: (p: { active?: boolean; channels?: AlertChannel[] }) => void; onDelete: () => void }) {
   const t = useTranslations('alerts');
+  const ts = useTranslations('search');
+  const fmt = useFormat();
   const [confirm, setConfirm] = React.useState(false);
   const [channelError, setChannelError] = React.useState(false);
   const qs = filtersToParams(s.query).toString();
-  const summary = describeFilters(s.query, { businessType: (x) => typeNames[x], district: (x) => districtNames[x] });
+  const summary = describeFiltersFor(s.query, { typeNames, districtNames, t: (k, v) => ts(k as never, v as never), fmt });
   const headingId = `ss-${s.id}`;
   return (
     <li className={cn('rounded-card border border-border bg-surface p-4 md:p-5', !s.active && 'bg-surface-2')} aria-labelledby={headingId}>
@@ -80,9 +84,9 @@ function SavedSearchItem({ item: s, typeNames, districtNames, onUpdate, onDelete
           </h2>
           <p className="mt-0.5 text-small text-muted">{summary}</p>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-small">
-            <Badge tone="outline">{t('matches', { count: formatNumber(s.matchCount) })}</Badge>
-            {s.newCount > 0 && <Badge tone="accent">{t('newMatches', { count: formatNumber(s.newCount) })}</Badge>}
-            <span className="text-muted">{s.lastNotifiedAt ? t('lastNotified', { date: formatDateTimeKa(s.lastNotifiedAt) }) : t('never')}</span>
+            <Badge tone="outline">{t('matches', { count: fmt.number(s.matchCount) })}</Badge>
+            {s.newCount > 0 && <Badge tone="accent">{t('newMatches', { count: fmt.number(s.newCount) })}</Badge>}
+            <span className="text-muted">{s.lastNotifiedAt ? t('lastNotified', { date: fmt.dateTime(s.lastNotifiedAt) }) : t('never')}</span>
           </div>
         </div>
         <div className="shrink-0 md:w-56">
@@ -99,7 +103,7 @@ function SavedSearchItem({ item: s, typeNames, districtNames, onUpdate, onDelete
           {ALERT_CHANNELS.map((c) => (
             <Checkbox
               key={c}
-              label={ALERT_CHANNEL_LABELS_KA[c]}
+              label={ts(`channel.${c}`)}
               checked={s.channels.includes(c)}
               disabled={!s.active}
               onCheckedChange={(v) => {

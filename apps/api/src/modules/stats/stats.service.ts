@@ -7,6 +7,7 @@ import {
 import { DbService } from '../../common/db.service';
 import { QueueService } from '../../common/queue.service';
 import { SettingsService } from '../../common/settings.service';
+import { RateLimitService } from '../../common/redis.service';
 import type { AuthUser } from '../../common/request';
 import { AI } from '../../integrations/integrations.module';
 import { GeoService } from '../geo/geo.service';
@@ -32,6 +33,7 @@ export class StatsService implements OnModuleInit {
     private readonly tax: TaxonomyService,
     private readonly chat: MessagingService,
     @Inject(AI) private readonly ai: AiClient,
+    private readonly rate: RateLimitService,
   ) {}
 
   onModuleInit() {
@@ -167,6 +169,7 @@ export class StatsService implements OnModuleInit {
 
   async explain(user: AuthUser, id: string) {
     const d = await this.listingDashboard(user, id, 30);
+    await this.rate.hit(`ai:explain:${user.id}`, 30, 3600);
     if (!d.advice.length) return { text: 'განცხადება კარგ მდგომარეობაშია: ფასი, ფოტოები და პასპორტი შეესაბამება რეკომენდაციებს. შეინარჩუნეთ სტატუსის რეგულარული დადასტურება.', source: 'rules' as const };
     const context = `განცხადება: ${d.listing.title}. 30 დღე: ${d.totals.views} ნახვა, ${d.totals.reveals} ზარი, ${d.totals.saves} შენახვა. რაიონის საშუალო: ${d.districtAvg.views} ნახვა.`;
     const ai = await explainAdvice(this.ai, d.advice.map(({ key, severity, messageKa }) => ({ key, severity, messageKa })), context);

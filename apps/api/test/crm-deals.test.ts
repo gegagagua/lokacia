@@ -87,8 +87,10 @@ describe('CRM deals kanban & pipeline (C3)', () => {
     const b = await board(agent);
     expect(b.deals.length).toBeGreaterThan(0);
     expect(b.deals.every((x) => x.agentId === agent.user.id)).toBe(true);
-    // agent-created deal is assigned to the agent
-    const own = await agent.post('/v1/crm/deals').send({ contactId, title: 'აგენტის გარიგება', agentId: manager.user.id });
+    // agents may only use their own contacts; agent-created deal is assigned to the agent
+    expect((await agent.post('/v1/crm/deals').send({ contactId, title: 'სხვის კონტაქტი' })).status).toBe(404);
+    const [mine] = await sys(ctx.db, (tx) => tx.select().from(crmContacts).where(and(eq(crmContacts.orgId, agent.orgId), eq(crmContacts.ownerAgentId, agent.user.id))).limit(1));
+    const own = await agent.post('/v1/crm/deals').send({ contactId: mine!.id, title: 'აგენტის გარიგება', agentId: manager.user.id });
     expect(own.status).toBe(201);
     expect(own.body.agentId).toBe(agent.user.id);
   });

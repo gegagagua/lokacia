@@ -1,11 +1,12 @@
 'use client';
 import * as React from 'react';
-import Link from 'next/link';
+import Link, { useLocalizedPath } from '@/i18n/link';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { useTranslations } from 'next-intl';
 import { CalendarDays, CalendarPlus, MapPin, MessageSquare, Phone, Video } from 'lucide-react';
-import { formatMoney, type ViewingDto } from '@lokacia/contracts';
+import type { ViewingDto } from '@lokacia/contracts';
+import { useFormat } from '@/i18n/use-format';
 import { Badge, Button, Calendar, Dialog, EmptyState, Field, Select, Skeleton, Textarea, useToast, cn } from '@lokacia/ui';
 import { apiFetch, ClientApiError, fetcher } from '@/lib/api-client';
 import { ViewingStatusBadge } from '../status-badges';
@@ -18,6 +19,7 @@ type Status = 'upcoming' | 'past';
 
 function RescheduleDialog({ v, open, onClose, onDone }: { v: ViewingDto; open: boolean; onClose: () => void; onDone: () => void }) {
   const t = useTranslations('viewings.board');
+  const f = useFormat();
   const toast = useToast();
   const { data: slots } = useSWR<Slot[]>(open ? `/listings/${v.listingId}/slots?kind=${v.kind}` : null, fetcher);
   const free = (slots ?? []).filter((s) => !s.booked && new Date(s.startsAt) > new Date());
@@ -46,7 +48,7 @@ function RescheduleDialog({ v, open, onClose, onDone }: { v: ViewingDto; open: b
         <p className="text-muted">{t('noFreeSlots')}</p>
       ) : (
         <Field label={t('newTime')}>
-          <Select value={slotId} onChange={(e) => setSlotId(e.target.value)} options={[{ value: '', label: t('chooseTime') }, ...free.map((s) => ({ value: s.id, label: `${tbDateTimeKa(s.startsAt)}–${tbTime(s.endsAt)}${s.priceMinor != null ? ` · ${formatMoney(s.priceMinor)}` : ''}` }))]} />
+          <Select value={slotId} onChange={(e) => setSlotId(e.target.value)} options={[{ value: '', label: t('chooseTime') }, ...free.map((s) => ({ value: s.id, label: `${tbDateTimeKa(s.startsAt, f.locale)}–${tbTime(s.endsAt)}${s.priceMinor != null ? ` · ${f.money(s.priceMinor)}` : ''}` }))]} />
         </Field>
       )}
     </Dialog>
@@ -55,6 +57,8 @@ function RescheduleDialog({ v, open, onClose, onDone }: { v: ViewingDto; open: b
 
 function ViewingItem({ v, highlight, onChanged }: { v: ViewingDto; highlight: boolean; onChanged: () => void }) {
   const t = useTranslations('viewings.board');
+  const f = useFormat();
+  const lp = useLocalizedPath();
   const router = useRouter();
   const toast = useToast();
   const ref = React.useRef<HTMLLIElement>(null);
@@ -88,7 +92,7 @@ function ViewingItem({ v, highlight, onChanged }: { v: ViewingDto; highlight: bo
     setBusy(true);
     try {
       const r = await apiFetch<{ conversationId: string }>('/conversations/with-user', { method: 'POST', body: { userId: counterpart.id, listingId: v.listingId, body: text.trim() } });
-      router.push(`/account/messages?c=${r.conversationId}`);
+      router.push(lp(`/account/messages?c=${r.conversationId}`));
     } catch (e) {
       toast({ title: e instanceof ClientApiError ? e.message : t('error'), tone: 'danger' });
       setBusy(false);
@@ -109,7 +113,7 @@ function ViewingItem({ v, highlight, onChanged }: { v: ViewingDto; highlight: bo
               {v.kind === 'short_term' ? t('shortTerm') : t(`mode.${v.mode}`)}
             </Badge>
             <Badge tone="neutral">{v.myRole === 'visitor' ? t('roleVisitor') : t('roleHost')}</Badge>
-            {v.priceMinor != null && <span className="text-small font-medium tabular">{formatMoney(v.priceMinor)}</span>}
+            {v.priceMinor != null && <span className="text-small font-medium tabular">{f.money(v.priceMinor)}</span>}
           </div>
           <Link href={`/listings/${v.listing.slug}`} className="line-clamp-1 font-medium hover:underline">
             {v.listing.title}
@@ -168,7 +172,7 @@ function ViewingItem({ v, highlight, onChanged }: { v: ViewingDto; highlight: bo
           </div>
         </div>
       </div>
-      <Dialog open={dialog === 'cancel'} onOpenChange={(o) => !o && setDialog(null)} title={t('cancelTitle')} description={`${v.listing.title} — ${tbDateTimeKa(v.startsAt)}`}
+      <Dialog open={dialog === 'cancel'} onOpenChange={(o) => !o && setDialog(null)} title={t('cancelTitle')} description={`${v.listing.title} — ${tbDateTimeKa(v.startsAt, f.locale)}`}
         footer={<><Button variant="ghost" onClick={() => setDialog(null)}>{t('close')}</Button><Button variant="danger" loading={busy} onClick={() => act('cancel', { reason: text.trim() || null }, t('cancelled'))}>{t('cancelSubmit')}</Button></>}>
         <Field label={t('reason')} hint={t('reasonHint')}>
           <Textarea value={text} maxLength={500} onChange={(e) => setText(e.target.value)} />
@@ -187,6 +191,7 @@ function ViewingItem({ v, highlight, onChanged }: { v: ViewingDto; highlight: bo
 
 export function ViewingsBoard({ highlightId }: { highlightId: string | null }) {
   const t = useTranslations('viewings.board');
+  const f = useFormat();
   const [role, setRole] = React.useState<Role>('all');
   const [status, setStatus] = React.useState<Status>('upcoming');
   const [day, setDay] = React.useState<string | null>(null);
@@ -241,8 +246,8 @@ export function ViewingsBoard({ highlightId }: { highlightId: string | null }) {
           ) : (
             <div className="flex flex-col gap-6">
               {[...groups.entries()].map(([k, vs]) => (
-                <section key={k} aria-label={dayHeadingKa(k)}>
-                  <h2 className="mb-2 text-small font-medium uppercase tracking-wide text-muted">{dayHeadingKa(k)}</h2>
+                <section key={k} aria-label={dayHeadingKa(k, f.locale)}>
+                  <h2 className="mb-2 text-small font-medium uppercase tracking-wide text-muted">{dayHeadingKa(k, f.locale)}</h2>
                   <ul className="flex flex-col gap-3">
                     {vs.map((v) => <ViewingItem key={v.id} v={v} highlight={v.id === highlightId} onChanged={() => void mutate()} />)}
                   </ul>

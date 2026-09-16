@@ -1,12 +1,13 @@
 'use client';
 import * as React from 'react';
-import Link from 'next/link';
+import Link, { useLocalizedPath } from '@/i18n/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Check } from 'lucide-react';
 import { PASSPORT_FIELD_BY_KEY, type ListingDetail, type PassportKey, type SessionUser } from '@lokacia/contracts';
 import { Button, cn, useToast } from '@lokacia/ui';
 import { apiFetch, ClientApiError } from '@/lib/api-client';
+import { useFormat } from '@/i18n/use-format';
 import { AccountPageHeader } from '../page-header';
 import { ListingStatusBadge } from '../status-badges';
 import { StepDescribe } from './step-describe';
@@ -28,6 +29,10 @@ const pad = (n: number) => String(n).padStart(2, '0');
 export function ListingWizard({ user, types, detail, initialStep }: { user: SessionUser; types: BusinessTypeOption[]; detail: (ListingDetail & { rejectReason?: string | null }) | null; initialStep?: string }) {
   const t = useTranslations('wizard');
   const ts = useTranslations('wizard.steps');
+  const td = useTranslations('wizard.describe');
+  const fmt = useFormat();
+  const lp = useLocalizedPath();
+  const titleLabels = React.useMemo(() => ({ fallback: td('defaultTitle'), areaUnit: fmt.areaUnit }), [td, fmt]);
   const toast = useToast();
   const router = useRouter();
   const storageKey = `lk-wizard-draft:${user.id}`;
@@ -52,7 +57,7 @@ export function ListingWizard({ user, types, detail, initialStep }: { user: Sess
   // baseline for diffs in edit mode; restore local draft in create mode
   React.useEffect(() => {
     if (detail) {
-      lastSaved.current = snapshot(toPayload(formFromDetail(detail), types));
+      lastSaved.current = snapshot(toPayload(formFromDetail(detail), types, titleLabels));
       // the page may re-render from the server (router refresh) while edits are still unsaved: restore them
       try {
         const raw = sessionStorage.getItem(`lk-wizard-edit:${detail.id}`);
@@ -98,15 +103,15 @@ export function ListingWizard({ user, types, detail, initialStep }: { user: Sess
   stepRef.current = step;
 
   const replaceUrl = React.useCallback((id: string, s: StepKey) => {
-    window.history.replaceState(null, '', `/account/listings/${id}/edit?step=${s}`);
-  }, []);
+    window.history.replaceState(null, '', lp(`/account/listings/${id}/edit?step=${s}`));
+  }, [lp]);
 
   /** Persists the draft: localStorage until the minimum is filled, then POST once and PATCH only changed keys. */
   const persist = React.useCallback(async (): Promise<string | null> => {
     if (saving.current) await saving.current.catch(() => null);
     const run = (async () => {
       const f = formRef.current;
-      const payload = toPayload(f, types);
+      const payload = toPayload(f, types, titleLabels);
       const existing = existingRef.current;
       if (!existing) {
         if (!canCreate(payload)) {
@@ -160,7 +165,7 @@ export function ListingWizard({ user, types, detail, initialStep }: { user: Sess
     } finally {
       if (saving.current === run) saving.current = null;
     }
-  }, [replaceUrl, snapshot, storageKey, types]);
+  }, [replaceUrl, snapshot, storageKey, types, titleLabels]);
 
   // unsaved edits survive a server re-render of the edit route
   React.useEffect(() => {
@@ -257,7 +262,7 @@ export function ListingWizard({ user, types, detail, initialStep }: { user: Sess
       } catch {
         /* ignore */
       }
-      router.push('/account/listings');
+      router.push(lp('/account/listings'));
       router.refresh();
     } catch (e) {
       if (e instanceof ClientApiError && e.problem?.type.endsWith('/passport-incomplete')) {

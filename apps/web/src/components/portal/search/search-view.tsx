@@ -1,15 +1,16 @@
 'use client';
 import * as React from 'react';
 import dynamic from 'next/dynamic';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import useSWR from 'swr';
 import { useTranslations } from 'next-intl';
 import { LayoutList, Map as MapIcon, Columns2, SlidersHorizontal, X, RotateCcw, SearchX } from 'lucide-react';
 import {
-  SEARCH_SORTS, SEARCH_SORT_LABELS_KA, filtersToParams, formatArea, formatMoney, formatNumber, type ListingCard, type SearchFilters,
+  SEARCH_SORTS, filtersToParams, type ListingCard, type SearchFilters,
 } from '@lokacia/contracts';
 import { Button, Drawer, EmptyState, Select, Skeleton, cn } from '@lokacia/ui';
 import { apiFetch } from '@/lib/api-client';
+import { useFormat } from '@/i18n/use-format';
 import { FavoritesProvider } from '../favorites';
 import { ListingCardLink } from '../listing-card-link';
 import { BusinessTypeIcon } from '../business-type-icon';
@@ -53,6 +54,7 @@ export function SearchView({
   loggedIn: boolean;
 }) {
   const t = useTranslations('search');
+  const fmt = useFormat();
   const [filters, setFilters] = React.useState<SearchFilters>(initialFilters);
   const [result, setResult] = React.useState<Result>(initialResult ?? { items: [], total: 0, nextCursor: null });
   const [loading, setLoading] = React.useState(!initialResult);
@@ -171,7 +173,7 @@ export function SearchView({
     setPendingBbox(null);
   };
 
-  const chips = filterChips(filters, { typeNames, districtNames, t: (k, v) => t(k as never, v as never) });
+  const chips = filterChips(filters, { typeNames, districtNames, t: (k, v) => t(k as never, v as never), fmt });
   const active = activeFilterCount(filters);
   const showSidebar = view === 'list';
 
@@ -318,7 +320,7 @@ export function SearchView({
               {selectedPoint.title}
             </Link>
             <p className="mt-1 text-small text-muted tabular">
-              {formatMoney(selectedPoint.priceMinor)} · {formatArea(selectedPoint.areaM2)}
+              {fmt.money(selectedPoint.priceMinor)} · {fmt.area(selectedPoint.areaM2)}
             </p>
           </div>
           <button type="button" onClick={() => setSelected(null)} aria-label={t('closePreview')} className="grid size-7 shrink-0 place-items-center rounded-button text-muted hover:bg-surface-2">
@@ -337,7 +339,7 @@ export function SearchView({
             <div>
               <h1 className="text-h2 font-semibold md:text-h1">{t('heading')}</h1>
               <p className="mt-1 text-muted tabular" aria-live="polite" aria-atomic="true">
-                {loading ? t('countLoading') : t('count', { count: formatNumber(result.total) })}
+                {loading ? t('countLoading') : t('count', { count: fmt.number(result.total) })}
               </p>
             </div>
             <NlSearchBox className="lg:max-w-xl" typeNames={typeNames} districtNames={districtNames} />
@@ -351,7 +353,7 @@ export function SearchView({
               <label className="sr-only" htmlFor="search-sort">
                 {t('sort')}
               </label>
-              <Select id="search-sort" className="w-48" value={filters.sort ?? 'relevance'} onChange={(e) => patch({ sort: e.target.value === 'relevance' ? undefined : e.target.value })} options={SEARCH_SORTS.map((s) => ({ value: s, label: SEARCH_SORT_LABELS_KA[s] }))} />
+              <Select id="search-sort" className="w-48" value={filters.sort ?? 'relevance'} onChange={(e) => patch({ sort: e.target.value === 'relevance' ? undefined : e.target.value })} options={SEARCH_SORTS.map((s) => ({ value: s, label: fmt.sort(s) }))} />
               {viewToggle}
               <SaveSearchButton filters={filters} loggedIn={loggedIn} typeNames={typeNames} districtNames={districtNames} />
             </div>

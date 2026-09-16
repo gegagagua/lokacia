@@ -1,5 +1,5 @@
-import { createHmac } from 'node:crypto';
 import type { CheckoutRequest, PaymentProvider, WebhookEvent } from './payments';
+import { parseJsonObject, requireString, verifyHmacSignature } from './payments';
 
 /**
  * Bank adapters (sandbox-shaped). Real endpoints/credentials require merchant contracts — see docs/HUMAN_TODO.md.
@@ -19,6 +19,7 @@ abstract class HttpBankProvider implements PaymentProvider {
       method: 'POST',
       headers: { 'content-type': 'application/json', authorization: `Bearer ${this.apiKey}`, 'idempotency-key': req.paymentId },
       body: JSON.stringify({ external_order_id: req.paymentId, amount: req.amountMinor / 100, currency: req.currency, description: req.description, callback_url: req.returnUrl }),
+      signal: AbortSignal.timeout(15_000),
     });
     if (!res.ok) throw new Error(`${this.name}: checkout failed (${res.status})`);
     const json = (await res.json()) as { id: string; redirect_url: string };
@@ -26,12 +27,24 @@ abstract class HttpBankProvider implements PaymentProvider {
   }
 
   parseWebhook(headers: Record<string, string | string[] | undefined>, rawBody: string): WebhookEvent {
-    const sig = String(headers['x-signature'] ?? headers['callback-signature'] ?? '');
-    const expected = createHmac('sha256', this.webhookSecret).update(rawBody).digest('hex');
-    if (sig !== expected) throw new Error('invalid signature');
-    const b = JSON.parse(rawBody) as { event_id: string; order_id: string; status: string; amount?: number };
-    const status = b.status === 'completed' || b.status === 'succeeded' ? 'succeeded' : b.status === 'refunded' ? 'refunded' : 'failed';
-    return { eventId: b.event_id, providerRef: b.order_id, status, amountMinor: b.amount ? Math.round(b.amount * 100) : undefined, raw: b };
+    // timing-safe HMAC over the exact raw bytes received (never re-serialized JSON)
+    if (!verifyHmacSignature(this.webhookSecret, rawBody, headers['x-signature'] ?? headers['callback-signature'])) throw new Error('invalid signature');
+    const b = parseJsonObject(rawBody);
+    const s = requireString(b.status, 'status', 40);
+    const status = s === 'completed' || s === 'succeeded' ? 'succeeded' : s === 'refunded' ? 'refunded' : 'failed';
+    let amountMinor: number | undefined;
+    if (b.amount !== undefined && b.amount !== null) {
+      if (typeof b.amount !== 'number' || !Number.isFinite(b.amount) || b.amount < 0) throw new Error('invalid amount');
+      amountMinor = Math.round(b.amount * 100);
+    }
+    return {
+      eventId: requireString(b.event_id, 'event_id'),
+      providerRef: requireString(b.order_id, 'order_id'),
+      status,
+      amountMinor,
+      currency: typeof b.currency === 'string' ? b.currency.toUpperCase() : undefined,
+      raw: b,
+    };
   }
 }
 

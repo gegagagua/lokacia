@@ -4,7 +4,10 @@ import { requireSession } from '@/components/account/require-session';
 import { AccountPageHeader } from '@/components/account/page-header';
 import { Inbox } from '@/components/account/chat/inbox';
 
-export const metadata: Metadata = { title: 'შეტყობინებები' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('meta.titles');
+  return { title: t('messages') };
+}
 
 export default async function MessagesPage({ searchParams }: { searchParams: Promise<{ c?: string }> }) {
   const user = await requireSession('/account/messages');

@@ -1,19 +1,20 @@
 'use client';
 import * as React from 'react';
 import dynamic from 'next/dynamic';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { ArrowRight, FileText } from 'lucide-react';
-import { formatNumber } from '@lokacia/contracts';
 import { Button, Card, Drawer, Field, Select, Skeleton, SpecRow, Table, type Column } from '@lokacia/ui';
 import { apiFetch } from '@/lib/api-client';
+import { useLocalizedPath } from '@/i18n/link';
+import { useFormat } from '@/i18n/use-format';
 
 const MapView = dynamic(() => import('@lokacia/ui/map').then((m) => m.MapView), { ssr: false, loading: () => <Skeleton className="size-full min-h-64 rounded-card" /> });
 
-export type DistrictStat = { id: string; slug: string; name: string; center: [number, number]; avgPriceM2Minor: number | null; activeCount: number; vacancyCount: number; medianAreaM2: number | null };
+export type DistrictStat = { id: string; slug: string; name: string; center: [number, number]; avgPriceM2Minor: number | null; activeCount: number; vacancyCount: number; medianAreaM2: number | null; avgDailyTraffic?: number | null };
 type FC = { type: 'FeatureCollection'; features: { type: 'Feature'; id?: string; properties: Record<string, unknown>; geometry: unknown }[] };
-export type MapState = { metric: 'price' | 'vacancy'; businessType: string; dealType: 'rent' | 'sale'; city: string };
+export type MapState = { metric: 'price' | 'vacancy' | 'traffic'; businessType: string; dealType: 'rent' | 'sale'; city: string };
 
 export const CITIES = ['tbilisi', 'batumi', 'kutaisi', 'rustavi'] as const;
 const LIGHT = [0xed, 0xf0, 0xeb];
@@ -48,13 +49,17 @@ function useIsDesktop() {
   return desktop;
 }
 
-export function MapExplorer({ initial, initialStats, initialGeojson, businessTypes }: { initial: MapState; initialStats: DistrictStat[]; initialGeojson: FC; businessTypes: { slug: string; nameKa: string }[] }) {
+export function MapExplorer({ initial, initialStats, initialGeojson, businessTypes, districtNames }: { initial: MapState; initialStats: DistrictStat[]; initialGeojson: FC; businessTypes: { slug: string; nameKa: string }[]; /** slug → localized district name (API stats/geojson carry Georgian names). */ districtNames?: Record<string, string> }) {
   const t = useTranslations('map');
+  const fmt = useFormat();
+  const formatNumber = fmt.number;
+  const lp = useLocalizedPath();
   const router = useRouter();
   const pathname = usePathname();
   const desktop = useIsDesktop();
   const [state, setState] = React.useState<MapState>(initial);
-  const [stats, setStats] = React.useState(initialStats);
+  const [rawStats, setStats] = React.useState(initialStats);
+  const stats = React.useMemo(() => (districtNames ? rawStats.map((s) => ({ ...s, name: districtNames[s.slug] ?? s.name })) : rawStats), [rawStats, districtNames]);
   const [geojson, setGeojson] = React.useState(initialGeojson);
   const [loading, setLoading] = React.useState(false);
   const [selected, setSelected] = React.useState<string | null>(null);
@@ -66,7 +71,7 @@ export function MapExplorer({ initial, initialStats, initialGeojson, businessTyp
       return;
     }
     const q = toQuery(state);
-    router.replace(`${pathname}${q.size ? `?${q}` : ''}`, { scroll: false });
+    router.replace(lp(`${pathname}${q.size ? `?${q}` : ''}`), { scroll: false });
     const statsQ = new URLSearchParams({ city: state.city, dealType: state.dealType });
     if (state.businessType) statsQ.set('businessType', state.businessType);
     let cancelled = false;
@@ -85,7 +90,7 @@ export function MapExplorer({ initial, initialStats, initialGeojson, businessTyp
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
 
-  const valueOf = React.useCallback((s: DistrictStat) => (state.metric === 'price' ? (s.avgPriceM2Minor != null ? Math.round(s.avgPriceM2Minor / 100) : null) : s.vacancyCount), [state.metric]);
+  const valueOf = React.useCallback((s: DistrictStat) => (state.metric === 'price' ? (s.avgPriceM2Minor != null ? Math.round(s.avgPriceM2Minor / 100) : null) : state.metric === 'traffic' ? (s.avgDailyTraffic ?? null) : s.vacancyCount), [state.metric]);
   const statBy = React.useMemo(() => new Map(stats.map((s) => [s.id, s])), [stats]);
   const values = stats.map(valueOf).filter((v): v is number => v != null);
   const min = values.length ? Math.min(...values) : 0;
@@ -99,10 +104,10 @@ export function MapExplorer({ initial, initialStats, initialGeojson, businessTyp
         features: geojson.features.map((f) => {
           const id = String(f.properties.id ?? f.id);
           const s = statBy.get(id);
-          return { ...f, properties: { id, slug: f.properties.slug, name: f.properties.name, value: s ? valueOf(s) : null } };
+          return { ...f, properties: { id, slug: f.properties.slug, name: districtNames?.[String(f.properties.slug)] ?? f.properties.name, value: s ? valueOf(s) : null } };
         }),
       }) as unknown as GeoJSON.FeatureCollection,
-    [geojson, statBy, valueOf],
+    [geojson, statBy, valueOf, districtNames],
   );
 
   const center = React.useMemo<[number, number] | undefined>(() => {
@@ -110,7 +115,7 @@ export function MapExplorer({ initial, initialStats, initialGeojson, businessTyp
     return [stats.reduce((a, s) => a + s.center[0], 0) / stats.length, stats.reduce((a, s) => a + s.center[1], 0) / stats.length];
   }, [stats]);
 
-  const unit = state.metric === 'vacancy' ? t('spaces') : state.dealType === 'rent' ? t('perM2Month') : t('perM2');
+  const unit = state.metric === 'traffic' ? t('perDay') : state.metric === 'vacancy' ? t('spaces') : state.dealType === 'rent' ? t('perM2Month') : t('perM2');
   const legend = Array.from({ length: STEPS }, (_, i) => {
     const from = stops[0] + ((stops[1] - stops[0]) * i) / STEPS;
     return { color: rampColor((i + 0.5) / STEPS), from: Math.round(from) };
@@ -132,7 +137,7 @@ export function MapExplorer({ initial, initialStats, initialGeojson, businessTyp
     { key: 'avg', header: t('col.avg'), cell: (s) => (s.avgPriceM2Minor != null ? `${formatNumber(s.avgPriceM2Minor / 100, 1)} ₾` : '—'), sortValue: (s) => s.avgPriceM2Minor, align: 'right' },
     { key: 'active', header: t('col.active'), cell: (s) => s.activeCount, sortValue: (s) => s.activeCount, align: 'right' },
     { key: 'vacancy', header: t('col.vacancy'), cell: (s) => s.vacancyCount, sortValue: (s) => s.vacancyCount, align: 'right' },
-    { key: 'median', header: t('col.median'), cell: (s) => (s.medianAreaM2 != null ? `${formatNumber(s.medianAreaM2)} მ²` : '—'), sortValue: (s) => s.medianAreaM2, align: 'right' },
+    { key: 'median', header: t('col.median'), cell: (s) => (s.medianAreaM2 != null ? fmt.area(s.medianAreaM2) : '—'), sortValue: (s) => s.medianAreaM2, align: 'right' },
   ];
 
   const panel = sel ? (
@@ -141,7 +146,7 @@ export function MapExplorer({ initial, initialStats, initialGeojson, businessTyp
         <SpecRow label={t('panel.avg')} value={sel.avgPriceM2Minor != null ? formatNumber(sel.avgPriceM2Minor / 100, 1) : '—'} unit={sel.avgPriceM2Minor != null ? (state.dealType === 'rent' ? t('perM2Month') : t('perM2')) : undefined} />
         <SpecRow label={t('panel.active')} value={sel.activeCount} />
         <SpecRow label={t('panel.vacancy')} value={sel.vacancyCount} />
-        <SpecRow label={t('panel.median')} value={sel.medianAreaM2 != null ? formatNumber(sel.medianAreaM2) : '—'} unit={sel.medianAreaM2 != null ? 'მ²' : undefined} />
+        <SpecRow label={t('panel.median')} value={sel.medianAreaM2 != null ? formatNumber(sel.medianAreaM2) : '—'} unit={sel.medianAreaM2 != null ? fmt.areaUnit : undefined} />
       </div>
       <div className="flex flex-col gap-2">
         <Button asChild>
@@ -173,7 +178,7 @@ export function MapExplorer({ initial, initialStats, initialGeojson, businessTyp
         <fieldset>
           <legend className="mb-1.5 text-small font-medium">{t('metric')}</legend>
           <div className="inline-flex w-full rounded-button border border-border-strong p-0.5">
-            {(['price', 'vacancy'] as const).map((m) => (
+            {(['price', 'vacancy', 'traffic'] as const).map((m) => (
               <button
                 key={m}
                 type="button"
@@ -181,7 +186,7 @@ export function MapExplorer({ initial, initialStats, initialGeojson, businessTyp
                 onClick={() => update({ metric: m })}
                 className={`h-8 flex-1 whitespace-nowrap rounded-[5px] px-3 text-small ${state.metric === m ? 'bg-primary text-primary-contrast' : 'text-muted hover:text-text'}`}
               >
-                {m === 'price' ? t('metricPrice') : t('metricVacancy')}
+                {m === 'price' ? t('metricPrice') : m === 'traffic' ? t('metricTraffic') : t('metricVacancy')}
               </button>
             ))}
           </div>
@@ -223,7 +228,7 @@ export function MapExplorer({ initial, initialStats, initialGeojson, businessTyp
           {loading && <div className="pointer-events-none absolute inset-0 rounded-card bg-bg/40" aria-hidden />}
           <div className="absolute bottom-3 left-3 rounded-card border border-border bg-surface/95 p-3 text-small">
             <p className="mb-1.5 font-medium">
-              {state.metric === 'price' ? t('metricPrice') : t('metricVacancy')} <span className="text-muted">({unit})</span>
+              {state.metric === 'price' ? t('metricPrice') : state.metric === 'traffic' ? t('metricTraffic') : t('metricVacancy')} <span className="text-muted">({unit})</span>
             </p>
             <ul className="flex items-end gap-0.5" aria-label={t('legend')}>
               {legend.map((l) => (

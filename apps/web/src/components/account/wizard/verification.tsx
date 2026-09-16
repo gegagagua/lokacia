@@ -3,7 +3,7 @@ import * as React from 'react';
 import useSWR from 'swr';
 import { useTranslations } from 'next-intl';
 import { FileCheck2, Upload } from 'lucide-react';
-import { formatDateKa } from '@lokacia/contracts';
+import { useFormat } from '@/i18n/use-format';
 import { Badge, Button, useToast } from '@lokacia/ui';
 import { apiFetch, ClientApiError, fetcher, uploadFile } from '@/lib/api-client';
 import { StepSection } from './parts';
@@ -13,6 +13,7 @@ type Verification = { id: string; status: 'pending' | 'approved' | 'rejected'; d
 /** P5: owner uploads a public registry extract; moderator approves → verified_owner badge. */
 export function OwnerVerification({ listingId }: { listingId: string | null }) {
   const t = useTranslations('wizard.verification');
+  const f = useFormat();
   const toast = useToast();
   const input = React.useRef<HTMLInputElement>(null);
   const [busy, setBusy] = React.useState(false);
@@ -52,7 +53,7 @@ export function OwnerVerification({ listingId }: { listingId: string | null }) {
                 <a href={v.documentUrl} target="_blank" rel="noreferrer" className="text-link underline-offset-4 hover:underline">
                   {t('document')}
                 </a>
-                <span className="text-muted tabular">{formatDateKa(v.createdAt)}</span>
+                <span className="text-muted tabular">{f.date(v.createdAt)}</span>
                 <Badge tone={tone[v.status]}>{label[v.status]}</Badge>
                 {v.note && <span className="w-full text-muted">{t('note', { note: v.note })}</span>}
               </li>

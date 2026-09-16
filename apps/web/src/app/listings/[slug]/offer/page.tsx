@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import type { ListingDetail } from '@lokacia/contracts';
@@ -10,7 +10,10 @@ import { ListingSummary } from '@/components/account/offers/listing-summary';
 import { OfferForm } from '@/components/account/offers/offer-form';
 import type { TenantProfileValue } from '@/components/account/offers/tenant-profile';
 
-export const metadata: Metadata = { title: 'შეთავაზების გაგზავნა', robots: { index: false, follow: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('meta.titles');
+  return { title: t('sendOffer'), robots: { index: false, follow: false } };
+}
 
 export default async function OfferPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

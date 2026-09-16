@@ -81,12 +81,12 @@ GitHub configuration per environment:
 | S8 | OAuth state cookie (`auth.controller.ts`) | `lk_oauth_state` had no `Secure` flag | **Fixed:** `secure` in production |
 | S9 | OTP rate limits (`auth.service.ts`) | Request limits: 5 per phone per hour and 20 per IP per hour. Verify limits: 10 per phone per 15 min, plus 5 attempts per code. Turnstile is verified **only when `TURNSTILE_SECRET` is set**. The dev code `123456` is rejected when `NODE_ENV=production` | OK. `TURNSTILE_SECRET` is mandatory in production (LAUNCH.md) |
 | S10 | Phone reveal (`listings.service.ts`) | Limited per IP hash (setting `reveal_rate_limit_per_hour`, default 20) and per user (2× that). Every reveal is logged as a `listing_events` `reveal` row with the IP hash | OK |
-| S11 | Contact endpoints | `POST /v1/conversations`, `/with-user` and `/:id/messages` require auth but have **no rate limit**. The demand, viewings, services and projects lead endpoints are still being built | Open (high before launch): add `rate.hit('contact:user:<id>', 30, 3600)` and Turnstile for anonymous leads |
+| S11 | Contact endpoints | `POST /v1/conversations`, `/with-user` and `/:id/messages` require auth but have **no rate limit**. The demand, viewings, services and projects lead endpoints are still being built | **Fixed 2026-09-17** (§10 SR-20/SR-21): messaging, offers and viewings are rate-limited |
 | S12 | Client IP (`decorators/index.ts` `ClientIp`) | Trusts `CF-Connecting-IP` unconditionally. If a client can reach the origin directly, it can spoof the header and dodge the IP rate limits | **Fixed at the edge:** Caddy trusts only Cloudflare ranges and overwrites `CF-Connecting-IP` with the verified client IP (`header_up`). The origin firewall must allow only Cloudflare |
 | S13 | Rate-limit store | `RedisService.incr` silently falls back to in-memory storage when Redis is down, which gives per-pod limits | Alert when `/v1/health` reports `redis: "fallback"` (Grafana and uptime) |
 | S14 | Production secrets (`config/env.ts`) | JWT secrets were enforced in production; the `IP_HASH_SALT` and `PAYMENTS_WEBHOOK_SECRET` dev defaults were not | **Fixed:** the API refuses to boot in production with `dev_*` values |
 | S15 | Logs and PII | pino redacts `cookie`, `authorization` and `set-cookie`. Sentry is initialised with `sendDefaultPii: false`. OTel pg instrumentation does not record SQL parameters | OK. Also redact `req.headers["x-api-key"]` (app.module, owner: API stream) |
-| S16 | Personal-data endpoints | Data export/delete endpoints and the consent log (Phase 14 roadmap item) are not reviewed here | Open, tracked in ROADMAP Phase 14 |
+| S16 | Personal-data endpoints | Data export/delete endpoints and the consent log (Phase 14 roadmap item) are not reviewed here | Reviewed 2026-09-17 (§10 SR-37/SR-38) |
 
 Files changed by this review:
 - `apps/web/next.config.ts` (S1)
@@ -242,6 +242,20 @@ k6 run -e BASE_URL=http://localhost:4010 -e PAGES=0 infra/k6/listing.js
 
 The search p95 < 300 ms threshold passes with headroom. Re-run with k6 on staging hardware before launch.
 
+### New-module load smoke (`infra/load/new-modules.mjs`, Phase 25)
+`pnpm load:modules` (Node, no k6): weighted mix of `GET /v1/billing/plans`, `GET /v1/crm/deals` (manager session + RLS transaction), `GET /v1/v2/listings/:id/score` (already-computed scores only, no AI calls) and `GET /v1/public/districts` (API key, metered). Env: `BASE_URL`, `CONCURRENCY` (20), `DURATION_S` (30), `CRM_PHONE`, `API_KEY`, `P95_MS` (300). Fails when a scenario's p95 ≥ `P95_MS` or non-429 errors ≥ 1 %; 429s are reported separately.
+
+**Baseline (2026-09-17, dev machine, `:4000` watch-mode API on the shared demo DB, 20 clients, 20 s, warm caches):**
+
+| endpoint | req/s | p50 | p95 | p99 | errors | note |
+|---|---|---|---|---|---|---|
+| `GET /v1/billing/plans` | 421 | 4 ms | **6 ms** | 7 ms | 0 | |
+| `GET /v1/crm/deals` | 843 | 15 ms | **19 ms** | 24 ms | 0 | 60 clients: p95 47 ms, 0 errors |
+| `GET /v1/v2/listings/:id/score` | 421 | 6 ms | **8 ms** | 11 ms | 0 | |
+| `GET /v1/public/districts` | 421 | 38 ms | **68 ms** | 76 ms | 0 | 96 % answered 429 by the per-key limit (300/min) as designed; p95 is over the 300 accepted calls |
+
+Findings from the first run (fixed): 20 concurrent `GET /v1/crm/deals` **deadlocked the whole API** (pool starvation, SR-40 below), and API-key metering updated `api_keys.last_used_at` on every call (hot-row lock; public API p95 1.2 s → 68 ms after limiting it to once a minute).
+
 ## 7. Seed, demo and beta data
 
 | command | what it does |
@@ -285,3 +299,89 @@ The beta runs on **staging-like production** (`NODE_ENV=production`, real SMS, n
 - Source of truth: `packages/ui/src/brand/svg.ts` (`markSvg()`, `MARK_SVG_LIGHT/DARK/MASKABLE/APPLE`, `lockupSvg()`), exported from `@lokacia/ui`. React components stay in `brand/logo.tsx`.
 - Generate per app: `pnpm --filter @lokacia/ui brand:assets -- ../../apps/<web|crm|admin>` (renders PNGs with headless Chromium; needs `npx playwright install chromium`). It writes Next metadata files `src/app/icon.svg` + `src/app/apple-icon.png` (Next injects `<link rel="icon">` / `apple-touch-icon` automatically) and `public/{favicon-32,icon-192,icon-512,icon-maskable-512}.png`, `public/logo.svg`, `public/logo-dark.svg`.
 - Reference the PNGs from each app's `public/manifest.webmanifest` (`purpose: "any"` for 192/512, `"maskable"` for the maskable one) — done for apps/web. CRM/admin: run the same command when their app dirs are stable; optionally tint admin (`markSvg({ background: '#17201D', stroke: '#6FB3A2' })`) so staff can tell tabs apart.
+
+## 10. Security review 2026-09 (Phase 25: payments, escrow, API sweep) — 2026-09-17
+
+Scope: payments/billing and PSP webhooks, escrow + ledger, rent/autopay, an authorization/IDOR sweep of every API module (portal, CRM, admin, v2), input/abuse limits, sessions/CSRF, personal data (Georgian PDP law), dependencies, and a load smoke of the new modules. Regression tests: `apps/api/test/security-payments.test.ts`, `security-api.test.ts`, `crm-security.test.ts` (+ updated `transactions`, `crm-deals`, `crm-calendar`, `crm-shared`). Full API suite: 34 files / 163 tests green.
+
+Severity: C critical · H high · M medium · L low. Paths are under `apps/api/src` unless noted.
+
+### Payments and billing
+| # | sev | finding | status / fix |
+|---|---|---|---|
+| SR-01 | H | `markPaid` accepted any non-`succeeded` payment, so a `refunded` payment could settle again, and effects ran per *payment* not per *invoice*: a retry link + late webhook for the old attempt (or two attempts) re-applied VIP / subscription / rent / escrow effects | **Fixed** `modules/billing/billing.service.ts`: forward-only `created/pending/failed → succeeded`, invoice settles once (`status <> paid/void`); extra settlement is flagged `raw.needsRefund` and logged |
+| SR-02 | M | Bank adapters compared the HMAC with `!==` (timing leak) and trusted payload shape; the webhook controller fell back to `JSON.stringify(req.body)` when the raw body was missing | **Fixed** `integrations/payments/payments.ts` `verifyHmacSignature` (hex, length, `timingSafeEqual`), strict payload parsing in mock + bank adapters, `billing.controller.ts` returns 400 without the raw body |
+| SR-03 | M | A success webhook without `amount` settled the payment; currency was never compared | **Fixed**: success needs exact amount and matching currency, otherwise `failed` + `mismatch` |
+| SR-04 | M | Event row was inserted before processing; a crash in between made every PSP retry a "duplicate" → paid but never settled | **Fixed**: an event without `processed_at` is processed again (all transitions are conditional updates) |
+| SR-05 | L | `refunded` event moved a never-settled payment to `refunded` | **Fixed**: only `succeeded → refunded` |
+| SR-06 | L | Report checkout accepted any `orgId` (invoice visible to that org's managers) | **Fixed**: membership required |
+| SR-07 | L | No checkout rate limit (invoice spam, unlimited instant promo checkouts); negative/int4-overflow amounts and concurrent identical idempotency keys produced 500s | **Fixed**: 30 checkouts/h per user, amount validation + `MAX_INVOICE_MINOR`, unique-violation → existing payment |
+| SR-08 | — | IDOR on invoices / receipt PDF / payment summary / mock-complete; mock-complete in production | **OK** (verified + tests) |
+
+### Escrow, ledger, rent
+| # | sev | finding | status / fix |
+|---|---|---|---|
+| SR-09 | H | Every `POST /escrow/:id/fund` click issued a new deposit invoice → tenant could pay twice; the second deposit was silently absorbed (no ledger, no refund) | **Fixed** `modules/v2/escrow/escrow.service.ts`: open checkout reused (`BillingService.openCheckout`), deposits for a non-pending escrow are flagged for refund |
+| SR-10 | M | Concurrent `POST /escrow` created several escrows for one offer | **Fixed**: transaction-scoped advisory lock per offer (no migration) |
+| SR-11 | — | Skipped/duplicated transitions (release before funding, double release, refund after release), non-party access, ledger balance | **OK**: `SELECT … FOR UPDATE` + transition table; tests prove one ledger tx per transition |
+| SR-12 | M | Rent penalty `rent × pct/day × days` uncapped → int4 overflow after ~430 days crashed the nightly job for all leases; autopay charged ended/deleted leases and one failure aborted the batch | **Fixed** `modules/v2/property/property.service.ts`: penalty capped at 100 % of rent (`latePenaltyMinor`), autopay filters active/non-deleted, per-row isolation, never two off-session charges per rent invoice |
+
+### Authorization, sessions, CSRF
+| # | sev | finding | status / fix |
+|---|---|---|---|
+| SR-13 | H | Google login linked an existing account by (unverified) profile e-mail → account pre-hijacking; banned/deleted users could log in with Google | **Fixed** `modules/auth/auth.service.ts` `resolveGoogleUser`: match by Google `sub` only, e-mail stored only if `email_verified`, existing e-mail → 409, ban check, `iss`/`exp` checked |
+| SR-14 | M | Impersonation refresh lived 30 days (sliding) and `impersonation/stop` re-issued an admin session to whoever held the cookie; moderators could be impersonated; money/API-key/account actions allowed while impersonating | **Fixed**: impersonation sessions 1 h non-sliding (`IMPERSONATION_TTL_S`), staff targets refused, `@NoImpersonation()` on checkout, mock-complete, escrow sign/fund/release/refund, rent pay, API keys, data export, account delete |
+| SR-15 | L | Concurrent refreshes with one token bypassed reuse detection; JWT verify didn't pin `HS256`; moderators could unban admins/moderators; OTP verify limited per phone only | **Fixed**: atomic session claim, `algorithms: ['HS256']`, unban role check, + 30 verifies/15 min per IP |
+| SR-16 | M | CSRF relied on `SameSite=Lax` only; mutations accepted `x-www-form-urlencoded`, `text/plain`, `multipart` bodies (form-postable from a sibling subdomain) | **Fixed** `bootstrap.ts` `jsonOnlyMutations`: bodies must be JSON (415 otherwise); exceptions: signed local media PUT, CRM imports |
+| SR-17 | C | `GET /v1/media/files/*` (public) served **any** storage key: `contracts/<offerId>.pdf` (names, phones), `reports/<id>.pdf` (paid product), CRM import files | **Fixed** `modules/media/media.controller.ts`: only `uploads/<yyyy-mm>/<uuid>/<file>` keys |
+| SR-18 | H | Stored XSS: MIME and extension came from the client, bytes were never checked, `.svg` was served inline as `image/svg+xml` on the app origin | **Fixed** `media.service.ts`: extension allow-list, magic-byte sniffing (`sniffUpload`), sharp format allow-list, markup refused, upload URL single-use; files served with `nosniff`, `CSP: default-src 'none'; sandbox`, `attachment` for non-media types, no SVG type |
+| SR-19 | M | S3 presigned PUT signs only `host`: direct-to-bucket uploads have no size/type limit | **Partial**: `process()` deletes > 25 MB / markup uploads and marks them failed. Remaining: presigned POST with `content-length-range` |
+| SR-20 | H | Messaging had no rate limit; `/conversations/with-user` messaged any user id; attachments accepted any URL (phishing "PDF" links) | **Fixed** `modules/messaging/messaging.service.ts`: counterparts only (offer/viewing/lease/escrow/service order/existing thread), 20 new threads/h, 30 msgs/min + 300/h, attachments must be our uploads |
+| SR-21 | M | Offers (create/counter), viewing requests (each sends SMS) and AI stats explanations had no rate limits | **Fixed**: 20 offers/h, 60 counters/h, 20 viewing requests/h, 30 AI explains/h |
+| SR-22 | M | Public `GET /v2/listings/:id/score?businessType=<anything>` ran an AI call + traffic call + stored a row per new value, also for draft listings; `traffic` and `scans?all=true` exposed non-public listings | **Fixed** `modules/v2/insights/*`: taxonomy slug required, public statuses (or manager), 30 fresh computations/h per IP, unready scans for managers only |
+| SR-23 | L | Offer withdraw/reject raced with accept (no status guard) | **Fixed** conditional updates (`offers.service.ts`) |
+| SR-24 | L | Liveness confirm links were reusable forever and could mark any listing rented/sold | **Fixed** `listings.service.ts`: single use, 30 days, active/stale listings only |
+| SR-25 | M | Listing PATCH: material change on a `stale` listing skipped moderation (stale → active); `projectId` of another org's project; agency listing claiming "owner" | **Fixed** `listings.service.ts` |
+| SR-26 | M | `x-api-key` (and PSP signatures) written to request logs; Swagger UI public in production | **Fixed** `app.module.ts` redaction, `main.ts` docs only outside production (or `API_DOCS_PUBLIC=true`) |
+
+### CRM (org isolation holds; agent-level scoping gaps)
+| # | sev | finding | status / fix |
+|---|---|---|---|
+| SR-27 | H | E-sign link was `mock-sign-<documentId>`: anyone who saw a document id could sign as the client | **Fixed (partial)** `integrations/esign/esign.ts`, `crm/documents/*`: 256-bit random ref per send, 14-day expiry, single use, per-IP rate limit. Remaining: ref not wiped after signing (page reloads by ref); seed still has `mock-sign-1/2` (inert) |
+| SR-28 | H | Inbox ignored agent visibility (all conversations, phones, reply as agency) | **Fixed** `crm/inbox/inbox.service.ts` |
+| SR-29 | H | Activity timeline (and call log) read/wrote any contact/deal of the org | **Fixed** `crm/shared/crm.controller.ts`, `crm/calls/calls.controller.ts` via `crm/shared/crm-access.ts` |
+| SR-30 | M | Agents could attach other agents' contacts/deals to their records and read PII; contact detail listed all deals | **Fixed** deals, tasks, viewings, presentations, sequences |
+| SR-31 | M | Documents unscoped for agents; deal value/commission leaked to roles without `finance.view` | **Fixed** `crm/documents/documents.service.ts` |
+| SR-32 | M | Presentations/deals could embed other orgs' non-public listings (shown on public token page) | **Fixed** |
+| SR-33 | M | CSV exports: formula injection (`= + - @ \t \r`) | **Fixed** `crm/imports/spreadsheet.ts` (`'` prefix, stripped again on import) |
+| SR-34 | M | Public XML feeds published agent/owner personal phones; feed URL is the org UUID | **Partial**: only the organization phone is published. Remaining: secret, rotatable feed token (needs a migration) |
+| SR-35 | M | ICS calendar token not revocable, no membership check | **Fixed**: domain-separated HMAC key, inactive member → 404 (existing calendar links change once) |
+| SR-36 | L | Channel webhook secret compared with `!==`; `simulate` live in production; 12-byte portal tokens, merged contacts kept live tokens; KPI endpoint without `analytics.view` | **Fixed** (new portal tokens 32 bytes; CRM dashboard hides KPIs for assistants: `apps/crm/src/app/(workspace)/dashboard/page.tsx`) |
+
+### Personal data (PDP law)
+| # | sev | finding | status / fix |
+|---|---|---|---|
+| SR-37 | M | Account deletion left personal data in demand requests (publicly listed with phone), service providers, review author names, leases, prebookings, viewings notes, compare lists, active memberships, session IPs; export missed received offers, conversations, leases, escrow, orders, reviews, sessions — and included `telegram_link_token` | **Fixed** `modules/users/privacy.ts` (`anonymizeUser`, `exportUserData`). Kept on purpose: counterpart's copy of messages/offers (sender shown as deleted user), invoices/ledger (accounting law), consents (proof), audit log |
+| SR-38 | M | Broker phone reveal was not logged; service-provider phones went to every logged-in user without log or cap | **Fixed**: `audit_log` `reveal_phone` rows; provider phone capped at 60 disclosures/h per user |
+| SR-39 | L | Telegram webhook accepted anyone; messenger mock-confirm endpoints live in production | **Fixed**: `TELEGRAM_WEBHOOK_SECRET` (required in production, `x-telegram-bot-api-secret-token`), mocks 404 in production |
+
+### Availability and dependencies
+| # | sev | finding | status / fix |
+|---|---|---|---|
+| SR-40 | H | **Pool deadlock**: helpers used `dbs.db` (a second pool connection) inside RLS transactions (`crm/deals` board, contact duplicates, CRM viewing create). 20 concurrent deal-board requests hung the API until restart | **Fixed**: those queries use the transaction; `DbService` sets `idle_in_transaction_session_timeout = 15 s` (`packages/db/src/client.ts`) so any future nested use fails fast instead of freezing the API |
+| SR-41 | H | `pnpm audit --prod`: sharp < 0.35.4 (libvips/libheif CVEs), multer 2.2.0 (3 DoS advisories, pinned by `@nestjs/platform-express`) | **Fixed**: sharp `^0.35.4`, `pnpm-workspace.yaml` override `multer: ^2.3.0` (2.4.0). Now 0 high/critical; remaining moderate: `uuid` via exceljs (buffer API not used), `decode-uri-component` via expo-router (apps/mobile) |
+
+Checked and OK: global default-deny guard and `@Roles` on every admin controller; RLS on all 17 org tables with `dbs.org`/`dbs.system` usage filtered by org or token; refresh rotation + family revocation, logout/logout-all, ban revokes sessions; cookie flags (httpOnly, SameSite=Lax, Secure in prod); CORS allow-list; API keys (192-bit, SHA-256, scopes, manager-only org keys); no SQL built from user strings (enum sort maps, parameterised `sql`); feed/ICS escaping; no SSRF (competitor checks are mock, Sheets import rebuilds a fixed `docs.google.com` URL); problem+json without stacks; react-markdown renders without raw HTML (`apps/web` permits/pages, admin CMS); listing JSON-LD escapes `<` (`apps/web/src/components/portal/seo.tsx`; pricing FAQ JSON-LD is static copy); offer contract PDFs only via the participant endpoint.
+
+### Remaining risks (owners / follow-ups)
+1. Access tokens stay valid up to 15 min after ban, deletion, logout-all or role change (no denylist). Mitigation option: Redis set of revoked session ids checked in `AuthGuard`.
+2. S3 direct uploads: switch to presigned POST with `content-length-range` + fixed `Content-Type` (SR-19); serve R2 media from a separate cookieless domain.
+3. Feed secret token (SR-34) and e-sign ref wipe after signing (SR-27) need a migration.
+4. Profile e-mails are unverified: they can squat an address (Google sign-up then gets 409). Add an e-mail verification flow before using e-mail for anything security-relevant.
+5. OTP verify limit per phone lets an attacker lock a victim out for 15 min (accepted; Turnstile is mandatory in production).
+6. `/v1/admin/*` is reachable through `api.` and `lokacia.ge/api` — the IP allow-list covers only the `admin.` UI host (Caddy rule needed).
+7. API key limits are copied at creation/subscription change; a banned owner's keys stay valid until revoked.
+8. Moderators can read offer threads/contract PDFs and viewing phones for support; not separately logged (accepted, audit on mutations only).
+9. `crm_contacts` rows created by agencies about a deleted portal user are not erased (agencies are separate controllers of that data) — the DPO process should notify the orgs.
+10. Rate limits fall back to per-pod memory when Redis is down (see S13).
+11. Nonce-based CSP for Next apps still open (S2).

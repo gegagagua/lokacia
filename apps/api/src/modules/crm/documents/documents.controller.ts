@@ -3,7 +3,9 @@ import { ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { z } from 'zod';
 import { documentCreateSchema, documentSendSchema, documentSignSchema, documentVersionSchema } from '@lokacia/contracts';
-import { Public, SkipAudit } from '../../../common/decorators';
+import { ClientIp, Public, SkipAudit } from '../../../common/decorators';
+import { RateLimitService } from '../../../common/redis.service';
+import { TokensService } from '../../../common/tokens.service';
 import { ApiZodBody, ZBody } from '../../../common/zod';
 import { Crm, Ctx, type CrmCtx } from '../shared/crm-access';
 import { DocumentsService } from './documents.service';
@@ -12,7 +14,11 @@ import { DocumentsService } from './documents.service';
 @ApiTags('crm')
 @Controller('v1/crm/documents')
 export class CrmDocumentsController {
-  constructor(private readonly docs: DocumentsService) {}
+  constructor(
+    private readonly docs: DocumentsService,
+    private readonly rate: RateLimitService,
+    private readonly tokens: TokensService,
+  ) {}
 
   @Get()
   @Crm()
@@ -31,7 +37,8 @@ export class CrmDocumentsController {
   @Public()
   @SkipAudit()
   @Get('sign/:ref')
-  signView(@Param('ref') ref: string) {
+  async signView(@Param('ref') ref: string, @ClientIp() ip: string) {
+    await this.rate.hit(`crm-sign-view:${this.tokens.ipHash(ip)}`, 120, 3600);
     return this.docs.publicView(ref);
   }
 
@@ -39,7 +46,8 @@ export class CrmDocumentsController {
   @Post('sign/:ref')
   @HttpCode(200)
   @ApiZodBody(documentSignSchema)
-  sign(@Param('ref') ref: string, @ZBody(documentSignSchema) body: z.infer<typeof documentSignSchema>) {
+  async sign(@Param('ref') ref: string, @ZBody(documentSignSchema) body: z.infer<typeof documentSignSchema>, @ClientIp() ip: string) {
+    await this.rate.hit(`crm-sign:${this.tokens.ipHash(ip)}`, 20, 3600);
     return this.docs.publicSign(ref, body);
   }
 

@@ -1,3 +1,4 @@
+import Script from 'next/script';
 import type { Metadata, Viewport } from 'next';
 import { Noto_Sans_Georgian } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
@@ -36,7 +37,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang={locale} className={font.variable} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <Script id="lk-theme" strategy="beforeInteractive">{themeScript}</Script>
       </head>
       <body className="min-h-dvh bg-bg text-text" suppressHydrationWarning>
         <NextIntlClientProvider locale={locale} messages={messages}>

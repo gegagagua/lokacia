@@ -14,7 +14,11 @@ const reorderSchema = z.object({ ids: z.array(z.string().uuid()).min(1).max(60) 
 const updateSchema = z.object({ alt: z.string().max(200).optional(), isFloorplan: z.boolean().optional(), kind: z.enum(MEDIA_KINDS).optional() });
 const enhanceSchema = z.object({ rotateDeg: z.number().min(-10).max(10).default(0) });
 
-const MIME: Record<string, string> = { webp: 'image/webp', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', pdf: 'application/pdf', mp4: 'video/mp4', webm: 'video/webm', glb: 'model/gltf-binary', svg: 'image/svg+xml', m4a: 'audio/mp4', mp3: 'audio/mpeg', ogg: 'audio/ogg' };
+/** Served types. No SVG/HTML/XML: anything not listed is served as an attachment (stored XSS defence). */
+const MIME: Record<string, string> = { webp: 'image/webp', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', avif: 'image/avif', pdf: 'application/pdf', mp4: 'video/mp4', webm: 'video/webm', mov: 'video/quicktime', glb: 'model/gltf-binary', m4a: 'audio/mp4', mp3: 'audio/mpeg', ogg: 'audio/ogg', wav: 'audio/wav' };
+const INLINE = /^(image|video|audio)\/|^application\/pdf$/;
+/** Only user media lives under `uploads/`; contracts/, reports/, CRM imports etc. are private and served by their own guarded endpoints. */
+const PUBLIC_KEY = /^uploads\/\d{4}-\d{2}\/[0-9a-f-]{36}\/[a-z0-9-]+\.[a-z0-9]{1,6}$/;
 
 @ApiTags('media')
 @Controller('v1/media')
@@ -33,10 +37,15 @@ export class MediaController {
   @Get('files/*path')
   async file(@Param('path') path: string | string[], @Res() res: Response) {
     const key = Array.isArray(path) ? path.join('/') : path;
-    if (key.includes('..')) throw problems.badRequest('invalid path');
+    if (key.includes('..') || key.includes('\\') || key.includes('\0')) throw problems.badRequest('invalid path');
+    if (!PUBLIC_KEY.test(key)) throw problems.notFound('ფაილი');
     const buf = await this.media.storage.get(key);
     if (!buf) throw problems.notFound('ფაილი');
-    res.setHeader('content-type', MIME[key.split('.').pop() ?? ''] ?? 'application/octet-stream');
+    const type = MIME[key.split('.').pop() ?? ''] ?? 'application/octet-stream';
+    res.setHeader('content-type', type);
+    res.setHeader('x-content-type-options', 'nosniff');
+    res.setHeader('content-security-policy', "default-src 'none'; img-src 'self' data:; media-src 'self'; style-src 'unsafe-inline'; sandbox");
+    if (!INLINE.test(type)) res.setHeader('content-disposition', 'attachment');
     res.setHeader('cache-control', 'public, max-age=31536000, immutable');
     res.send(buf);
   }

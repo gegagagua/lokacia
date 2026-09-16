@@ -1,7 +1,8 @@
 'use client';
 import { useTranslations } from 'next-intl';
 import { AlertTriangle, CheckCircle2 } from 'lucide-react';
-import { DEAL_TYPE_LABELS_KA, formatArea, formatMoney, PASSPORT_FIELD_BY_KEY } from '@lokacia/contracts';
+import { PASSPORT_FIELD_BY_KEY } from '@lokacia/contracts';
+import { useFormat } from '@/i18n/use-format';
 import { Button, SpacePlan, SpecRow } from '@lokacia/ui';
 import { StepSection } from './parts';
 import { money, parseNum, relevantKeys, type BusinessTypeOption, type StepKey, type WizardForm } from './types';
@@ -12,6 +13,7 @@ export function StepReview({ form, types, issues, goTo, children }: { form: Wiza
   const t = useTranslations('wizard.review');
   const ts = useTranslations('wizard.steps');
   const tp = useTranslations('wizard.passport');
+  const f = useFormat();
   const area = parseNum(form.areaM2) ?? 0;
   const price = money(form.price);
   const rel = relevantKeys(form, types);
@@ -64,10 +66,10 @@ export function StepReview({ form, types, issues, goTo, children }: { form: Wiza
             <h3 className="text-h3 font-semibold">{form.title || '—'}</h3>
             <div className="mt-3">
               {row(t('types'), form.businessTypes.map((s) => types.find((b) => b.slug === s)?.nameKa ?? s).join(', '), 'type')}
-              {row(t('deal'), DEAL_TYPE_LABELS_KA[form.dealType], 'type')}
+              {row(t('deal'), f.dealType(form.dealType), 'type')}
               {row(t('address'), [form.address, form.districtName].filter(Boolean).join(' — '), 'location')}
-              {row(t('area'), area ? formatArea(area) : '', 'location')}
-              {row(t('price'), price ? formatMoney(price) : '', 'price')}
+              {row(t('area'), area ? f.area(area) : '', 'location')}
+              {row(t('price'), price ? f.money(price) : '', 'price')}
               {row(t('photos'), String(photos.length), 'media')}
               {row(ts('passport'), t('passportFilled', { pct: filledPct }), 'passport')}
             </div>

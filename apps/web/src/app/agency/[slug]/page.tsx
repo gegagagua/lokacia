@@ -1,9 +1,8 @@
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { BadgeCheck, CalendarClock, Globe, MapPin } from 'lucide-react';
-import { formatDateKa } from '@lokacia/contracts';
 import { Avatar, Badge, EmptyState, Stat } from '@lokacia/ui';
 import { getAgency, getNames } from '@/components/portal/data';
 import { FavoritesProvider } from '@/components/portal/favorites';
@@ -13,6 +12,7 @@ import { ReviewsList } from '@/components/portal/profiles/reviews';
 import { Stars } from '@/components/portal/profiles/stars';
 import { Breadcrumbs, JsonLd, pageMetadata } from '@/components/portal/seo';
 import { absUrl } from '@/lib/site';
+import { getFormat } from '@/i18n/server';
 
 export const revalidate = 300;
 type Props = { params: Promise<{ slug: string }> };
@@ -20,7 +20,7 @@ type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const a = await getAgency(slug);
-  if (!a) return { title: 'ორგანიზაცია ვერ მოიძებნა', robots: { index: false } };
+  if (!a) return { title: (await getTranslations('profiles'))('orgNotFound'), robots: { index: false } };
   const t = await getTranslations('profiles');
   const desc = [a.about, t(`orgType.${a.type}`), t('activeListings', { n: a.stats.active })].filter(Boolean).join(' · ');
   return pageMetadata({ title: `${a.name} — ${t(`orgType.${a.type}`)}`, description: desc, path: `/agency/${a.slug}`, image: a.logoUrl ?? undefined });
@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function AgencyPage({ params }: Props) {
   const { slug } = await params;
-  const [a, t, names] = await Promise.all([getAgency(slug), getTranslations('profiles'), getNames()]);
+  const [a, t, names, f] = await Promise.all([getAgency(slug), getTranslations('profiles'), getNames(), getFormat()]);
   if (!a) notFound();
   const website = a.website ? (a.website.startsWith('http') ? a.website : `https://${a.website}`) : null;
   return (
@@ -50,13 +50,13 @@ export default async function AgencyPage({ params }: Props) {
             {a.rating != null ? (
               <>
                 <Stars value={a.rating} label={t('review.stars', { n: a.rating })} />
-                <span className="tabular text-text">{a.rating.toFixed(1).replace('.', ',')}</span>
+                <span className="tabular text-text">{a.rating.toFixed(1).replace('.', f.locale === 'en' ? '.' : ',')}</span>
                 <span>· {t('reviewsCount', { n: a.reviewsCount })}</span>
               </>
             ) : (
               <span>{t('noRating')}</span>
             )}
-            <span>· {t('memberSince', { date: formatDateKa(a.memberSince) })}</span>
+            <span>· {t('memberSince', { date: f.date(a.memberSince) })}</span>
           </div>
           {a.about && <p className="mt-3 max-w-2xl">{a.about}</p>}
           <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-[15px]">
@@ -131,7 +131,7 @@ export default async function AgencyPage({ params }: Props) {
                   <span className="font-medium">{p.name}</span>
                   <span className="flex items-center gap-1.5 text-small text-muted">
                     <CalendarClock className="size-3.5" strokeWidth={1.5} aria-hidden />
-                    {t('completion', { date: formatDateKa(p.completionDate) })}
+                    {t('completion', { date: f.date(p.completionDate) })}
                   </span>
                 </Link>
               </li>

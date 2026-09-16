@@ -1,7 +1,7 @@
 'use client';
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
-import { formatMoney } from '@lokacia/contracts';
+import { useFormat } from '@/i18n/use-format';
 import { Checkbox, Field, Input, RadioGroup, Textarea } from '@lokacia/ui';
 
 export type OfferTerms = { priceGel: string; termMonths: string; freeMonths: string; indexationPct: string; fitoutPaidBy: 'tenant' | 'owner' | 'shared'; equipmentIncluded: boolean; message: string };
@@ -33,6 +33,7 @@ export function termsToBody(v: OfferTerms, dealType: string, t: (k: string) => s
 
 export function OfferTermsFields({ value, onChange, errors = {}, dealType, equipment = [] }: { value: OfferTerms; onChange: (v: OfferTerms) => void; errors?: TermsErrors; dealType: string; equipment?: { name: string; qty: number; priceMinor: number }[] }) {
   const t = useTranslations('offers.form');
+  const f = useFormat();
   const set = (patch: Partial<OfferTerms>) => onChange({ ...value, ...patch });
   const isSale = dealType === 'sale' || dealType === 'transfer';
   const eqTotal = equipment.reduce((a, e) => a + e.priceMinor * e.qty, 0);
@@ -80,12 +81,12 @@ export function OfferTermsFields({ value, onChange, errors = {}, dealType, equip
                     {e.name}
                     {e.qty > 1 && <span className="text-muted"> × {e.qty}</span>}
                   </span>
-                  <span className="tabular">{formatMoney(e.priceMinor * e.qty)}</span>
+                  <span className="tabular">{f.money(e.priceMinor * e.qty)}</span>
                 </li>
               ))}
               <li className="flex justify-between gap-3 py-1.5 font-medium">
                 <span>{t('equipmentTotal')}</span>
-                <span className="tabular">{formatMoney(eqTotal)}</span>
+                <span className="tabular">{f.money(eqTotal)}</span>
               </li>
             </ul>
           ) : (

@@ -1,64 +1,64 @@
 {
-  "title": "",
-  "subtitle": "",
+  "title": "Tasks",
+  "subtitle": "Deadlines, reminders and next steps",
   "tabs": {
-    "today": "",
-    "overdue": "",
-    "upcoming": "",
-    "done": ""
+    "today": "Today",
+    "overdue": "Overdue",
+    "upcoming": "Upcoming",
+    "done": "Completed"
   },
   "scope": {
-    "mine": "",
-    "all": ""
+    "mine": "Mine",
+    "all": "Team"
   },
   "add": {
-    "title": "",
-    "placeholder": "",
-    "due": "",
-    "priority": "",
-    "assignee": "",
-    "contact": "",
-    "submit": "",
-    "created": ""
+    "title": "New task",
+    "placeholder": "e.g. Call Nino to confirm the viewing",
+    "due": "Due",
+    "priority": "Priority",
+    "assignee": "Assignee",
+    "contact": "Contact",
+    "submit": "Add task",
+    "created": "Task added"
   },
   "priority": {
-    "low": "",
-    "normal": "",
-    "high": ""
+    "low": "Low",
+    "normal": "Medium",
+    "high": "High"
   },
-  "complete": "",
-  "reopen": "",
-  "snooze": "",
+  "complete": "Mark as completed",
+  "reopen": "Reopen",
+  "snooze": "Snooze",
   "snoozeOptions": {
-    "hour": "",
-    "tomorrow": "",
-    "week": ""
+    "hour": "For 1 hour",
+    "tomorrow": "Tomorrow at 9:00",
+    "week": "For a week"
   },
-  "snoozed": "",
-  "deleted": "",
-  "delete": "",
-  "noDue": "",
-  "overdueBy": "",
+  "snoozed": "Task snoozed",
+  "deleted": "Task deleted",
+  "delete": "Delete task",
+  "noDue": "No due date",
+  "overdueBy": "Overdue",
   "empty": {
-    "today": "",
-    "overdue": "",
-    "upcoming": "",
-    "done": ""
+    "today": "No tasks for today",
+    "overdue": "No overdue tasks",
+    "upcoming": "No upcoming tasks",
+    "done": "No completed tasks yet"
   },
-  "emptyHint": "",
+  "emptyHint": "Add a task above — you'll get a reminder 15 minutes before it's due.",
   "reminders": {
-    "title": "",
-    "body": "",
-    "enablePush": "",
-    "pushEnabled": "",
-    "pushDenied": "",
-    "pushUnsupported": "",
-    "test": "",
-    "testTitle": "",
-    "testBody": ""
+    "title": "Reminders",
+    "body": "Reminders arrive in the CRM, in Telegram and as browser notifications 15 minutes before the due time.",
+    "enablePush": "Enable browser notifications",
+    "pushEnabled": "Browser notifications enabled",
+    "pushDenied": "The browser blocked notifications — allow them in your site settings",
+    "pushUnsupported": "This browser doesn't support notifications",
+    "test": "Test reminder",
+    "testTitle": "lokacia CRM: reminder",
+    "testBody": "This is how a reminder will look before a task is due."
   },
   "linked": {
-    "deal": "",
-    "contact": ""
+    "deal": "Deal",
+    "contact": "Contact"
   }
 }

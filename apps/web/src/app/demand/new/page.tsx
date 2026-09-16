@@ -5,18 +5,23 @@ import { getSession } from '@/lib/session';
 import { getNames } from '@/components/portal/data';
 import { Breadcrumbs } from '@/components/portal/seo';
 import { DemandForm } from '@/components/portal/demand/demand-form';
-import { CITY_NAMES_KA } from '@/lib/site';
+import { getAppLocale, getFormat } from '@/i18n/server';
+import { localizePath } from '@/i18n/locale';
 
-export const metadata: Metadata = { title: 'მოთხოვნის დამატება', robots: { index: false, follow: true }, alternates: { canonical: '/demand/new' } };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('meta.titles');
+  return { title: t('demandNew'), robots: { index: false, follow: true }, alternates: { canonical: '/demand/new' } };
+}
 
 export default async function NewDemandPage() {
   const user = await getSession();
-  if (!user) redirect('/login?next=/demand/new');
+  if (!user) redirect(localizePath('/login?next=/demand/new', await getAppLocale()));
   const t = await getTranslations('demand');
+  const f = await getFormat();
   const { types, districts } = await getNames();
   const groups = [...new Set(districts.map((d) => d.city))].map((city) => ({
     city,
-    name: CITY_NAMES_KA[city] ?? city,
+    name: f.city(city),
     districts: districts.filter((d) => d.city === city).map((d) => ({ id: d.id, name: d.nameKa })),
   }));
   return (

@@ -18,6 +18,10 @@ export const OrgScoped = (...roles: OrgRole[]) => (target: object, key?: string 
   if (roles.length) SetMetadata(ORG_ROLES_KEY, roles)(target, key as string, desc as PropertyDescriptor);
 };
 
+export const NO_IMPERSONATION = 'noImpersonation';
+/** Refused while an admin is impersonating the user (money movement, API keys, account deletion, data export). */
+export const NoImpersonation = () => SetMetadata(NO_IMPERSONATION, true);
+
 export const SKIP_AUDIT = 'skipAudit';
 export const SkipAudit = () => SetMetadata(SKIP_AUDIT, true);
 

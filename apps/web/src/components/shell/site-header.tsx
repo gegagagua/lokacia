@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import { getTranslations } from 'next-intl/server';
 import { Button, Logo } from '@lokacia/ui';
 import { Plus } from 'lucide-react';
@@ -11,6 +11,7 @@ import { LanguageSwitcher } from './language-switcher';
 
 export async function SiteHeader() {
   const t = await getTranslations('common.nav');
+  const a = await getTranslations('meta.a11y');
   const user = await getSession();
   const nav = [
     { href: '/search', label: t('search') },
@@ -22,11 +23,11 @@ export async function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-bg/95 backdrop-blur supports-[backdrop-filter]:bg-bg/85">
       <div className="container-page flex h-16 min-w-0 items-center gap-2 sm:gap-4">
-        <Link href="/" className="shrink-0 rounded-button" aria-label="lokacia.ge — მთავარი">
+        <Link href="/" className="shrink-0 rounded-button" aria-label={a('homeLink')}>
           <Logo size={26} className="hidden sm:inline-flex" />
           <Logo size={24} showGeorgian={false} className="sm:hidden" />
         </Link>
-        <nav aria-label="მთავარი ნავიგაცია" className="ml-2 hidden items-center gap-0.5 xl:flex">
+        <nav aria-label={a('mainNav')} className="ml-2 hidden items-center gap-0.5 xl:flex">
           {nav.map((n) => (
             <Link key={n.href} href={n.href} className="whitespace-nowrap rounded-button px-2.5 py-2 text-[15px] text-muted transition-colors hover:bg-surface-2 hover:text-text">
               {n.label}

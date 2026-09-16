@@ -6,7 +6,7 @@ import { DbService } from '../../../common/db.service';
 import { problems, ProblemException } from '../../../common/problem';
 import { ListingReadService } from '../../listings/listing-read.service';
 import { ActivityService } from '../shared/activity.service';
-import { assertCan, type CrmCtx } from '../shared/crm-access';
+import { assertCan, usableListing, visibleContact, type CrmCtx } from '../shared/crm-access';
 import { CrmEventsService } from '../shared/crm-events.service';
 import { PipelineService, type PipelineRow } from './pipeline.service';
 
@@ -27,10 +27,11 @@ export class DealsService {
     private readonly read: ListingReadService,
   ) {}
 
-  private async names(ids: (string | null)[]) {
+  /** Pass `tx` when called inside a transaction: a second pool connection per request deadlocks the pool under load. */
+  private async names(ids: (string | null)[], tx?: Tx) {
     const uniq = [...new Set(ids.filter((x): x is string => !!x))];
     if (!uniq.length) return new Map<string, string | null>();
-    const rows = await this.dbs.db.select({ id: users.id, name: users.name }).from(users).where(inArray(users.id, uniq));
+    const rows = await (tx ?? this.dbs.db).select({ id: users.id, name: users.name }).from(users).where(inArray(users.id, uniq));
     return new Map(rows.map((r) => [r.id, r.name]));
   }
 
@@ -80,7 +81,7 @@ export class DealsService {
         .where(and(...where))
         .orderBy(asc(crmDeals.position), desc(crmDeals.updatedAt))
         .limit(2000);
-      const names = await this.names(rows.map((r) => r.d.agentId));
+      const names = await this.names(rows.map((r) => r.d.agentId), tx);
       const finance = ctx.can('finance.view');
       const now = Date.now();
       return {
@@ -102,12 +103,8 @@ export class DealsService {
 
   async create(ctx: CrmCtx, input: z.infer<typeof dealSchema>) {
     const deal = await this.dbs.org(ctx.orgId, async (tx) => {
-      const contact = await tx.query.crmContacts.findFirst({ where: and(eq(crmContacts.id, input.contactId), isNull(crmContacts.deletedAt)) });
-      if (!contact) throw problems.notFound('კონტაქტი');
-      if (input.listingId) {
-        const l = await this.dbs.db.query.listings.findFirst({ where: and(eq(listings.id, input.listingId), isNull(listings.deletedAt)) });
-        if (!l) throw problems.notFound('ფართი');
-      }
+      const contact = await visibleContact(tx, ctx, input.contactId);
+      if (input.listingId) await usableListing(tx, ctx, input.listingId);
       const p = await this.pipelines.defaultIn(tx, ctx.orgId);
       const stage = input.stage ? PipelineService.stage(p, input.stage) : PipelineService.firstOpen(p);
       const finance = ctx.can('finance.view');
@@ -178,12 +175,11 @@ export class DealsService {
       const d = await this.findVisible(tx, ctx, id);
       const set: Partial<typeof crmDeals.$inferInsert> = {};
       if (patch.title !== undefined) set.title = patch.title;
-      if (patch.contactId !== undefined) {
-        const c = await tx.query.crmContacts.findFirst({ where: and(eq(crmContacts.id, patch.contactId), isNull(crmContacts.deletedAt)) });
-        if (!c) throw problems.notFound('კონტაქტი');
+      if (patch.contactId !== undefined && patch.contactId !== d.contactId) {
+        const c = await visibleContact(tx, ctx, patch.contactId);
         set.contactId = c.id;
       }
-      if (patch.listingId !== undefined) set.listingId = patch.listingId;
+      if (patch.listingId !== undefined && patch.listingId !== d.listingId) set.listingId = patch.listingId ? (await usableListing(tx, ctx, patch.listingId)).id : null;
       if (patch.agentId !== undefined) set.agentId = patch.agentId;
       if (patch.source !== undefined) set.source = patch.source;
       if (patch.expectedCloseAt !== undefined) set.expectedCloseAt = patch.expectedCloseAt ? new Date(patch.expectedCloseAt) : null;

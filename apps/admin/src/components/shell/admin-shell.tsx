@@ -11,6 +11,7 @@ import type { AdminDashboard, SessionUser } from '@lokacia/contracts';
 import { Avatar, IconButton, Logo, cn } from '@lokacia/ui';
 import { fetcher } from '@/lib/api-client';
 import { ThemeToggle } from './theme-toggle';
+import { LanguageSwitcher } from './language-switcher';
 import { LogoutButton } from './logout-button';
 
 type NavItem = { href: string; key: string; icon: React.ElementType; adminOnly?: boolean; count?: (d: AdminDashboard) => number };
@@ -113,6 +114,7 @@ export function AdminShell({ user, children }: { user: SessionUser; children: Re
             <div className="truncate text-small font-medium">{user.name ?? user.phone}</div>
             <div className="text-[11px] text-muted">{t(`role.${user.role}`)}</div>
           </div>
+          <LanguageSwitcher />
           <ThemeToggle />
         </div>
       </aside>
@@ -124,6 +126,7 @@ export function AdminShell({ user, children }: { user: SessionUser; children: Re
         </IconButton>
         <Logo size={22} showGeorgian={false} />
         <div className="ml-auto flex items-center gap-1">
+          <LanguageSwitcher />
           <ThemeToggle />
         </div>
       </header>

@@ -3,14 +3,18 @@ import * as React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { CheckCircle2 } from 'lucide-react';
-import { formatMoney, formatNumber, type ListingCard } from '@lokacia/contracts';
+import type { ListingCard } from '@lokacia/contracts';
 import { Button, Dialog, Field, Input, Select, Textarea } from '@lokacia/ui';
 import { apiFetch, ClientApiError } from '@/lib/api-client';
+import { useLocalizedPath } from '@/i18n/link';
+import { useFormat } from '@/i18n/use-format';
 
 /** P8 pre-booking request for an off-plan project. */
 export function PrebookDialog({ projectSlug, units, defaultUnitId, size = 'lg', className }: { projectSlug: string; units: ListingCard[]; defaultUnitId?: string; size?: 'md' | 'lg'; className?: string }) {
   const t = useTranslations('projects.prebook');
+  const f = useFormat();
   const router = useRouter();
+  const lp = useLocalizedPath();
   const pathname = usePathname();
   const available = units.filter((u) => u.status === 'active');
   const [open, setOpen] = React.useState(false);
@@ -33,7 +37,7 @@ export function PrebookDialog({ projectSlug, units, defaultUnitId, size = 'lg', 
       setResult(r.duplicate ? 'duplicate' : 'ok');
     } catch (err) {
       if (err instanceof ClientApiError && err.status === 401) {
-        router.push(`/login?next=${encodeURIComponent(pathname)}`);
+        router.push(lp(`/login?next=${encodeURIComponent(pathname)}`));
         return;
       }
       setError(err instanceof ClientApiError ? (err.problem?.detail ?? err.problem?.title ?? t('error')) : t('error'));
@@ -73,7 +77,7 @@ export function PrebookDialog({ projectSlug, units, defaultUnitId, size = 'lg', 
               value={unitId}
               onChange={(e) => setUnitId(e.target.value)}
               placeholder={t('anyUnit')}
-              options={available.map((u) => ({ value: u.id, label: `${u.floor != null ? `${u.floor} ქ. · ` : ''}${formatNumber(u.areaM2)} მ² · ${formatMoney(u.priceMinor, u.currency)}` }))}
+              options={available.map((u) => ({ value: u.id, label: `${u.floor != null ? `${t('floorShort', { floor: u.floor })} · ` : ''}${f.number(u.areaM2)} ${f.areaUnit} · ${f.money(u.priceMinor, u.currency)}` }))}
             />
           </Field>
           <Field label={t('message')}>

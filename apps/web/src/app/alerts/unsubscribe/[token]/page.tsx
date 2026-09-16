@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import { getTranslations } from 'next-intl/server';
 import { BellOff } from 'lucide-react';
 import { Button, EmptyState } from '@lokacia/ui';

@@ -1,11 +1,12 @@
 'use client';
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import { usePathname, useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { useTranslations } from 'next-intl';
 import { ArrowLeft, ExternalLink, Search } from 'lucide-react';
-import { formatDateKa, type ConversationDto, type MessageDto } from '@lokacia/contracts';
+import { formatDateFor, type AppLocale, type ConversationDto, type MessageDto } from '@lokacia/contracts';
+import { useFormat } from '@/i18n/use-format';
 import { Avatar, Button, ChatThread, cn, EmptyState, Input, Skeleton, useToast, type ChatMessage } from '@lokacia/ui';
 import { apiFetch, fetcher, uploadFile } from '@/lib/api-client';
 import { useRealtime } from '../realtime';
@@ -13,11 +14,11 @@ import { tbilisi } from '../format';
 
 type Page = { items: MessageDto[]; nextCursor: string | null };
 
-function timeLabel(iso: string) {
+function timeLabel(iso: string, locale: AppLocale) {
   const d = tbilisi(iso);
   const now = tbilisi(new Date());
   if (d.toDateString() === now.toDateString()) return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-  return formatDateKa(d).replace(/, \d{4}$/, '');
+  return formatDateFor(d, locale).replace(/,? \d{4}$/, '');
 }
 
 async function waitForMedia(id: string) {
@@ -32,6 +33,7 @@ async function waitForMedia(id: string) {
 
 export function Inbox({ me, initialId }: { me: string; initialId: string | null }) {
   const t = useTranslations('chat');
+  const f = useFormat();
   const router = useRouter();
   const pathname = usePathname();
   const [activeId, setActiveId] = React.useState<string | null>(initialId);
@@ -84,7 +86,7 @@ export function Inbox({ me, initialId }: { me: string; initialId: string | null 
                 <span className="min-w-0 flex-1">
                   <span className="flex items-baseline justify-between gap-2">
                     <span className={cn('truncate', c.unread ? 'font-semibold' : 'font-medium')}>{c.other?.name ?? t('unknown')}</span>
-                    {c.lastMessageAt && <span className="shrink-0 text-[11px] text-muted tabular">{timeLabel(c.lastMessageAt)}</span>}
+                    {c.lastMessageAt && <span className="shrink-0 text-[11px] text-muted tabular">{timeLabel(c.lastMessageAt, f.locale)}</span>}
                   </span>
                   <span className="block truncate text-[12px] text-muted">{c.listing?.title ?? c.subject}</span>
                   <span className="flex items-center justify-between gap-2">

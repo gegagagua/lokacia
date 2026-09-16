@@ -12,6 +12,15 @@ import { problems } from '../../common/problem';
 import { AuthService } from './auth.service';
 import type { z } from 'zod';
 
+/** Mobile token mode (V7): `x-client: mobile` → tokens in the JSON body instead of httpOnly cookies. */
+function isMobile(req: AppRequest) {
+  return String(req.headers['x-client'] ?? '').toLowerCase() === 'mobile';
+}
+function bodyRefreshToken(req: AppRequest) {
+  const t = (req.body as { refreshToken?: unknown } | undefined)?.refreshToken;
+  return typeof t === 'string' && t.length > 0 && t.length < 512 ? t : undefined;
+}
+
 @ApiTags('auth')
 @Controller('v1/auth')
 @SkipAudit()
@@ -36,17 +45,24 @@ export class AuthController {
   @ApiZodBody(otpVerifySchema)
   async verify(@ZBody(otpVerifySchema) body: z.infer<typeof otpVerifySchema>, @ClientIp() ip: string, @Req() req: AppRequest, @Res({ passthrough: true }) res: Response) {
     const t = await this.auth.verifyOtp(body.phone, body.code, body.name, { ip, userAgent: req.headers['user-agent'] });
-    this.tokens.setAuthCookies(res, t.access, t.refresh);
     const payload = this.tokens.verifyAccess(t.access)!;
-    return { user: await this.auth.me(payload.sub), expiresIn: t.expiresIn };
+    const user = await this.auth.me(payload.sub);
+    if (isMobile(req)) return { user, expiresIn: t.expiresIn, accessToken: t.access, refreshToken: t.refresh };
+    this.tokens.setAuthCookies(res, t.access, t.refresh);
+    return { user, expiresIn: t.expiresIn };
   }
 
   @Public()
   @Post('refresh')
   @HttpCode(200)
   async refresh(@Req() req: AppRequest, @ClientIp() ip: string, @Res({ passthrough: true }) res: Response) {
-    const token = req.cookies?.[REFRESH_COOKIE] as string | undefined;
+    const mobile = isMobile(req);
+    const token = mobile ? bodyRefreshToken(req) : (req.cookies?.[REFRESH_COOKIE] as string | undefined);
     if (!token) throw problems.unauthorized();
+    if (mobile) {
+      const t = await this.auth.refresh(token, { ip, userAgent: req.headers['user-agent'] });
+      return { ok: true, expiresIn: t.expiresIn, accessToken: t.access, refreshToken: t.refresh };
+    }
     try {
       const t = await this.auth.refresh(token, { ip, userAgent: req.headers['user-agent'] });
       this.tokens.setAuthCookies(res, t.access, t.refresh);
@@ -61,7 +77,7 @@ export class AuthController {
   @Post('logout')
   @HttpCode(200)
   async logout(@Req() req: AppRequest, @Res({ passthrough: true }) res: Response) {
-    await this.auth.logout(req.cookies?.[REFRESH_COOKIE] as string | undefined);
+    await this.auth.logout(isMobile(req) ? bodyRefreshToken(req) : (req.cookies?.[REFRESH_COOKIE] as string | undefined));
     this.tokens.clearAuthCookies(res);
     return { ok: true };
   }

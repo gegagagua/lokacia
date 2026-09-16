@@ -97,14 +97,15 @@ export class FeedsService implements OnModuleInit {
           .where(and(inArray(listingMedia.listingId, ids), eq(listingMedia.kind, 'photo'), isNull(listingMedia.deletedAt), eq(listingMedia.status, 'ready')))
           .orderBy(asc(listingMedia.sort))
       : [];
-    const agentIds = [...new Set(rows.map((r) => r.l.agentId ?? r.l.ownerId))];
-    const agents = agentIds.length ? await this.dbs.db.select({ id: users.id, name: users.name, phone: users.phone }).from(users).where(inArray(users.id, agentIds)) : [];
+    // public feed: never personal phones of agents/owners (CLAUDE.md personal data rule) — only the organization's phone
+    const agentIds = [...new Set(rows.map((r) => r.l.agentId).filter((x): x is string => !!x))];
+    const agents = agentIds.length ? await this.dbs.db.select({ id: users.id, name: users.name }).from(users).where(inArray(users.id, agentIds)) : [];
     const agentById = new Map(agents.map((a) => [a.id, a]));
 
     const listingNodes: Node[] = [];
     for (const { l, p } of rows) {
       const district = await this.tax.districtById(l.districtId);
-      const agent = agentById.get(l.agentId ?? l.ownerId);
+      const agent = l.agentId ? agentById.get(l.agentId) : undefined;
       const passportFields: Node[] = [];
       for (const f of PASSPORT_FIELDS) {
         const v = p ? (p as Record<string, unknown>)[f.key] : null;
@@ -132,7 +133,7 @@ export class FeedsService implements OnModuleInit {
           { name: 'businessTypes', children: l.businessTypes.map((b) => leaf('businessType', b)) },
           passportFields.length ? { name: 'passport', children: passportFields } : null,
           { name: 'photos', children: media.filter((m) => m.listingId === l.id).map((m) => leaf('photo', this.abs(m.variants?.lg ?? m.url))) },
-          { name: 'contact', children: [leaf('name', agent?.name ?? org.name), leaf('phone', agent?.phone ?? org.phone), leaf('email', org.email)] },
+          { name: 'contact', children: [leaf('name', agent?.name ?? org.name), leaf('phone', org.phone), leaf('email', org.email)] },
         ],
       });
     }

@@ -1,8 +1,9 @@
 'use client';
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
-import { formatNumber, type TrafficResponse } from '@lokacia/contracts';
+import type { TrafficResponse } from '@lokacia/contracts';
 import { cn } from '@lokacia/ui';
+import { useFormat } from '@/i18n/use-format';
 
 /** Monday-first order; weekday numbers follow JS (0 = Sunday). */
 const ORDER = [1, 2, 3, 4, 5, 6, 0] as const;
@@ -10,6 +11,7 @@ const ORDER = [1, 2, 3, 4, 5, 6, 0] as const;
 /** V1: hourly foot-traffic bars for one weekday (single series, table fallback, per-bar hover). */
 export function TrafficChart({ traffic }: { traffic: TrafficResponse }) {
   const t = useTranslations('v2.traffic');
+  const fmt = useFormat();
   const [weekday, setWeekday] = React.useState<number>(() => new Date().getDay());
   const [hover, setHover] = React.useState<number | null>(null);
   const day = traffic.days.find((d) => d.weekday === weekday) ?? traffic.days[0];
@@ -41,10 +43,10 @@ export function TrafficChart({ traffic }: { traffic: TrafficResponse }) {
       </div>
       <div className="mt-3 flex flex-wrap items-baseline gap-x-6 gap-y-1 text-small">
         <span>
-          {t('dayTotal')}: <b className="tabular">{formatNumber(day?.total ?? 0)}</b>
+          {t('dayTotal')}: <b className="tabular">{fmt.number(day?.total ?? 0)}</b>
         </span>
         <span>
-          {t('peak')}: <b className="tabular">{String(peakHour).padStart(2, '0')}:00</b> ({formatNumber(hours[peakHour] ?? 0)} {t('perHour')})
+          {t('peak')}: <b className="tabular">{String(peakHour).padStart(2, '0')}:00</b> ({fmt.number(hours[peakHour] ?? 0)} {t('perHour')})
         </span>
         <span className="text-muted">{traffic.source === 'samples' ? t('sourceSamples') : t('sourceProvider')}</span>
       </div>
@@ -54,7 +56,7 @@ export function TrafficChart({ traffic }: { traffic: TrafficResponse }) {
             <g key={v}>
               <line x1={pad.l} x2={W - pad.r} y1={y(v)} y2={y(v)} stroke="var(--border)" strokeWidth="1" />
               <text x={pad.l - 6} y={y(v) + 4} textAnchor="end" fontSize="11" fill="var(--text-muted)" className="tabular">
-                {formatNumber(v)}
+                {fmt.number(v)}
               </text>
             </g>
           ))}
@@ -80,7 +82,7 @@ export function TrafficChart({ traffic }: { traffic: TrafficResponse }) {
         </svg>
         {hover !== null && (
           <div className="pointer-events-none absolute top-0 rounded-[6px] border border-border bg-surface px-2 py-1 text-small tabular" style={{ left: `${Math.min(80, ((pad.l + hover * bw) / W) * 100)}%` }} aria-hidden>
-            {String(hover).padStart(2, '0')}:00 — {formatNumber(hours[hover] ?? 0)} {t('people')}
+            {String(hover).padStart(2, '0')}:00 — {fmt.number(hours[hover] ?? 0)} {t('people')}
           </div>
         )}
       </div>

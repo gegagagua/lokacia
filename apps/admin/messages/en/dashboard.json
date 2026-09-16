@@ -1,22 +1,22 @@
 {
-  "title": "",
-  "subtitle": "",
-  "usersTotal": "",
-  "newUsers": "",
-  "activeListings": "",
-  "pendingHint": "",
-  "revenue30d": "",
-  "mrr": "",
-  "queuesTitle": "",
+  "title": "Overview",
+  "subtitle": "Platform status and queues",
+  "usersTotal": "Users",
+  "newUsers": "+{week} this week · +{month} in 30 days",
+  "activeListings": "Active listings",
+  "pendingHint": "{count} in moderation queue",
+  "revenue30d": "Revenue, 30 days",
+  "mrr": "Monthly recurring revenue",
+  "queuesTitle": "Queues",
   "queues": {
-    "moderation": "",
-    "verifications": "",
-    "feedback": "",
-    "disputes": "",
-    "failedPayments": ""
+    "moderation": "Listings in moderation",
+    "verifications": "Owner verifications",
+    "feedback": "New feedback",
+    "disputes": "Escrow disputes",
+    "failedPayments": "Failed payments"
   },
-  "listingsByStatus": "",
-  "signups": "",
-  "events": "",
-  "noEvents": ""
+  "listingsByStatus": "Listings by status",
+  "signups": "Sign-ups, 30 days",
+  "events": "Analytics events, 7 days",
+  "noEvents": "No events yet"
 }

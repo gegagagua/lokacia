@@ -9,3 +9,7 @@ onlyBuiltDependencies:
   - "@nestjs/core"
   - msgpackr-extract
   - unrs-resolver
+
+# security review 2026-09: @nestjs/platform-express 11 pins multer 2.2.0 (GHSA DoS advisories, fixed in 2.3.0)
+overrides:
+  multer: ^2.3.0

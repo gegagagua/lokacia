@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { ArrowLeft, Phone } from 'lucide-react';
-import { DEAL_TYPE_LABELS_KA, filtersToParams, formatDateKa, formatMoney, type SearchFilters } from '@lokacia/contracts';
+import { filtersToParams, type SearchFilters } from '@lokacia/contracts';
+import { getFormat } from '@/i18n/server';
 import { Badge, Button, SpecRow } from '@lokacia/ui';
 import { getSession } from '@/lib/session';
 import { getDemand, getDemandMatches, getNames } from '@/components/portal/data';
@@ -19,8 +20,9 @@ type Props = { params: Promise<{ id: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const d = await getDemand(id).catch(() => null);
-  if (!d) return { title: 'მოთხოვნა', robots: { index: false } };
-  const desc = `${d.businessTypeName}, ${areaRange(d)}${d.budgetMinor ? `, ≤ ${formatMoney(d.budgetMinor)}` : ''}${d.districts.length ? ` — ${d.districts.map((x) => x.name).join(', ')}` : ''}`;
+  if (!d) return { title: (await getTranslations('demand.detail'))('metaFallback'), robots: { index: false } };
+  const f = await getFormat();
+  const desc = `${d.businessTypeName}, ${areaRange(d, f.areaUnit)}${d.budgetMinor ? `, ≤ ${f.money(d.budgetMinor)}` : ''}${d.districts.length ? ` — ${d.districts.map((x) => x.name).join(', ')}` : ''}`;
   return pageMetadata({ title: d.title, description: desc, path: `/demand/${d.id}`, noindex: d.status !== 'active' });
 }
 
@@ -29,6 +31,7 @@ export default async function DemandDetailPage({ params }: Props) {
   const [d, user, names] = await Promise.all([getDemand(id).catch(() => null), getSession(), getNames()]);
   if (!d) notFound();
   const t = await getTranslations('demand');
+  const f = await getFormat();
   const matches = await getDemandMatches(d.id).catch(() => null);
   const icon = names.typeBySlug[d.businessType]?.icon ?? 'store';
   const left = daysLeft(d.expiresAt);
@@ -49,18 +52,18 @@ export default async function DemandDetailPage({ params }: Props) {
             <Badge tone="primary" icon={<BusinessTypeIcon name={icon} className="size-3.5" />}>
               {d.businessTypeName}
             </Badge>
-            <Badge tone="outline">{DEAL_TYPE_LABELS_KA[d.dealType]}</Badge>
+            <Badge tone="outline">{f.dealType(d.dealType)}</Badge>
             <DemandStatusBadge status={d.status} />
           </div>
           <h1 className="mt-3 text-h2 font-semibold md:text-h1">{d.title}</h1>
           <p className="mt-2 text-small text-muted">
-            {t('detail.published', { date: formatDateKa(d.createdAt) })}
-            {d.status === 'active' && ` · ${t('detail.expires', { date: formatDateKa(d.expiresAt) })} (${left === 0 ? t('card.expiresToday') : t('card.expiresIn', { days: left })})`}
+            {t('detail.published', { date: f.date(d.createdAt) })}
+            {d.status === 'active' && ` · ${t('detail.expires', { date: f.date(d.expiresAt) })} (${left === 0 ? t('card.expiresToday') : t('card.expiresIn', { days: left })})`}
           </p>
 
           <div className="mt-6 rounded-card border border-border bg-surface p-5">
-            <SpecRow label={t('card.area')} value={areaRange(d)} />
-            <SpecRow label={t('card.budget')} value={d.budgetMinor ? `≤ ${formatMoney(d.budgetMinor)}` : t('card.budgetAny')} />
+            <SpecRow label={t('card.area')} value={areaRange(d, f.areaUnit)} />
+            <SpecRow label={t('card.budget')} value={d.budgetMinor ? `≤ ${f.money(d.budgetMinor)}` : t('card.budgetAny')} />
             <SpecRow label={t('card.districts')} value={d.districts.length ? d.districts.map((x) => x.name).join(', ') : t('card.anyDistrict')} />
             <SpecRow label={t('detail.requester')} value={[d.requester.name, d.requester.companyName, d.requester.activity].filter(Boolean).join(' · ')} />
           </div>

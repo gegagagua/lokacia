@@ -4,7 +4,10 @@ import { requireSession } from '@/components/account/require-session';
 import { AccountPageHeader } from '@/components/account/page-header';
 import { ViewingsBoard } from '@/components/account/viewings/viewings-board';
 
-export const metadata: Metadata = { title: 'ჩვენებები', robots: { index: false, follow: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('meta.titles');
+  return { title: t('viewings'), robots: { index: false, follow: false } };
+}
 
 export default async function ViewingsPage({ searchParams }: { searchParams: Promise<{ v?: string }> }) {
   await requireSession('/account/viewings');

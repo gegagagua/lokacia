@@ -22,7 +22,7 @@ export function Table<T>({ columns, rows, rowKey, empty, className, onRowClick, 
     });
   }, [rows, sort, columns]);
   return (
-    <div className={cn('overflow-x-auto rounded-card border border-border bg-surface', className)}>
+    <div className={cn('relative overflow-x-auto rounded-card border border-border bg-surface', className)}>
       <table className="w-full border-collapse text-left text-[15px] tabular">
         <thead>
           <tr className="border-b border-border-strong">

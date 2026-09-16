@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import { redirect } from 'next/navigation';
+import { getAppLocale } from '@/i18n/server';
+import { localizePath } from '@/i18n/locale';
 import { getTranslations } from 'next-intl/server';
 import { Plus } from 'lucide-react';
 import type { DemandDto } from '@lokacia/contracts';
@@ -10,11 +12,14 @@ import { getSession } from '@/lib/session';
 import { getNames } from '@/components/portal/data';
 import { DemandCard } from '@/components/portal/demand/demand-card';
 
-export const metadata: Metadata = { title: 'ჩემი მოთხოვნები', robots: { index: false, follow: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('meta.titles');
+  return { title: t('myDemand'), robots: { index: false, follow: false } };
+}
 
 export default async function MyDemandPage() {
   const user = await getSession();
-  if (!user) redirect('/login?next=/account/demand');
+  if (!user) redirect(localizePath('/login?next=/account/demand', await getAppLocale()));
   const t = await getTranslations('demand');
   const [items, { types }] = await Promise.all([api<DemandDto[]>('/v1/demand/mine').catch(() => [] as DemandDto[]), getNames()]);
   const icons = Object.fromEntries(types.map((x) => [x.slug, x.icon]));

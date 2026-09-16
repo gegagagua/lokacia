@@ -3,12 +3,15 @@ import * as React from 'react';
 import useSWR from 'swr';
 import { useTranslations } from 'next-intl';
 import { Copy, KeyRound } from 'lucide-react';
-import { API_SCOPE_LABELS_KA, API_SCOPES, formatDateKa, formatNumber, type ApiKeyCreated, type ApiKeyDto, type ApiScope, type ApiUsageDto } from '@lokacia/contracts';
+import { API_SCOPES, type ApiKeyCreated, type ApiKeyDto, type ApiScope, type ApiUsageDto } from '@lokacia/contracts';
 import { Badge, Button, Card, Checkbox, Dialog, EmptyState, Field, Input, Select, useToast } from '@lokacia/ui';
 import { apiFetch, ClientApiError, fetcher } from '@/lib/api-client';
+import { useFormat } from '@/i18n/use-format';
 
 export function KeyManager({ orgs }: { orgs: { id: string; name: string }[] }) {
   const t = useTranslations('developers.keys');
+  const ts = useTranslations('developers.scopeLabels');
+  const fmt = useFormat();
   const toast = useToast();
   const { data: keys, mutate } = useSWR<ApiKeyDto[]>('/api-keys', fetcher);
   const [open, setOpen] = React.useState(false);
@@ -97,7 +100,7 @@ export function KeyManager({ orgs }: { orgs: { id: string; name: string }[] }) {
             <fieldset className="flex flex-col gap-2">
               <legend className="mb-1 text-[15px] font-medium">{t('scopes')}</legend>
               {API_SCOPES.map((s) => (
-                <Checkbox key={s} checked={scopes.includes(s)} onCheckedChange={(c) => setScopes((cur) => (c ? [...cur, s] : cur.filter((x) => x !== s)))} label={API_SCOPE_LABELS_KA[s]} />
+                <Checkbox key={s} checked={scopes.includes(s)} onCheckedChange={(c) => setScopes((cur) => (c ? [...cur, s] : cur.filter((x) => x !== s)))} label={ts(s)} />
               ))}
             </fieldset>
             <Button type="submit" loading={busy} disabled={name.trim().length < 2 || !scopes.length}>
@@ -134,9 +137,9 @@ export function KeyManager({ orgs }: { orgs: { id: string; name: string }[] }) {
                     {k.planKey} · {t('perMin', { n: k.rateLimitPerMin })}
                   </td>
                   <td className="p-3 tabular">
-                    {formatNumber(k.usedThisMonth)} / {formatNumber(k.monthlyQuota)}
+                    {fmt.number(k.usedThisMonth)} / {fmt.number(k.monthlyQuota)}
                   </td>
-                  <td className="p-3 tabular">{k.lastUsedAt ? formatDateKa(k.lastUsedAt) : '—'}</td>
+                  <td className="p-3 tabular">{k.lastUsedAt ? fmt.date(k.lastUsedAt) : '—'}</td>
                   <td className="p-3 text-right">
                     {k.revokedAt ? (
                       <Badge tone="outline">{t('revokedBadge')}</Badge>
@@ -164,6 +167,7 @@ export function KeyManager({ orgs }: { orgs: { id: string; name: string }[] }) {
 
 function UsagePanel({ keyId, name }: { keyId: string; name: string }) {
   const t = useTranslations('developers.keys');
+  const fmt = useFormat();
   const { data } = useSWR<ApiUsageDto>(`/api-keys/${keyId}/usage`, fetcher);
   const [hover, setHover] = React.useState<number | null>(null);
   if (!data) return null;
@@ -179,7 +183,7 @@ function UsagePanel({ keyId, name }: { keyId: string; name: string }) {
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h3 className="text-h3 font-semibold">{t('usageTitle', { name })}</h3>
         <span className="text-small tabular text-muted">
-          {t('quota', { used: formatNumber(data.usedThisMonth), quota: formatNumber(data.monthlyQuota) })}
+          {t('quota', { used: fmt.number(data.usedThisMonth), quota: fmt.number(data.monthlyQuota) })}
         </span>
       </div>
       <div className="mt-2 h-1.5 w-full rounded-full bg-surface-2" role="meter" aria-valuemin={0} aria-valuemax={data.monthlyQuota} aria-valuenow={data.usedThisMonth} aria-label={t('quotaLabel')}>
@@ -192,7 +196,7 @@ function UsagePanel({ keyId, name }: { keyId: string; name: string }) {
               <g key={v}>
                 <line x1={pad.l} x2={W - pad.r} y1={y(v)} y2={y(v)} stroke="var(--border)" />
                 <text x={pad.l - 6} y={y(v) + 4} textAnchor="end" fontSize="11" fill="var(--text-muted)">
-                  {formatNumber(v)}
+                  {fmt.number(v)}
                 </text>
               </g>
             ))}
@@ -214,7 +218,7 @@ function UsagePanel({ keyId, name }: { keyId: string; name: string }) {
           </svg>
           {hover !== null && days[hover] && (
             <div className="pointer-events-none absolute top-0 rounded-[6px] border border-border bg-surface px-2 py-1 text-small tabular" style={{ left: `${Math.min(80, ((pad.l + hover * bw) / W) * 100)}%` }} aria-hidden>
-              {days[hover]!.day}: {formatNumber(days[hover]!.count)}
+              {days[hover]!.day}: {fmt.number(days[hover]!.count)}
             </div>
           )}
         </div>
@@ -233,7 +237,7 @@ function UsagePanel({ keyId, name }: { keyId: string; name: string }) {
           {data.byEndpoint.map((e) => (
             <tr key={e.endpoint} className="border-b border-border last:border-0">
               <td className="break-all py-2"><code>{e.endpoint}</code></td>
-              <td className="py-2 text-right tabular">{formatNumber(e.count)}</td>
+              <td className="py-2 text-right tabular">{fmt.number(e.count)}</td>
             </tr>
           ))}
         </tbody>

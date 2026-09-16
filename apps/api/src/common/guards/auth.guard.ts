@@ -2,7 +2,7 @@ import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { and, eq, isNull, memberships, organizations } from '@lokacia/db';
 import type { OrgRole, Role } from '@lokacia/contracts';
-import { IS_PUBLIC, ORG_ROLES_KEY, ORG_SCOPED, ROLES_KEY } from '../decorators';
+import { IS_PUBLIC, NO_IMPERSONATION, ORG_ROLES_KEY, ORG_SCOPED, ROLES_KEY } from '../decorators';
 import { problems } from '../problem';
 import type { AppRequest } from '../request';
 import { ACCESS_COOKIE, TokensService } from '../tokens.service';
@@ -35,6 +35,8 @@ export class AuthGuard implements CanActivate {
       if (isPublic) return true;
       throw problems.unauthorized();
     }
+
+    if (req.user.impersonatorId && this.reflector.getAllAndOverride<boolean>(NO_IMPERSONATION, targets)) throw problems.forbidden('ეს მოქმედება ადმინის რეჟიმში მიუწვდომელია');
 
     const roles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, targets);
     if (roles?.length && req.user.role !== 'admin' && !roles.includes(req.user.role)) throw problems.forbidden();

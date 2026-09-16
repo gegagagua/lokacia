@@ -1,10 +1,12 @@
 'use client';
 import * as React from 'react';
 import useSWR from 'swr';
+import { useTranslations } from 'next-intl';
 import { Trash2 } from 'lucide-react';
-import { formatMoney, MONTHS_KA, WEEKDAYS_KA } from '@lokacia/contracts';
 import { Badge, Button, Calendar, EmptyState, Field, IconButton, Input, Select, useToast } from '@lokacia/ui';
 import { apiFetch, ClientApiError, fetcher } from '@/lib/api-client';
+import { useFormat } from '@/i18n/use-format';
+import { dayHeadingKa, localDayKey } from '../viewings/tz';
 
 export type Slot = { id: string; kind: 'viewing' | 'short_term'; startsAt: string; endsAt: string; priceMinor: number | null; booked: boolean };
 
@@ -17,6 +19,8 @@ const hm = (d: Date) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
  * Pick a day → generate a series of slots (start, length, count) → saved via POST /listings/:id/slots.
  */
 export function SlotsManager({ listingId, kind, defaultPriceMinor }: { listingId: string; kind: 'viewing' | 'short_term'; defaultPriceMinor?: number | null }) {
+  const t = useTranslations('myListings.slotsManager');
+  const f = useFormat();
   const toast = useToast();
   const { data: slots = [], mutate } = useSWR<Slot[]>(`/listings/${listingId}/slots?kind=${kind}`, fetcher);
   const [day, setDay] = React.useState<Date | null>(() => {
@@ -44,16 +48,16 @@ export function SlotsManager({ listingId, kind, defaultPriceMinor }: { listingId
       return { startsAt: s.toISOString(), endsAt: new Date(s.getTime() + len * 60_000).toISOString(), priceMinor: kind === 'short_term' && price ? Math.round(Number(price) * 100) : null };
     }).filter((x) => new Date(x.startsAt) > new Date());
     if (!items.length) {
-      toast({ title: 'აირჩიეთ მომავალი დრო', tone: 'danger' });
+      toast({ title: t('pickFuture'), tone: 'danger' });
       return;
     }
     setBusy(true);
     try {
       await apiFetch(`/listings/${listingId}/slots`, { method: 'POST', body: { kind, slots: items } });
       await mutate();
-      toast({ title: `დაემატა ${items.length} სლოტი`, tone: 'success' });
+      toast({ title: t('added', { count: items.length }), tone: 'success' });
     } catch (e) {
-      toast({ title: e instanceof ClientApiError ? e.message : 'სლოტები ვერ შეინახა', tone: 'danger' });
+      toast({ title: e instanceof ClientApiError ? e.message : t('saveError'), tone: 'danger' });
     } finally {
       setBusy(false);
     }
@@ -64,7 +68,7 @@ export function SlotsManager({ listingId, kind, defaultPriceMinor }: { listingId
       await apiFetch(`/listings/${listingId}/slots/${id}`, { method: 'DELETE' });
       await mutate();
     } catch (e) {
-      toast({ title: e instanceof ClientApiError ? e.message : 'წაშლა ვერ მოხერხდა', tone: 'danger' });
+      toast({ title: e instanceof ClientApiError ? e.message : t('deleteError'), tone: 'danger' });
     }
   };
 
@@ -73,45 +77,45 @@ export function SlotsManager({ listingId, kind, defaultPriceMinor }: { listingId
       <Calendar value={day} onChange={setDay} events={events} minDate={new Date()} />
       <div className="flex min-w-0 flex-col gap-4">
         <div className="rounded-card border border-border bg-surface p-4">
-          <div className="mb-3 font-medium">{day ? `${WEEKDAYS_KA[day.getDay()]}, ${day.getDate()} ${MONTHS_KA[day.getMonth()]}` : 'აირჩიეთ დღე'}</div>
+          <div className="mb-3 font-medium">{day ? dayHeadingKa(localDayKey(day), f.locale) : t('pickDay')}</div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Field label="დაწყება">
+            <Field label={t('start')}>
               <Input type="time" value={start} step={900} onChange={(e) => setStart(e.target.value)} />
             </Field>
-            <Field label="ხანგრძლივობა">
+            <Field label={t('duration')}>
               <Select
                 value={length}
                 onChange={(e) => setLength(e.target.value)}
-                options={(kind === 'viewing' ? [15, 30, 45, 60] : [60, 120, 240, 480, 720, 1440]).map((v) => ({ value: String(v), label: v < 60 ? `${v} წთ` : v === 1440 ? 'დღე' : `${v / 60} სთ` }))}
+                options={(kind === 'viewing' ? [15, 30, 45, 60] : [60, 120, 240, 480, 720, 1440]).map((v) => ({ value: String(v), label: v < 60 ? t('minutes', { n: v }) : v === 1440 ? t('day') : t('hours', { n: v / 60 }) }))}
               />
             </Field>
-            <Field label="რაოდენობა">
+            <Field label={t('count')}>
               <Input type="number" min={1} max={48} value={count} onChange={(e) => setCount(e.target.value)} />
             </Field>
             {kind === 'short_term' && (
-              <Field label="ფასი, ₾">
+              <Field label={t('price')}>
                 <Input type="number" min={0} value={price} onChange={(e) => setPrice(e.target.value)} />
               </Field>
             )}
           </div>
           <Button className="mt-3" onClick={add} loading={busy} disabled={!day}>
-            {kind === 'viewing' ? 'ჩვენების დროების დამატება' : 'ხელმისაწვდომი დროების დამატება'}
+            {kind === 'viewing' ? t('addViewing') : t('addShortTerm')}
           </Button>
         </div>
         <div>
-          <div className="mb-2 text-small text-muted">{day ? 'ამ დღის დროები' : ''}</div>
+          <div className="mb-2 text-small text-muted">{day ? t('dayTimes') : ''}</div>
           {daySlots.length === 0 ? (
-            <EmptyState title="ამ დღეს დროები არ არის" description="დაამატეთ დროები — მოიჯარე მათ შორის აირჩევს." className="py-6" />
+            <EmptyState title={t('emptyTitle')} description={t('emptyText')} className="py-6" />
           ) : (
             <ul className="flex flex-wrap gap-2">
               {daySlots.map((s) => (
                 <li key={s.id} className="flex items-center gap-1 rounded-button border border-border bg-surface py-1 pl-3 pr-1 text-small tabular">
                   {hm(new Date(s.startsAt))}–{hm(new Date(s.endsAt))}
-                  {s.priceMinor != null && <span className="text-muted">· {formatMoney(s.priceMinor)}</span>}
+                  {s.priceMinor != null && <span className="text-muted">· {f.money(s.priceMinor)}</span>}
                   {s.booked ? (
-                    <Badge tone="accent" className="ml-1">ჯავშნილი</Badge>
+                    <Badge tone="accent" className="ml-1">{t('booked')}</Badge>
                   ) : (
-                    <IconButton label="სლოტის წაშლა" size="sm" onClick={() => remove(s.id)}>
+                    <IconButton label={t('delete')} size="sm" onClick={() => remove(s.id)}>
                       <Trash2 className="size-3.5" strokeWidth={1.5} />
                     </IconButton>
                   )}

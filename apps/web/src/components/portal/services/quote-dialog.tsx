@@ -1,17 +1,18 @@
 'use client';
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import useSWR from 'swr';
 import { useTranslations } from 'next-intl';
 import { CheckCircle2, FileText } from 'lucide-react';
 import type { FavoriteDto, ListingCard } from '@lokacia/contracts';
 import { Button, Dialog, Field, Select, Textarea, useToast } from '@lokacia/ui';
 import { apiFetch, ClientApiError, fetcher } from '@/lib/api-client';
-import { categoryName } from './provider-card';
+import { useCategoryName } from './provider-card';
 
 /** "ფასის მოთხოვნა" — request-a-quote dialog (P24). */
 export function QuoteDialog({ providerId, providerSlug, categories, loggedIn }: { providerId: string; providerSlug: string; categories: string[]; loggedIn: boolean }) {
   const t = useTranslations('services.quote');
+  const catName = useCategoryName();
   const toast = useToast();
   const [open, setOpen] = React.useState(false);
   const [category, setCategory] = React.useState(categories[0] ?? '');
@@ -85,7 +86,7 @@ export function QuoteDialog({ providerId, providerSlug, categories, loggedIn }: 
           }}
         >
           <Field label={t('category')} required>
-            <Select value={category} onChange={(e) => setCategory(e.target.value)} options={categories.map((c) => ({ value: c, label: categoryName(c) }))} />
+            <Select value={category} onChange={(e) => setCategory(e.target.value)} options={categories.map((c) => ({ value: c, label: catName(c) }))} />
           </Field>
           <Field label={t('details')} hint={t('detailsHint')} required error={error ?? undefined}>
             <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t('detailsPlaceholder')} minLength={10} maxLength={3000} rows={5} required />

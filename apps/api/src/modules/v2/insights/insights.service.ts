@@ -5,10 +5,11 @@ import { summarizeScore, type AiClient } from '@lokacia/ai';
 import { DbService } from '../../../common/db.service';
 import { problems } from '../../../common/problem';
 import { QueueService } from '../../../common/queue.service';
+import { RateLimitService } from '../../../common/redis.service';
 import { AI } from '../../../integrations/integrations.module';
 import { TRAFFIC, type TrafficProvider } from '../../../integrations/traffic/traffic';
 import { GeoService } from '../../geo/geo.service';
-import { ListingReadService } from '../../listings/listing-read.service';
+import { ListingReadService, PUBLIC_STATUSES } from '../../listings/listing-read.service';
 import { SearchService } from '../../search/search.service';
 import { TaxonomyService } from '../../taxonomy/taxonomy.service';
 
@@ -37,6 +38,7 @@ export class InsightsService implements OnModuleInit {
     private readonly queue: QueueService,
     @Inject(TRAFFIC) private readonly traffic: TrafficProvider,
     @Inject(AI) private readonly ai: AiClient,
+    private readonly rate: RateLimitService,
   ) {}
 
   onModuleInit() {
@@ -71,8 +73,9 @@ export class InsightsService implements OnModuleInit {
     return { source: 'provider', provider: this.traffic.name, rows: fresh };
   }
 
-  async trafficFor(idOrSlug: string): Promise<TrafficResponse> {
+  async trafficFor(idOrSlug: string, client?: { canManage?: boolean }): Promise<TrafficResponse> {
     const l = await this.listing(idOrSlug);
+    if (!(PUBLIC_STATUSES as readonly string[]).includes(l.status) && !client?.canManage) throw problems.notFound('განცხადება');
     const { source, provider, rows } = await this.samples(l);
     const days = Array.from({ length: 7 }, (_, weekday) => {
       const hours = Array.from({ length: 24 }, (_, h) => rows.find((r) => r.weekday === weekday && r.hour === h)?.count ?? 0);
@@ -149,12 +152,19 @@ export class InsightsService implements OnModuleInit {
     return row!;
   }
 
-  async scoreFor(idOrSlug: string, businessType?: string): Promise<ScoreResponse> {
+  /**
+   * Public score. Computing a new score costs an AI call + traffic provider call + a stored row, so the business type
+   * must be a real taxonomy slug, the listing must be public, and fresh computations are rate-limited per client.
+   */
+  async scoreFor(idOrSlug: string, businessType?: string, client?: { ip?: string; canManage?: boolean }): Promise<ScoreResponse> {
     const l = await this.listing(idOrSlug);
+    if (!(PUBLIC_STATUSES as readonly string[]).includes(l.status) && !client?.canManage) throw problems.notFound('განცხადება');
     const bt = businessType ?? l.businessTypes[0];
     if (!bt) throw problems.badRequest('ბიზნესის ტიპი არ არის მითითებული');
+    if (bt.length > 40 || (!l.businessTypes.includes(bt) && !(await this.tax.businessType(bt)))) throw problems.badRequest('ბიზნესის ტიპი არ მოიძებნა');
     const existing = await this.dbs.db.query.locationScores.findFirst({ where: and(eq(locationScores.listingId, l.id), eq(locationScores.businessType, bt)) });
     if (existing) return this.toDto(existing);
+    if (client?.ip) await this.rate.hit(`score:compute:${client.ip}`, 30, 3600);
     return this.toDto(await this.upsertScore(l, bt, true));
   }
 

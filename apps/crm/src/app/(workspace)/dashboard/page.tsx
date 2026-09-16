@@ -21,7 +21,8 @@ export default function DashboardPage() {
     const to = new Date();
     return { from: new Date(to.getTime() - 30 * DAY).toISOString(), to: to.toISOString() };
   });
-  const { data } = useApi<KpiReport>(`/crm/analytics/kpi?from=${encodeURIComponent(range.from)}&to=${encodeURIComponent(range.to)}`);
+  // org KPIs need analytics.view (assistants get the quick links only)
+  const { data } = useApi<KpiReport>(can('analytics.view') ? `/crm/analytics/kpi?from=${encodeURIComponent(range.from)}&to=${encodeURIComponent(range.to)}` : null);
   return (
     <div>
       <PageHeader
@@ -56,7 +57,7 @@ export default function DashboardPage() {
           <span className="compact text-h3 font-semibold tabular">{data?.totals.viewings ?? '—'}</span>
         </Link>
       </div>
-      <KpiView data={data} compact />
+      {can('analytics.view') && <KpiView data={data} compact />}
     </div>
   );
 }

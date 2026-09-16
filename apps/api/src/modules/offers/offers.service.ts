@@ -6,6 +6,7 @@ import { formatMoney, type OfferCreateInput, type OfferDto, type OfferListingDto
 import { ENV, type Env } from '../../config/env';
 import { DbService } from '../../common/db.service';
 import { problems } from '../../common/problem';
+import { RateLimitService } from '../../common/redis.service';
 import { QueueService } from '../../common/queue.service';
 import type { AuthUser } from '../../common/request';
 import { STORAGE, type Storage } from '../../integrations/storage/storage';
@@ -55,6 +56,7 @@ export class OffersService implements OnModuleInit {
     private readonly pdf: ContractPdfService,
     @Inject(STORAGE) private readonly storage: Storage,
     @Inject(ENV) private readonly env: Env,
+    private readonly rate: RateLimitService,
   ) {}
 
   onModuleInit() {
@@ -66,6 +68,7 @@ export class OffersService implements OnModuleInit {
   }
 
   async create(user: AuthUser, input: OfferCreateInput) {
+    await this.rate.hit(`offer-create:${user.id}`, 20, 3600); // every offer texts the owner
     const l = await this.dbs.db.query.listings.findFirst({ where: and(eq(listings.id, input.listingId), isNull(listings.deletedAt)) });
     if (!l || !OFFERABLE.includes(l.status)) throw problems.notFound('განცხადება');
     const toUserId = l.agentId ?? l.ownerId;
@@ -180,6 +183,7 @@ export class OffersService implements OnModuleInit {
   async counter(user: AuthUser, id: string, input: { priceMinor: number; termMonths: number; freeMonths: number; indexationPct: number; fitoutPaidBy: 'tenant' | 'owner' | 'shared'; equipmentIncluded: boolean; message?: string | null }) {
     const { o, l } = await this.loadForParticipant(user, id);
     await this.assertLatestPendingFor(o, user.id, 'recipient');
+    await this.rate.hit(`offer-counter:${user.id}`, 60, 3600);
     const row = await this.dbs.db.transaction(async (tx) => {
       const [done] = await tx.update(offers).set({ status: 'countered' }).where(and(eq(offers.id, o.id), eq(offers.status, 'pending'))).returning({ id: offers.id });
       if (!done) throw problems.conflict('შეთავაზების სტატუსი უკვე შეიცვალა');
@@ -208,7 +212,8 @@ export class OffersService implements OnModuleInit {
   async reject(user: AuthUser, id: string, reason: string | null) {
     const { o, l } = await this.loadForParticipant(user, id);
     await this.assertLatestPendingFor(o, user.id, 'recipient');
-    const [row] = await this.dbs.db.update(offers).set({ status: 'rejected', message: reason ? `${o.message ? `${o.message}\n\n` : ''}უარის მიზეზი: ${reason}` : o.message }).where(eq(offers.id, o.id)).returning();
+    const [row] = await this.dbs.db.update(offers).set({ status: 'rejected', message: reason ? `${o.message ? `${o.message}\n\n` : ''}უარის მიზეზი: ${reason}` : o.message }).where(and(eq(offers.id, o.id), eq(offers.status, 'pending'))).returning();
+    if (!row) throw problems.conflict('შეთავაზების სტატუსი უკვე შეიცვალა');
     await this.notify.notify({ userId: o.fromUserId, template: 'offer_rejected', vars: { title: l.title, reason: reason ?? undefined }, link: `/account/offers/${o.id}`, category: 'offers' });
     return toDto(row!);
   }
@@ -216,7 +221,8 @@ export class OffersService implements OnModuleInit {
   async withdraw(user: AuthUser, id: string) {
     const { o, l } = await this.loadForParticipant(user, id);
     await this.assertLatestPendingFor(o, user.id, 'sender');
-    const [row] = await this.dbs.db.update(offers).set({ status: 'withdrawn' }).where(eq(offers.id, o.id)).returning();
+    const [row] = await this.dbs.db.update(offers).set({ status: 'withdrawn' }).where(and(eq(offers.id, o.id), eq(offers.status, 'pending'))).returning();
+    if (!row) throw problems.conflict('შეთავაზების სტატუსი უკვე შეიცვალა');
     await this.notify.notify({ userId: o.toUserId, template: 'offer_withdrawn', vars: { title: l.title, price: this.money(o, l) }, link: `/account/offers/${o.id}`, category: 'offers' });
     return toDto(row!);
   }

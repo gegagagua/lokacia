@@ -8,6 +8,13 @@ export const DEAL_TYPE_LABELS_KA: Record<DealType, string> = {
   short_term: 'ხანმოკლე იჯარა',
 };
 
+/** Deal type labels per locale (Phase 22). */
+export const DEAL_TYPE_LABELS: Record<'ka' | 'en' | 'ru', Record<DealType, string>> = {
+  ka: DEAL_TYPE_LABELS_KA,
+  en: { rent: 'For rent', sale: 'For sale', transfer: 'Business transfer', short_term: 'Short-term rent' },
+  ru: { rent: 'Аренда', sale: 'Продажа', transfer: 'Передача бизнеса', short_term: 'Краткосрочная аренда' },
+};
+
 export const LISTING_STATUSES = [
   'draft',
   'pending_review',
@@ -29,6 +36,13 @@ export const LISTING_STATUS_LABELS_KA: Record<ListingStatus, string> = {
   sold: 'გაყიდული',
   archived: 'არქივი',
   rejected: 'უარყოფილი',
+};
+
+/** Listing status labels per locale (Phase 22). */
+export const LISTING_STATUS_LABELS: Record<'ka' | 'en' | 'ru', Record<ListingStatus, string>> = {
+  ka: LISTING_STATUS_LABELS_KA,
+  en: { draft: 'Draft', pending_review: 'In moderation', active: 'Active', stale: 'Unconfirmed', rented: 'Rented', sold: 'Sold', archived: 'Archived', rejected: 'Rejected' },
+  ru: { draft: 'Черновик', pending_review: 'На модерации', active: 'Активно', stale: 'Не подтверждено', rented: 'Сдано', sold: 'Продано', archived: 'В архиве', rejected: 'Отклонено' },
 };
 
 /** Listing lifecycle (ARCHITECTURE.md): draft → pending_review → active ⇄ stale → rented|sold|archived; rejected from review. */
@@ -94,6 +108,36 @@ export const PASSPORT_FIELD_BY_KEY = Object.fromEntries(PASSPORT_FIELDS.map((f) 
   PassportFieldMeta
 >;
 
+/** Passport field labels for en/ru (Phase 22); ka lives in `PASSPORT_FIELDS[].labelKa`. */
+export const PASSPORT_LABELS: Record<'en' | 'ru', Record<PassportKey, string>> = {
+  en: {
+    powerKw: 'Power', threePhase: 'Three-phase power', ceilingM: 'Ceiling height', facadeM: 'Facade width', widthM: 'Width', depthM: 'Depth',
+    hasHood: 'Exhaust hood', hasGas: 'Natural gas', wetPoints: 'Wet points', gateWM: 'Gate width', truckAccess: 'Truck access', access247: '24/7 access',
+    parking: 'Parking spaces', shopWindow: 'Shop window', separateEntrance: 'Separate entrance', ventilation: 'Ventilation',
+  },
+  ru: {
+    powerKw: 'Мощность', threePhase: 'Трёхфазное питание', ceilingM: 'Высота потолка', facadeM: 'Ширина фасада', widthM: 'Ширина', depthM: 'Глубина',
+    hasHood: 'Вытяжка', hasGas: 'Природный газ', wetPoints: 'Мокрые точки', gateWM: 'Ширина ворот', truckAccess: 'Подъезд для грузовиков', access247: 'Доступ 24/7',
+    parking: 'Парковочные места', shopWindow: 'Витрина', separateEntrance: 'Отдельный вход', ventilation: 'Вентиляция',
+  },
+};
+
+const UNIT_LABELS: Record<'en' | 'ru', Record<string, string>> = {
+  en: { 'კვტ': 'kW', 'მ': 'm', 'მ²': 'm²' },
+  ru: { 'კვტ': 'кВт', 'მ': 'м', 'მ²': 'м²' },
+};
+
+/** Georgian unit (`კვტ`, `მ`) → locale unit (`kW`/`кВт`, `m`/`м`). */
+export function localizeUnit(unit: string | undefined, locale: 'ka' | 'en' | 'ru'): string | undefined {
+  if (!unit || locale === 'ka') return unit;
+  return UNIT_LABELS[locale][unit] ?? unit;
+}
+
+/** Passport field label per locale. */
+export function passportLabel(key: PassportKey, locale: 'ka' | 'en' | 'ru'): string {
+  return locale === 'ka' ? PASSPORT_FIELD_BY_KEY[key]?.labelKa ?? key : PASSPORT_LABELS[locale][key] ?? PASSPORT_FIELD_BY_KEY[key]?.labelKa ?? key;
+}
+
 export type FilterDef = {
   key: PassportKey;
   kind: 'boolean' | 'min';
@@ -119,6 +163,19 @@ const m = (key: PassportKey, min: number, max: number, step: number, labelKa?: s
   max,
   step,
 });
+
+/**
+ * Filter definition in another locale: default labels (field label / "label (მინ.)") are translated, units localized.
+ * Custom Georgian labels set by admins are kept as-is.
+ */
+export function localizeFilterDef<T extends { key: string; kind: 'boolean' | 'min'; labelKa: string; unit?: string }>(def: T, locale: 'ka' | 'en' | 'ru'): T {
+  if (locale === 'ka') return def;
+  const field = PASSPORT_FIELD_BY_KEY[def.key as PassportKey];
+  if (!field) return def;
+  const min = locale === 'en' ? ' (min.)' : ' (мин.)';
+  const label = def.labelKa === field.labelKa ? passportLabel(field.key, locale) : def.labelKa === `${field.labelKa} (მინ.)` ? `${passportLabel(field.key, locale)}${min}` : def.labelKa;
+  return { ...def, labelKa: label, unit: localizeUnit(def.unit, locale) };
+}
 
 export type BusinessTypeSeed = {
   slug: string;

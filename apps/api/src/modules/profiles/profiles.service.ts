@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, desc, eq, isNull, memberships, organizations, projects, reviews, sql, users } from '@lokacia/db';
+import { and, auditLog, desc, eq, isNull, memberships, organizations, projects, reviews, sql, users } from '@lokacia/db';
 import type { AgencyProfileDto, BrokerProfileDto, ReviewDto } from '@lokacia/contracts';
 import { DbService } from '../../common/db.service';
 import { problems } from '../../common/problem';
@@ -99,6 +99,8 @@ export class ProfilesService {
     await this.rate.hit(`broker-reveal:${ipHash}`, 20, 3600);
     if (user) await this.rate.hit(`broker-reveal:u:${user.id}`, 40, 3600);
     const u = await this.brokerUser(slug);
+    // every reveal is logged (CLAUDE.md personal data rule), like listing reveals in listing_events
+    await this.dbs.db.insert(auditLog).values({ actorId: user?.id ?? null, action: 'reveal_phone', entity: 'broker', entityId: u.id, ip: ipHash, impersonatorId: user?.impersonatorId ?? null });
     return { phone: u.phone, name: u.name };
   }
 

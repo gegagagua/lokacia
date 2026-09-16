@@ -4,7 +4,10 @@ import { requireSession } from '@/components/account/require-session';
 import { AccountPageHeader } from '@/components/account/page-header';
 import { OrgManager } from '@/components/account/org/org-manager';
 
-export const metadata: Metadata = { title: 'ორგანიზაცია' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('meta.titles');
+  return { title: t('org') };
+}
 
 export default async function OrgPage() {
   const user = await requireSession('/account/org');

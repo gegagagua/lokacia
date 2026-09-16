@@ -7,18 +7,23 @@ import { Search, Sparkles, X } from 'lucide-react';
 import { filtersToParams, type SearchFilters, type SearchParseResponse } from '@lokacia/contracts';
 import { Button, Input, Popover, cn } from '@lokacia/ui';
 import { apiFetch } from '@/lib/api-client';
+import { useLocalizedPath } from '@/i18n/link';
+import { useFormat } from '@/i18n/use-format';
 import { filterChips, removeChip, type Chip } from './search/chips';
 
 type NameMap = Record<string, string>;
 
+type NamedDto = { slug: string; nameKa: string; nameEn?: string | null; nameRu?: string | null };
+
 function useNames(typeNames?: NameMap, districtNames?: NameMap) {
+  const fmt = useFormat();
   const needTypes = !typeNames;
   const needDistricts = !districtNames;
-  const { data: types } = useSWR<{ slug: string; nameKa: string }[]>(needTypes ? '/taxonomy/business-types' : null, (p: string) => apiFetch(p), { revalidateOnFocus: false });
-  const { data: districts } = useSWR<{ slug: string; nameKa: string }[]>(needDistricts ? '/taxonomy/districts' : null, (p: string) => apiFetch(p), { revalidateOnFocus: false });
+  const { data: types } = useSWR<NamedDto[]>(needTypes ? '/taxonomy/business-types' : null, (p: string) => apiFetch(p), { revalidateOnFocus: false });
+  const { data: districts } = useSWR<NamedDto[]>(needDistricts ? '/taxonomy/districts' : null, (p: string) => apiFetch(p), { revalidateOnFocus: false });
   return {
-    typeNames: typeNames ?? Object.fromEntries((types ?? []).map((t) => [t.slug, t.nameKa])),
-    districtNames: districtNames ?? Object.fromEntries((districts ?? []).map((d) => [d.slug, d.nameKa])),
+    typeNames: typeNames ?? Object.fromEntries((types ?? []).map((t) => [t.slug, fmt.name(t)])),
+    districtNames: districtNames ?? Object.fromEntries((districts ?? []).map((d) => [d.slug, fmt.name(d)])),
   };
 }
 
@@ -40,6 +45,8 @@ export function NlSearchBox({
 }) {
   const t = useTranslations('search.nl');
   const tc = useTranslations('search');
+  const fmt = useFormat();
+  const lp = useLocalizedPath();
   const router = useRouter();
   const names = useNames(tn, dn);
   const inputId = React.useId();
@@ -52,7 +59,7 @@ export function NlSearchBox({
     const params = f ? filtersToParams(f) : new URLSearchParams();
     if (!params.toString() && fallbackText) params.set('q', fallbackText);
     const qs = params.toString();
-    router.push(qs ? `/search?${qs}` : '/search');
+    router.push(lp(qs ? `/search?${qs}` : '/search'));
   };
 
   const parse = async (value: string) => {
@@ -82,7 +89,7 @@ export function NlSearchBox({
     else void parse(text);
   };
 
-  const chips = filters ? filterChips(filters, { typeNames: names.typeNames, districtNames: names.districtNames, t: (k, v) => tc(k as never, v as never) }) : [];
+  const chips = filters ? filterChips(filters, { typeNames: names.typeNames, districtNames: names.districtNames, t: (k, v) => tc(k as never, v as never), fmt }) : [];
   const lg = size === 'lg';
 
   return (

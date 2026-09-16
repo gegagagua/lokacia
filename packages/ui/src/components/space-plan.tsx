@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { formatNumber } from '@lokacia/contracts';
+import { formatNumberFor, type AppLocale } from '@lokacia/contracts';
 import { cn } from '../lib/cn';
 
 export type SpacePlanProps = {
@@ -12,13 +12,22 @@ export type SpacePlanProps = {
   compact?: boolean;
   className?: string;
   title?: string;
+  locale?: AppLocale;
+};
+
+const PLAN_LABELS: Record<AppLocale, { plan: string; m: string; m2: string; ceiling: string; kw: string }> = {
+  ka: { plan: 'ნახაზი', m: 'მ', m2: 'მ²', ceiling: 'ჭერი', kw: 'კვტ' },
+  en: { plan: 'Floor plan', m: 'm', m2: 'm²', ceiling: 'ceiling', kw: 'kW' },
+  ru: { plan: 'Планировка', m: 'м', m2: 'м²', ceiling: 'потолок', kw: 'кВт' },
 };
 
 /**
  * Signature component (BRAND.md): the space outline drawn like a floor plan with dimension lines
  * (width × depth), area in the middle, ceiling height and power as annotations.
  */
-export function SpacePlan({ widthM, depthM, areaM2, ceilingM, powerKw, outline, compact, className, title }: SpacePlanProps) {
+export function SpacePlan({ widthM, depthM, areaM2, ceilingM, powerKw, outline, compact, className, title, locale = 'ka' }: SpacePlanProps) {
+  const U = PLAN_LABELS[locale] ?? PLAN_LABELS.ka;
+  const formatNumber = (v: number, digits = 0) => formatNumberFor(v, locale, digits);
   const w = widthM && widthM > 0 ? widthM : Math.sqrt(areaM2 * 1.4);
   const d = depthM && depthM > 0 ? depthM : areaM2 / w;
   const VW = 320;
@@ -32,7 +41,7 @@ export function SpacePlan({ widthM, depthM, areaM2, ceilingM, powerKw, outline, 
   const pts = outline && outline.length >= 3 ? outline.map(([x, y]) => [ox + (x / w) * pw, oy + (y / d) * pd]) : [[ox, oy], [ox + pw, oy], [ox + pw, oy + pd], [ox, oy + pd]];
   const path = pts.map(([x, y], i) => `${i ? 'L' : 'M'}${x!.toFixed(1)} ${y!.toFixed(1)}`).join(' ') + ' Z';
   const tick = 5;
-  const label = title ?? `ნახაზი: ${formatNumber(w, 1)} × ${formatNumber(d, 1)} მ, ${formatNumber(areaM2)} მ²`;
+  const label = title ?? `${U.plan}: ${formatNumber(w, 1)} × ${formatNumber(d, 1)} ${U.m}, ${formatNumber(areaM2)} ${U.m2}`;
   return (
     <svg viewBox={`0 0 ${VW} ${VH}`} className={cn('block h-auto w-full text-text', className)} role="img" aria-label={label}>
       <title>{label}</title>
@@ -52,18 +61,18 @@ export function SpacePlan({ widthM, depthM, areaM2, ceilingM, powerKw, outline, 
         <line x1={ox} y1={oy - 14 - tick} x2={ox} y2={oy - 14 + tick} />
         <line x1={ox + pw} y1={oy - 14 - tick} x2={ox + pw} y2={oy - 14 + tick} />
         <text x={ox + pw / 2} y={oy - 20} textAnchor="middle" fontSize="11" stroke="none" className="tabular">
-          {formatNumber(w, 1)} მ
+          {formatNumber(w, 1)} {U.m}
         </text>
         {/* depth dimension */}
         <line x1={ox - 14} y1={oy} x2={ox - 14} y2={oy + pd} />
         <line x1={ox - 14 - tick} y1={oy} x2={ox - 14 + tick} y2={oy} />
         <line x1={ox - 14 - tick} y1={oy + pd} x2={ox - 14 + tick} y2={oy + pd} />
         <text x={ox - 20} y={oy + pd / 2} textAnchor="middle" fontSize="11" stroke="none" transform={`rotate(-90 ${ox - 20} ${oy + pd / 2})`}>
-          {formatNumber(d, 1)} მ
+          {formatNumber(d, 1)} {U.m}
         </text>
       </g>
       <text x={ox + pw / 2} y={oy + pd / 2 + 7} textAnchor="middle" fontSize={compact ? 20 : 24} fontWeight="600" fill="currentColor" style={{ fontStretch: '75%' }}>
-        {formatNumber(areaM2)} მ²
+        {formatNumber(areaM2)} {U.m2}
       </text>
       {/* entrance marker */}
       <line x1={ox + pw * 0.2} y1={oy + pd} x2={ox + pw * 0.2 + Math.min(28, pw * 0.25)} y2={oy + pd} stroke="var(--surface)" strokeWidth={4} />
@@ -71,10 +80,10 @@ export function SpacePlan({ widthM, depthM, areaM2, ceilingM, powerKw, outline, 
       <circle cx={ox + pw - 10} cy={oy + 10} r={4} fill="var(--c-sulfur)" />
       {!compact && (ceilingM || powerKw) && (
         <g fontSize="11" fill="var(--text-muted)">
-          {ceilingM ? <text x={pad.l} y={VH - 14}>↕ ჭერი {formatNumber(ceilingM, 1)} მ</text> : null}
+          {ceilingM ? <text x={pad.l} y={VH - 14}>↕ {U.ceiling} {formatNumber(ceilingM, 1)} {U.m}</text> : null}
           {powerKw ? (
             <text x={VW - pad.r} y={VH - 14} textAnchor="end">
-              ⚡ {formatNumber(powerKw)} კვტ
+              ⚡ {formatNumber(powerKw)} {U.kw}
             </text>
           ) : null}
         </g>

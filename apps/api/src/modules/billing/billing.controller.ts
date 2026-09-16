@@ -3,9 +3,10 @@ import { ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { z } from 'zod';
 import { checkoutRequestSchema, mockPaymentCompleteSchema, reportPreviewQuerySchema } from '@lokacia/contracts';
-import { CurrentUser, Public, SkipAudit } from '../../common/decorators';
+import { CurrentUser, NoImpersonation, Public, SkipAudit } from '../../common/decorators';
 import type { AppRequest, AuthUser } from '../../common/request';
 import { ApiZodBody, ZBody, ZQuery } from '../../common/zod';
+import { ProblemException } from '../../common/problem';
 import { BillingService } from './billing.service';
 import { InvoicePdfService } from './invoice-pdf.service';
 import { ReportsService } from './reports.service';
@@ -29,6 +30,7 @@ export class BillingController {
   }
 
   @Post('checkout')
+  @NoImpersonation()
   @HttpCode(200)
   @ApiZodBody(checkoutRequestSchema)
   checkout(@CurrentUser() user: AuthUser, @ZBody(checkoutRequestSchema) body: z.infer<typeof checkoutRequestSchema>) {
@@ -77,6 +79,7 @@ export class BillingController {
   }
 
   @Post('payments/:id/mock-complete')
+  @NoImpersonation()
   @HttpCode(200)
   @ApiZodBody(mockPaymentCompleteSchema)
   mockComplete(@CurrentUser() user: AuthUser, @Param('id') id: string, @ZBody(mockPaymentCompleteSchema) body: z.infer<typeof mockPaymentCompleteSchema>) {
@@ -114,7 +117,8 @@ export class PaymentsWebhookController {
   @Post('webhooks/:provider')
   @HttpCode(200)
   webhook(@Param('provider') provider: string, @Req() req: AppRequest & { rawBody?: Buffer }) {
-    const raw = req.rawBody?.toString('utf8') ?? JSON.stringify(req.body ?? {});
-    return this.billing.handleWebhook(provider, req.headers, raw);
+    // The signature covers the exact bytes the PSP sent — never fall back to re-serialized JSON.
+    if (!req.rawBody?.length) throw new ProblemException(400, 'raw-body-required', 'მოთხოვნის ტანი ცარიელია', 'webhook body must be sent as raw JSON');
+    return this.billing.handleWebhook(provider, req.headers, req.rawBody.toString('utf8'));
   }
 }

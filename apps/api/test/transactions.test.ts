@@ -87,7 +87,7 @@ describe('Phase 7 done-when: viewing → chat → offer → counter → accept �
     expect(ownerConvs.body.find((c: { id: string }) => c.id === convId).unread).toBe(1);
     const unread = await owner.get('/v1/conversations/unread');
     expect(unread.body.count).toBeGreaterThanOrEqual(1);
-    const reply = await owner.post(`/v1/conversations/${convId}/messages`).send({ body: 'კი, ჩვენებაზე გაჩვენებთ.', attachments: [{ url: '/api/v1/media/files/x.pdf', name: 'ნახაზი.pdf', type: 'application/pdf' }] });
+    const reply = await owner.post(`/v1/conversations/${convId}/messages`).send({ body: 'კი, ჩვენებაზე გაჩვენებთ.', attachments: [{ url: '/api/v1/media/files/uploads/2026-09/x.pdf', name: 'ნახაზი.pdf', type: 'application/pdf' }] });
     expect(reply.status).toBe(201);
     await owner.post(`/v1/conversations/${convId}/read`).expect(200);
     const msgs = await tenant.get(`/v1/conversations/${convId}/messages?limit=1`);

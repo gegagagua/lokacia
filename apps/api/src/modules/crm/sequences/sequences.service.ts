@@ -7,7 +7,7 @@ import { QueueService } from '../../../common/queue.service';
 import { SMS, type SmsProvider } from '../../../integrations/sms/sms';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { ActivityService } from '../shared/activity.service';
-import type { CrmCtx } from '../shared/crm-access';
+import { visibleContact, visibleDeal, type CrmCtx } from '../shared/crm-access';
 import { CrmEventsService } from '../shared/crm-events.service';
 
 const DAY = 86_400_000;
@@ -131,9 +131,8 @@ export class SequencesService implements OnModuleInit {
   async enroll(ctx: CrmCtx, sequenceId: string, contactId: string, dealId: string | null) {
     const res = await this.dbs.org(ctx.orgId, async (tx) => {
       const seq = await this.findSeq(tx, sequenceId);
-      const contact = await tx.query.crmContacts.findFirst({ where: and(eq(crmContacts.id, contactId), isNull(crmContacts.deletedAt)) });
-      if (!contact) throw problems.notFound('კონტაქტი');
-      if (ctx.ownContactsOnly && contact.ownerAgentId !== ctx.userId) throw problems.notFound('კონტაქტი');
+      await visibleContact(tx, ctx, contactId);
+      if (dealId) await visibleDeal(tx, ctx, dealId);
       return this.enrollTx(tx, ctx.orgId, seq, contactId, dealId);
     });
     // a zero-delay first step goes out right away (queued, not inline)
@@ -142,7 +141,7 @@ export class SequencesService implements OnModuleInit {
   }
 
   async stopRun(ctx: CrmCtx, runId: string) {
-    const [row] = await this.dbs.org(ctx.orgId, (tx) => tx.update(crmSequenceRuns).set({ status: 'stopped', nextAt: null }).where(and(eq(crmSequenceRuns.id, runId), eq(crmSequenceRuns.status, 'running'))).returning());
+    const [row] = await this.dbs.org(ctx.orgId, (tx) => tx.update(crmSequenceRuns).set({ status: 'stopped', nextAt: null }).where(and(eq(crmSequenceRuns.id, runId), eq(crmSequenceRuns.status, 'running'), ctx.ownContactsOnly ? sql`${crmSequenceRuns.contactId} IN (SELECT id FROM crm_contacts WHERE owner_agent_id = ${ctx.userId})` : undefined)).returning());
     if (!row) throw problems.notFound('ჩართვა');
     return row;
   }

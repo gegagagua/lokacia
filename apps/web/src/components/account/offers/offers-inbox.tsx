@@ -1,10 +1,11 @@
 'use client';
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import useSWR from 'swr';
 import { useTranslations } from 'next-intl';
 import { FileSignature } from 'lucide-react';
-import { formatMoney, relativeDaysKa, type OfferThreadSummary } from '@lokacia/contracts';
+import type { OfferThreadSummary } from '@lokacia/contracts';
+import { useFormat } from '@/i18n/use-format';
 import { Avatar, Button, EmptyState, Skeleton, Tabs } from '@lokacia/ui';
 import { fetcher } from '@/lib/api-client';
 import { OfferStatusBadge } from '../status-badges';
@@ -12,6 +13,7 @@ import { useRealtime } from '../realtime';
 
 function ThreadCard({ s }: { s: OfferThreadSummary }) {
   const t = useTranslations('offers.inbox');
+  const f = useFormat();
   const isSale = s.listing.dealType === 'sale' || s.listing.dealType === 'transfer';
   return (
     <li>
@@ -28,11 +30,11 @@ function ThreadCard({ s }: { s: OfferThreadSummary }) {
                 {t('actionRequired')}
               </span>
             )}
-            <span className="ml-auto text-small text-muted">{relativeDaysKa(s.latest.createdAt)}</span>
+            <span className="ml-auto text-small text-muted">{f.relativeDays(s.latest.createdAt)}</span>
           </div>
           <div className="mt-1 line-clamp-1 font-medium">{s.listing.title}</div>
           <div className="mt-1 text-[15px] tabular">
-            <span className="font-semibold">{formatMoney(s.latest.priceMinor)}</span>
+            <span className="font-semibold">{f.money(s.latest.priceMinor)}</span>
             {!isSale && (
               <span className="text-muted">
                 {' '}

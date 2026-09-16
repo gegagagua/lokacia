@@ -1,14 +1,17 @@
 'use client';
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import { useTranslations } from 'next-intl';
 import { CheckCircle2 } from 'lucide-react';
-import { FINANCE_STATUS_LABELS_KA, formatMoney, type FinanceApplicationDto, type FinanceProductDto } from '@lokacia/contracts';
+import type { FinanceApplicationDto, FinanceProductDto } from '@lokacia/contracts';
 import { Button, Checkbox, Dialog, Field, Input, Textarea } from '@lokacia/ui';
 import { apiFetch, ClientApiError } from '@/lib/api-client';
+import { useFormat } from '@/i18n/use-format';
 
 export function ApplyButton({ product, loggedIn, listing, defaultOpen }: { product: FinanceProductDto; loggedIn: boolean; listing: { id: string; title: string } | null; defaultOpen?: boolean }) {
   const t = useTranslations('finance.apply');
+  const tf = useTranslations('finance');
+  const fmt = useFormat();
   const [open, setOpen] = React.useState(!!defaultOpen);
   const [amount, setAmount] = React.useState(product.minAmountMinor ? String(product.minAmountMinor / 100) : '');
   const [term, setTerm] = React.useState(product.kind === 'insurance' ? '12' : '24');
@@ -54,7 +57,7 @@ export function ApplyButton({ product, loggedIn, listing, defaultOpen }: { produ
         <div className="flex flex-col items-center gap-2 py-4 text-center" role="status">
           <CheckCircle2 className="size-10 text-success" strokeWidth={1.5} aria-hidden />
           <p className="font-semibold">{t('sent')}</p>
-          <p className="text-small text-muted">{t('status', { status: FINANCE_STATUS_LABELS_KA[result.status] })}</p>
+          <p className="text-small text-muted">{t('status', { status: tf(`statusLabels.${result.status}`) })}</p>
           <Button asChild variant="secondary" className="mt-2">
             <Link href="/account/billing#finance">{t('myApplications')}</Link>
           </Button>
@@ -63,7 +66,7 @@ export function ApplyButton({ product, loggedIn, listing, defaultOpen }: { produ
         <form onSubmit={submit} className="flex flex-col gap-4">
           {listing && <p className="text-small text-muted">{t('listing', { title: listing.title })}</p>}
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={t('amount')} required error={outOfRange && amount ? t('range', { min: product.minAmountMinor ? formatMoney(product.minAmountMinor) : '0 ₾', max: product.maxAmountMinor ? formatMoney(product.maxAmountMinor) : '∞' }) : undefined}>
+            <Field label={t('amount')} required error={outOfRange && amount ? t('range', { min: product.minAmountMinor ? fmt.money(product.minAmountMinor) : '0 ₾', max: product.maxAmountMinor ? fmt.money(product.maxAmountMinor) : '∞' }) : undefined}>
               <Input inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} suffix="₾" required />
             </Field>
             <Field label={t('term')}>

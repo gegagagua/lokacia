@@ -1,9 +1,10 @@
 'use client';
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
-import { DEAL_TYPES, DEAL_TYPE_LABELS_KA, PASSPORT_KEYS, type PassportKey, type SearchFilters } from '@lokacia/contracts';
+import { DEAL_TYPES, PASSPORT_KEYS, type PassportKey, type SearchFilters } from '@lokacia/contracts';
 import { Button, Checkbox, Input, Label, Select, Switch, cn } from '@lokacia/ui';
 import { CITY_NAMES_KA } from '@/lib/site';
+import { useFormat } from '@/i18n/use-format';
 
 export type TypeOption = { slug: string; nameKa: string; icon: string; filterConfig: { filters: { key: string; kind: 'boolean' | 'min'; labelKa: string; unit?: string; min?: number; max?: number; step?: number }[] } };
 export type DistrictOption = { slug: string; nameKa: string; city: string };
@@ -65,6 +66,7 @@ function Section({ title, children, className }: { title: React.ReactNode; child
 
 export function FiltersPanel({ filters, onChange, types, districts }: { filters: SearchFilters; onChange: (patch: Patch) => void; types: TypeOption[]; districts: DistrictOption[] }) {
   const t = useTranslations('search');
+  const fmt = useFormat();
   const type = types.find((x) => x.slug === filters.businessType);
   const city = filters.city ?? 'tbilisi';
   const cityDistricts = districts.filter((d) => d.city === city);
@@ -116,7 +118,7 @@ export function FiltersPanel({ filters, onChange, types, districts }: { filters:
                 onClick={() => onChange({ dealType: d })}
                 className={cn('h-9 rounded-button border px-2 text-small transition-colors duration-150', active ? 'border-primary bg-primary text-primary-contrast' : 'border-border-strong bg-surface hover:bg-surface-2')}
               >
-                {d ? DEAL_TYPE_LABELS_KA[d] : t('anyDeal')}
+                {d ? fmt.dealType(d) : t('anyDeal')}
               </button>
             );
           })}
@@ -124,7 +126,7 @@ export function FiltersPanel({ filters, onChange, types, districts }: { filters:
       </Section>
 
       <Section title={t('city')}>
-        <Select aria-label={t('city')} value={filters.city ?? ''} placeholder={t('anyDeal')} onChange={(e) => onChange({ city: e.target.value || undefined, districts: undefined })} options={Object.entries(CITY_NAMES_KA).map(([value, label]) => ({ value, label }))} />
+        <Select aria-label={t('city')} value={filters.city ?? ''} placeholder={t('anyDeal')} onChange={(e) => onChange({ city: e.target.value || undefined, districts: undefined })} options={Object.keys(CITY_NAMES_KA).map((value) => ({ value, label: fmt.city(value) }))} />
         {cityDistricts.length > 0 && (
           <div>
             <div className="mb-1.5 flex items-center justify-between text-small">
@@ -159,8 +161,8 @@ export function FiltersPanel({ filters, onChange, types, districts }: { filters:
 
       <Section title={t('area')}>
         <div className="grid grid-cols-2 gap-2">
-          <DebouncedNumber label={t('from')} suffix="მ²" value={filters.areaMin} onCommit={(v) => onChange({ areaMin: v })} />
-          <DebouncedNumber label={t('to')} suffix="მ²" value={filters.areaMax} onCommit={(v) => onChange({ areaMax: v })} />
+          <DebouncedNumber label={t('from')} suffix={fmt.areaUnit} value={filters.areaMin} onCommit={(v) => onChange({ areaMin: v })} />
+          <DebouncedNumber label={t('to')} suffix={fmt.areaUnit} value={filters.areaMax} onCommit={(v) => onChange({ areaMax: v })} />
         </div>
       </Section>
 

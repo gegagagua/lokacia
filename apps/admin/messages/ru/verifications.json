@@ -1,24 +1,24 @@
 {
-  "title": "",
-  "subtitle": "",
+  "title": "Проверки собственников",
+  "subtitle": "Проверка выписок из публичного реестра. После одобрения объявление получит значок «Проверенный собственник».",
   "tabs": {
-    "pending": "",
-    "approved": "",
-    "rejected": ""
+    "pending": "В ожидании",
+    "approved": "Одобренные",
+    "rejected": "Отклонённые"
   },
   "status": {
-    "pending": "",
-    "approved": "",
-    "rejected": ""
+    "pending": "В ожидании",
+    "approved": "Одобрено",
+    "rejected": "Отклонено"
   },
-  "preview": "",
-  "document": "",
-  "openDocument": "",
-  "approve": "",
-  "approved": "",
-  "reject": "",
-  "rejectTitle": "",
-  "rejected": "",
-  "emptyTitle": "",
-  "emptyText": ""
+  "preview": "Просмотр документа",
+  "document": "Выписка из реестра",
+  "openDocument": "Открыть документ в новом окне",
+  "approve": "Одобрить проверку",
+  "approved": "Собственник проверен",
+  "reject": "Отклонить проверку",
+  "rejectTitle": "Отклонение проверки",
+  "rejected": "Проверка отклонена",
+  "emptyTitle": "Запросов нет",
+  "emptyText": "Запросы на проверку с этим статусом не найдены."
 }

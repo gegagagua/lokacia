@@ -2,8 +2,10 @@
 import * as React from 'react';
 import useSWR from 'swr';
 import { usePathname, useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useToast } from '@lokacia/ui';
 import { apiFetch, ClientApiError } from '@/lib/api-client';
+import { useLocalizedPath } from '@/i18n/link';
 
 type Ctx = { ids: Set<string>; loggedIn: boolean | null; toggle: (listingId: string) => Promise<void>; isFavorite: (id: string) => boolean };
 const FavoritesCtx = React.createContext<Ctx | null>(null);
@@ -13,6 +15,8 @@ export function FavoritesProvider({ children, loggedIn }: { children: React.Reac
   const router = useRouter();
   const pathname = usePathname();
   const toast = useToast();
+  const t = useTranslations('favorites');
+  const lp = useLocalizedPath();
   const { data, mutate, error } = useSWR<string[]>(loggedIn === false ? null : '/favorites/ids', (p: string) => apiFetch<string[]>(p), {
     shouldRetryOnError: false,
     revalidateOnFocus: false,
@@ -23,7 +27,7 @@ export function FavoritesProvider({ children, loggedIn }: { children: React.Reac
   const toggle = React.useCallback(
     async (listingId: string) => {
       if (authed === false) {
-        router.push(`/login?next=${encodeURIComponent(pathname)}`);
+        router.push(lp(`/login?next=${encodeURIComponent(pathname)}`));
         return;
       }
       const was = ids.has(listingId);
@@ -38,11 +42,11 @@ export function FavoritesProvider({ children, loggedIn }: { children: React.Reac
           { optimisticData: next, rollbackOnError: true, revalidate: false },
         );
       } catch (e) {
-        if (e instanceof ClientApiError && e.status === 401) router.push(`/login?next=${encodeURIComponent(pathname)}`);
-        else toast({ title: 'ფავორიტი ვერ შენახდა', description: 'სცადეთ ხელახლა.', tone: 'danger' });
+        if (e instanceof ClientApiError && e.status === 401) router.push(lp(`/login?next=${encodeURIComponent(pathname)}`));
+        else toast({ title: t('toggleFailed'), description: t('toggleFailedHint'), tone: 'danger' });
       }
     },
-    [authed, ids, mutate, pathname, router, toast],
+    [authed, ids, mutate, pathname, router, toast, t, lp],
   );
 
   const value = React.useMemo<Ctx>(() => ({ ids, loggedIn: authed, toggle, isFavorite: (id) => ids.has(id) }), [ids, authed, toggle]);

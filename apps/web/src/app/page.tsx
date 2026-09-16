@@ -1,9 +1,10 @@
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import { getTranslations } from 'next-intl/server';
 import { ArrowRight, BadgeCheck, Building2, Clock, KanbanSquare, Map as MapIcon, MessageSquarePlus, Search } from 'lucide-react';
-import { DEAL_TYPE_LABELS_KA, formatMoney, formatNumber, type DemandDto, type ListingCard, type SiteStatsDto } from '@lokacia/contracts';
+import { type DemandDto, type ListingCard, type SiteStatsDto } from '@lokacia/contracts';
 import { Badge, Button, SpacePlan } from '@lokacia/ui';
 import { getSession } from '@/lib/session';
+import { getFormat } from '@/i18n/server';
 import { absUrl, SITE_NAME } from '@/lib/site';
 import { getCombos, getDemandList, getDistrictStats, getNames, getSiteStats, searchListings, type DistrictStat } from '@/components/portal/data';
 import { BusinessTypeIcon } from '@/components/portal/business-type-icon';
@@ -23,6 +24,7 @@ const safe = <T,>(p: Promise<T>, fallback: T) => p.catch(() => fallback);
 
 export default async function HomePage() {
   const t = await getTranslations('home');
+  const f = await getFormat();
   const [names, stats, fresh, districts, combos, demand, session] = await Promise.all([
     getNames(),
     safe<SiteStatsDto | null>(getSiteStats(), null),
@@ -62,7 +64,7 @@ export default async function HomePage() {
           '@context': 'https://schema.org',
           '@graph': [
             { '@type': 'Organization', name: SITE_NAME, url: absUrl('/'), logo: absUrl('/icon.svg') },
-            { '@type': 'WebSite', name: SITE_NAME, url: absUrl('/'), inLanguage: 'ka', potentialAction: { '@type': 'SearchAction', target: `${absUrl('/search')}?q={search_term_string}`, 'query-input': 'required name=search_term_string' } },
+            { '@type': 'WebSite', name: SITE_NAME, url: absUrl('/'), inLanguage: f.locale, potentialAction: { '@type': 'SearchAction', target: `${absUrl('/search')}?q={search_term_string}`, 'query-input': 'required name=search_term_string' } },
           ],
         }}
       />
@@ -88,7 +90,7 @@ export default async function HomePage() {
             </div>
           </div>
           <figure className="hidden rounded-card border border-border bg-surface p-6 lg:block">
-            <SpacePlan areaM2={64} widthM={8} depthM={8} ceilingM={3.4} powerKw={25} />
+            <SpacePlan areaM2={64} widthM={8} depthM={8} ceilingM={3.4} powerKw={25} locale={f.locale} />
             <figcaption className="mt-3 border-t border-border pt-3 text-small text-muted">{t('hero.planCaption')}</figcaption>
           </figure>
         </div>
@@ -127,7 +129,7 @@ export default async function HomePage() {
             <dl className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6">
               {statItems.map((s) => (
                 <div key={s.label} className="border-l border-border-strong pl-3">
-                  <dd className="compact text-h2 font-semibold tabular">{formatNumber(s.value)}</dd>
+                  <dd className="compact text-h2 font-semibold tabular">{f.number(s.value)}</dd>
                   <dt className="text-small text-muted">{s.label}</dt>
                 </div>
               ))}
@@ -183,13 +185,13 @@ export default async function HomePage() {
                   <tr key={d.slug} className="border-t border-border first:border-t-0">
                     <td className="py-2 pr-3">
                       <Link href={`/districts/${d.slug}`} className="hover:text-link hover:underline">
-                        {d.name}
+                        {names.districtNames[d.slug] ?? d.name}
                       </Link>
                     </td>
                     <td className="w-1/2 py-2" aria-hidden>
                       <span className="block h-1.5 rounded-full bg-primary/80" style={{ width: `${Math.max(6, ((d.avgPriceM2Minor ?? 0) / maxPrice) * 100)}%` }} />
                     </td>
-                    <td className="whitespace-nowrap py-2 pl-3 text-right font-medium tabular">{formatMoney(Math.round((d.avgPriceM2Minor ?? 0) / 100) * 100)}</td>
+                    <td className="whitespace-nowrap py-2 pl-3 text-right font-medium tabular">{f.money(Math.round((d.avgPriceM2Minor ?? 0) / 100) * 100)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -217,11 +219,11 @@ export default async function HomePage() {
                     {d.title}
                   </Link>
                   <div className="mt-1 flex flex-wrap items-center gap-1.5 text-small text-muted">
-                    <Badge tone="neutral">{d.businessTypeName}</Badge>
-                    <Badge tone="outline">{DEAL_TYPE_LABELS_KA[d.dealType]}</Badge>
+                    <Badge tone="neutral">{names.typeNames[d.businessType] ?? d.businessTypeName}</Badge>
+                    <Badge tone="outline">{f.dealType(d.dealType)}</Badge>
                     {(d.areaMin || d.areaMax) && <span className="tabular">{t('demand.area', { min: d.areaMin ?? 0, max: d.areaMax ?? '∞' })}</span>}
-                    {d.budgetMinor ? <span className="tabular">· {t('demand.budget', { amount: formatMoney(d.budgetMinor) })}</span> : null}
-                    {d.districts.length > 0 && <span>· {d.districts.map((x) => x.name).join(', ')}</span>}
+                    {d.budgetMinor ? <span className="tabular">· {t('demand.budget', { amount: f.money(d.budgetMinor) })}</span> : null}
+                    {d.districts.length > 0 && <span>· {d.districts.map((x) => names.districtNames[x.slug] ?? x.name).join(', ')}</span>}
                   </div>
                 </li>
               ))}

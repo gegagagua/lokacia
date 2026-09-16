@@ -1,10 +1,11 @@
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import { getTranslations } from 'next-intl/server';
 import { ArrowRight, BellPlus, ClipboardCheck, Map as MapIcon, MessageSquarePlus } from 'lucide-react';
-import { DEAL_TYPE_LABELS_KA, DEAL_TYPES, PASSPORT_FIELD_BY_KEY, filtersToParams, formatMoney, type LandingDto, type PassportKey } from '@lokacia/contracts';
+import { DEAL_TYPES, PASSPORT_FIELD_BY_KEY, filtersToParams, type LandingDto, type PassportKey } from '@lokacia/contracts';
 import { Button, EmptyState } from '@lokacia/ui';
 import { absUrl } from '@/lib/site';
 import { getSession } from '@/lib/session';
+import { getFormat } from '@/i18n/server';
 import { getNames, getPermits } from '../data';
 import { FavoritesProvider } from '../favorites';
 import { ListingGrid } from '../listing-card-link';
@@ -14,12 +15,14 @@ import { Breadcrumbs, JsonLd, type Crumb } from '../seo';
 /** SEO landing (Phase 14): business type, district, or business type × district — real counts, top listings, internal links, FAQ. */
 export async function LandingView({ data, path }: { data: LandingDto; path: string }) {
   const t = await getTranslations('seo');
-  const [names, session] = await Promise.all([getNames(), getSession()]);
+  const [names, session, fmt] = await Promise.all([getNames(), getSession(), getFormat()]);
   const bt = data.businessType ? names.typeBySlug[data.businessType.slug] : null;
   const district = data.district;
-  const typeName = data.businessType?.name ?? '';
-  const districtName = district?.name ?? '';
-  const avg = data.avgPriceM2Minor ? formatMoney(Math.round(data.avgPriceM2Minor / 100) * 100) : null;
+  // API names are Georgian — use the localized taxonomy names (fallback: API value).
+  const typeName = data.businessType ? (names.typeNames[data.businessType.slug] ?? data.businessType.name) : '';
+  const districtName = district ? (names.districtNames[district.slug] ?? district.name) : '';
+  const relatedName = (r: LandingDto['related'][number]) => (r.kind === 'district' ? names.districtNames[r.slug] : names.typeNames[r.slug]) ?? r.name;
+  const avg = data.avgPriceM2Minor ? fmt.money(Math.round(data.avgPriceM2Minor / 100) * 100) : null;
   const permits = bt ? await getPermits(bt.slug) : null;
 
   const h1 = bt && district ? t('landing.h1TypeDistrict', { type: typeName, district: districtName }) : bt ? t('landing.h1Type', { type: typeName }) : t('landing.h1District', { district: districtName });
@@ -32,23 +35,23 @@ export async function LandingView({ data, path }: { data: LandingDto; path: stri
   if (district) crumbs.push({ name: districtName, href: bt ? `/${bt.slug}/${district.slug}` : `/districts/${district.slug}` });
 
   const scope = [typeName, districtName].filter(Boolean).join(', ');
-  const specs = (bt?.filterConfig.required ?? []).map((k) => PASSPORT_FIELD_BY_KEY[k as PassportKey]?.labelKa).filter(Boolean).join(', ');
+  const specs = (bt?.filterConfig.required ?? []).filter((k) => PASSPORT_FIELD_BY_KEY[k as PassportKey]).map((k) => fmt.passport(k as PassportKey)).join(', ');
   const faq: { q: string; a: string }[] = [
     {
       q: t('landing.faqPriceQ', { scope }),
-      a: avg && data.minPriceMinor ? t('landing.faqPriceA', { count: data.total, avg, min: formatMoney(data.minPriceMinor) }) : t('landing.faqPriceNone'),
+      a: avg && data.minPriceMinor ? t('landing.faqPriceA', { count: data.total, avg, min: fmt.money(data.minPriceMinor) }) : t('landing.faqPriceNone'),
     },
   ];
   if (bt && specs) faq.push({ q: t('landing.faqSpecsQ', { type: typeName }), a: t('landing.faqSpecsA', { specs }) });
-  if (!bt && district && data.related.length) faq.push({ q: t('landing.faqDistrictQ', { district: districtName }), a: t('landing.faqDistrictA', { types: data.related.slice(0, 4).map((r) => `${r.name} (${r.count})`).join(', ') }) });
+  if (!bt && district && data.related.length) faq.push({ q: t('landing.faqDistrictQ', { district: districtName }), a: t('landing.faqDistrictA', { types: data.related.slice(0, 4).map((r) => `${relatedName(r)} (${r.count})`).join(', ') }) });
   faq.push({ q: t('landing.faqOwnersQ'), a: t('landing.faqOwnersA', { share: data.ownersShare }) });
   faq.push({ q: t('landing.faqTrustQ'), a: t('landing.faqTrustA') });
 
   const stats = [
     { label: t('landing.statTotal'), value: String(data.total) },
     { label: t('landing.statAvg'), value: avg ?? t('landing.noData') },
-    { label: t('landing.statMin'), value: data.minPriceMinor ? formatMoney(data.minPriceMinor) : t('landing.noData') },
-    { label: t('landing.statArea'), value: data.medianAreaM2 ? `${data.medianAreaM2} მ²` : t('landing.noData') },
+    { label: t('landing.statMin'), value: data.minPriceMinor ? fmt.money(data.minPriceMinor) : t('landing.noData') },
+    { label: t('landing.statArea'), value: data.medianAreaM2 ? `${data.medianAreaM2} ${fmt.areaUnit}` : t('landing.noData') },
     { label: t('landing.statOwners'), value: `${data.ownersShare}%` },
   ];
 
@@ -103,7 +106,7 @@ export async function LandingView({ data, path }: { data: LandingDto; path: stri
                 href={`/search?${filtersToParams({ ...searchFilters, dealType: d })}`}
                 className="inline-flex h-9 items-center gap-2 rounded-button border border-border-strong bg-surface px-3 text-[15px] hover:bg-surface-2"
               >
-                {DEAL_TYPE_LABELS_KA[d]}
+                {fmt.dealType(d)}
                 <span className="text-small text-muted tabular">{data.byDealType[d]}</span>
               </Link>
             ))}
@@ -156,7 +159,7 @@ export async function LandingView({ data, path }: { data: LandingDto; path: stri
                   return (
                     <li key={`${r.kind}-${r.slug}`}>
                       <Link href={href} className="flex items-center justify-between gap-2 rounded-button border border-border bg-surface px-3 py-2 hover:border-border-strong">
-                        <span className="truncate">{r.name}</span>
+                        <span className="truncate">{relatedName(r)}</span>
                         <span className="text-small text-muted tabular">{r.count}</span>
                       </Link>
                     </li>

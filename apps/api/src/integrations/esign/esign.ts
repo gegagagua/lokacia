@@ -1,3 +1,5 @@
+import { randomBytes } from 'node:crypto';
+
 export interface ESignProvider {
   readonly name: string;
   send(doc: { id: string; title: string; signerName: string; signerPhone?: string | null }): Promise<{ ref: string; signUrl: string }>;
@@ -10,8 +12,9 @@ export class MockESign implements ESignProvider {
   readonly name = 'mock';
   private readonly statuses = new Map<string, 'sent' | 'signed' | 'declined'>();
   constructor(private readonly appUrl: string) {}
-  async send(doc: { id: string }) {
-    const ref = `mock-sign-${doc.id}`;
+  async send(_doc: { id: string }) {
+    // envelope ids must not be derivable from the document id (they end up in public links)
+    const ref = `mock-${randomBytes(32).toString('base64url')}`;
     this.statuses.set(ref, 'sent');
     return { ref, signUrl: `${this.appUrl}/sign/${ref}` };
   }

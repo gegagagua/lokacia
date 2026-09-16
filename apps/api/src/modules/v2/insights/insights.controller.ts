@@ -3,7 +3,7 @@ import { ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { z } from 'zod';
 import { scanCreateSchema } from '@lokacia/contracts';
-import { CurrentUser, Public, SkipAudit } from '../../../common/decorators';
+import { ClientIp, CurrentUser, Public, SkipAudit } from '../../../common/decorators';
 import { problems } from '../../../common/problem';
 import type { AuthUser } from '../../../common/request';
 import { ApiZodBody, ZBody } from '../../../common/zod';
@@ -26,15 +26,21 @@ export class InsightsController {
   @Public()
   @Get('listings/:id/traffic')
   @Header('cache-control', 'public, max-age=300')
-  traffic(@Param('id') id: string) {
-    return this.insights.trafficFor(id);
+  async traffic(@CurrentUser() user: AuthUser | undefined, @Param('id') id: string) {
+    return this.insights.trafficFor(id, { canManage: await this.manages(user, id) });
+  }
+
+  private async manages(user: AuthUser | undefined, id: string) {
+    if (!user) return false;
+    const l = await this.read.findRaw(id);
+    return !!l && (await this.read.canManage(l, user));
   }
 
   @Public()
   @Get('listings/:id/score')
   @Header('cache-control', 'public, max-age=300')
-  score(@Param('id') id: string, @Query('businessType') businessType?: string) {
-    return this.insights.scoreFor(id, businessType || undefined);
+  async score(@CurrentUser() user: AuthUser | undefined, @ClientIp() ip: string, @Param('id') id: string, @Query('businessType') businessType?: string) {
+    return this.insights.scoreFor(id, businessType || undefined, { ip, canManage: await this.manages(user, id) });
   }
 
   @Post('listings/:id/score/recompute')
@@ -48,8 +54,9 @@ export class InsightsController {
 
   @Public()
   @Get('listings/:id/scans')
-  scansList(@CurrentUser() user: AuthUser | undefined, @Param('id') id: string, @Query('all') all?: string) {
-    return this.scans.list(id, all === 'true' && !!user);
+  async scansList(@CurrentUser() user: AuthUser | undefined, @Param('id') id: string, @Query('all') all?: string) {
+    // unprocessed/failed scans only for users who manage the listing
+    return this.scans.list(id, all === 'true' && (await this.manages(user, id)));
   }
 
   @Post('listings/:id/scans')

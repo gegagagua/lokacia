@@ -52,6 +52,23 @@ describe('ListingCard', () => {
   });
 });
 
+describe('ListingCard locale (Phase 22)', () => {
+  it('renders English labels, localized title/district and en number format', () => {
+    const l = { ...broker, title: 'ფართი', titleEn: 'Retail space on Chavchavadze', districtName: 'ვაკე', districtNameEn: 'Vake', priceMinor: 450_000, pricePeriod: 'month' as const, areaM2: 64 };
+    const { container } = render(<ListingCard listing={l} href="#" locale="en" onFavorite={() => undefined} />);
+    expect(screen.getByText('Retail space on Chavchavadze')).toBeTruthy();
+    expect(container.textContent).toContain('Vake · ');
+    expect(container.textContent).toContain('4,500 ₾ / mo');
+    expect(screen.getByRole('button', { name: 'Add to favorites' })).toBeTruthy();
+    expect(container.textContent?.replace(l.address, '')).not.toMatch(/[\u10D0-\u10FF]/);
+  });
+  it('falls back to the Georgian title in Russian when titleRu is empty', () => {
+    render(<ListingCard listing={{ ...broker, title: 'ფართი ვაკეში', titleRu: '' }} href="#" locale="ru" />);
+    expect(screen.getByText('ფართი ვაკეში')).toBeTruthy();
+    expect(screen.getByText(/^Брокер/)).toBeTruthy();
+  });
+});
+
 describe('PriceTag (formatters)', () => {
   it('formats monthly rent with thousands space, ₾ after amount and price per m²', () => {
     const { container } = render(<PriceTag priceMinor={450_000} period="month" areaM2={64} />);

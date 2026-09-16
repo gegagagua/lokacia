@@ -1,15 +1,20 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { ArrowLeft, BadgeCheck, MapPin, Phone } from 'lucide-react';
-import { formatDateKa } from '@lokacia/contracts';
 import { Avatar, Badge, Button, SpecRow } from '@lokacia/ui';
 import { getSession } from '@/lib/session';
-import { absUrl, CITY_NAMES_KA } from '@/lib/site';
+import { absUrl } from '@/lib/site';
+import { getFormat } from '@/i18n/server';
 import { getProvider } from '@/components/portal/data';
 import { Breadcrumbs, JsonLd, pageMetadata } from '@/components/portal/seo';
 import { Stars, categoryName } from '@/components/portal/services/provider-card';
+
+async function getCategoryName() {
+  const tc = await getTranslations('services.categories');
+  return (slug: string) => (tc.has(slug) ? tc(slug) : categoryName(slug));
+}
 import { QuoteDialog } from '@/components/portal/services/quote-dialog';
 
 type Props = { params: Promise<{ slug: string }> };
@@ -17,9 +22,10 @@ type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const p = await getProvider(slug);
-  if (!p) return { title: 'მიმწოდებელი', robots: { index: false } };
-  const cats = p.categories.map(categoryName).join(', ');
-  return pageMetadata({ title: `${p.name} — ${cats}`, description: p.about ?? `${p.name}: ${cats}, ${CITY_NAMES_KA[p.city] ?? p.city}.`, path: `/services/${p.slug}`, image: p.portfolio[0] });
+  if (!p) return { title: (await getTranslations('meta.titles'))('provider'), robots: { index: false } };
+  const [catName, f] = await Promise.all([getCategoryName(), getFormat()]);
+  const cats = p.categories.map(catName).join(', ');
+  return pageMetadata({ title: `${p.name} — ${cats}`, description: p.about ?? `${p.name}: ${cats}, ${f.city(p.city)}.`, path: `/services/${p.slug}`, image: p.portfolio[0] });
 }
 
 export default async function ProviderPage({ params }: Props) {
@@ -28,6 +34,7 @@ export default async function ProviderPage({ params }: Props) {
   if (!p) notFound();
   const t = await getTranslations('services');
   const hub = await getTranslations('services.hub');
+  const [catName, f] = await Promise.all([getCategoryName(), getFormat()]);
   const ld = {
     '@context': 'https://schema.org',
     '@type': 'ProfessionalService',
@@ -35,10 +42,10 @@ export default async function ProviderPage({ params }: Props) {
     description: p.about ?? undefined,
     url: absUrl(`/services/${p.slug}`),
     image: p.portfolio.map((x) => absUrl(x)),
-    areaServed: CITY_NAMES_KA[p.city] ?? p.city,
-    address: { '@type': 'PostalAddress', addressLocality: CITY_NAMES_KA[p.city] ?? p.city, addressCountry: 'GE' },
+    areaServed: f.city(p.city),
+    address: { '@type': 'PostalAddress', addressLocality: f.city(p.city), addressCountry: 'GE' },
     priceRange: p.priceFrom ?? undefined,
-    knowsAbout: p.categories.map(categoryName),
+    knowsAbout: p.categories.map(catName),
     ...(p.reviewsCount > 0 ? { aggregateRating: { '@type': 'AggregateRating', ratingValue: p.rating, reviewCount: p.reviewsCount, bestRating: 5, worstRating: 1 } } : {}),
     review: p.reviews.slice(0, 5).map((r) => ({ '@type': 'Review', author: { '@type': 'Person', name: r.authorName }, reviewRating: { '@type': 'Rating', ratingValue: r.rating, bestRating: 5 }, reviewBody: r.body ?? undefined, datePublished: r.createdAt.slice(0, 10) })),
   };
@@ -69,13 +76,13 @@ export default async function ProviderPage({ params }: Props) {
                 )}
                 <span className="inline-flex items-center gap-1 text-small text-muted">
                   <MapPin className="size-3.5" strokeWidth={1.5} aria-hidden />
-                  {CITY_NAMES_KA[p.city] ?? p.city}
+                  {f.city(p.city)}
                 </span>
               </div>
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {p.categories.map((c) => (
                   <Link key={c} href={`/services?category=${c}`}>
-                    <Badge tone="primary">{categoryName(c)}</Badge>
+                    <Badge tone="primary">{catName(c)}</Badge>
                   </Link>
                 ))}
               </div>
@@ -114,7 +121,7 @@ export default async function ProviderPage({ params }: Props) {
                   <li key={r.id} className="p-4">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="font-medium">{r.authorName}</span>
-                      <span className="text-small text-muted">{formatDateKa(r.createdAt)}</span>
+                      <span className="text-small text-muted">{f.date(r.createdAt)}</span>
                     </div>
                     <Stars rating={r.rating} className="mt-1" />
                     {r.body && <p className="mt-2 leading-relaxed">{r.body}</p>}

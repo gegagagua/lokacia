@@ -1,10 +1,11 @@
 'use client';
 import * as React from 'react';
-import Link from 'next/link';
+import Link, { useLocalizedPath } from '@/i18n/link';
 import useSWR from 'swr';
 import { useTranslations } from 'next-intl';
 import { BarChart3, CalendarClock, CheckCircle2, ExternalLink, Eye, Heart, MoreHorizontal, Pencil, Phone, Plus } from 'lucide-react';
-import { formatArea, formatMoney, relativeDaysKa, type ListingCard, type ListingStatus } from '@lokacia/contracts';
+import type { ListingCard, ListingStatus } from '@lokacia/contracts';
+import { useFormat } from '@/i18n/use-format';
 import { Button, Dialog, Drawer, EmptyState, Popover, Skeleton, VipBadge, cn, useToast } from '@lokacia/ui';
 import { apiFetch, ClientApiError, fetcher } from '@/lib/api-client';
 import { VipPurchaseButton } from '@/components/billing/vip-button';
@@ -98,6 +99,8 @@ export function MyListings() {
 
 function ListingRow({ listing: l, onChanged }: { listing: MyListing; onChanged: () => Promise<unknown> }) {
   const t = useTranslations('myListings');
+  const f = useFormat();
+  const lp = useLocalizedPath();
   const toast = useToast();
   const [busy, setBusy] = React.useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = React.useState(false);
@@ -114,7 +117,7 @@ function ListingRow({ listing: l, onChanged }: { listing: MyListing; onChanged: 
     } catch (e) {
       if (e instanceof ClientApiError && e.problem?.type?.endsWith('passport-incomplete')) {
         toast({ title: t('toast.passport'), description: e.problem.errors?.map((x) => x.path.replace('passport.', '')).join(', '), tone: 'danger' });
-        window.setTimeout(() => (window.location.href = `/account/listings/${l.id}/edit?step=passport`), 1500);
+        window.setTimeout(() => (window.location.href = lp(`/account/listings/${l.id}/edit?step=passport`)), 1500);
       } else toast({ title: e instanceof ClientApiError ? e.message : t('toast.error'), tone: 'danger' });
     } finally {
       setBusy(null);
@@ -161,7 +164,7 @@ function ListingRow({ listing: l, onChanged }: { listing: MyListing; onChanged: 
         <div className="flex flex-wrap items-center gap-2">
           <ListingStatusBadge status={s} />
           {l.vip && <VipBadge />}
-          <span className="text-small text-muted">{l.lastConfirmedAt ? t('card.confirmed', { when: relativeDaysKa(l.lastConfirmedAt) }) : t('card.notConfirmed')}</span>
+          <span className="text-small text-muted">{l.lastConfirmedAt ? t('card.confirmed', { when: f.relativeDays(l.lastConfirmedAt) }) : t('card.notConfirmed')}</span>
         </div>
         <h2 className="text-[17px] font-medium leading-snug">
           <Link href={isPublic ? `/listings/${l.slug}` : `/account/listings/${l.id}/edit`} className="hover:underline">
@@ -169,11 +172,11 @@ function ListingRow({ listing: l, onChanged }: { listing: MyListing; onChanged: 
           </Link>
         </h2>
         <p className="truncate text-small text-muted">
-          {[l.districtName, l.address].filter(Boolean).join(' · ')} · {formatArea(l.areaM2)}
+          {[l.districtName, l.address].filter(Boolean).join(' · ')} · {f.area(l.areaM2)}
         </p>
         <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
           <span className="compact text-h3 font-semibold tabular">
-            {formatMoney(l.priceMinor, l.currency)}
+            {f.money(l.priceMinor, l.currency)}
             {l.pricePeriod === 'month' && <span className="text-small font-normal text-muted"> {t('card.perMonth')}</span>}
           </span>
           <span className="flex items-center gap-3 text-small text-muted tabular" aria-label={t('card.stats30d')}>

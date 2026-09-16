@@ -1,27 +1,23 @@
 import type { Metadata } from 'next';
+import { pageMetadata } from '@/components/portal/seo';
 import { getTranslations } from 'next-intl/server';
-import { FINANCE_KIND_LABELS_KA, formatMoney, type FinanceProductDto, type ListingDetail } from '@lokacia/contracts';
+import type { FinanceProductDto, ListingDetail } from '@lokacia/contracts';
+import { getFormat } from '@/i18n/server';
 import { Card, EmptyState } from '@lokacia/ui';
 import { apiOrNull } from '@/lib/api-server';
 import { getSession } from '@/lib/session';
-import { absUrl, SITE_NAME } from '@/lib/site';
 import { ApplyButton } from './apply-button';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('finance');
-  return {
-    title: t('metaTitle'),
-    description: t('metaDescription'),
-    alternates: { canonical: '/finance' },
-    openGraph: { images: ['/opengraph-image'],  title: `${t('metaTitle')} · ${SITE_NAME}`, description: t('metaDescription'), url: absUrl('/finance'), type: 'website' },
-    twitter: { card: 'summary', title: t('metaTitle'), description: t('metaDescription') },
-  };
+  return pageMetadata({ title: t('metaTitle'), description: t('metaDescription'), path: '/finance' });
 }
 
 const KINDS = ['fitout_loan', 'leasing', 'insurance'] as const;
 
 export default async function FinancePage({ searchParams }: { searchParams: Promise<{ listing?: string; product?: string }> }) {
   const t = await getTranslations('finance');
+  const fmt = await getFormat();
   const sp = await searchParams;
   const listingId = sp.listing && /^[0-9a-f-]{36}$/i.test(sp.listing) ? sp.listing : null;
   const [products, session, listing] = await Promise.all([
@@ -46,7 +42,7 @@ export default async function FinancePage({ searchParams }: { searchParams: Prom
           return (
             <section key={kind} aria-labelledby={`k-${kind}`} className="mt-10">
               <h2 id={`k-${kind}`} className="text-h2 font-semibold">
-                {FINANCE_KIND_LABELS_KA[kind]}
+                {t(`kinds.${kind}`)}
               </h2>
               <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {items.map((p) => (
@@ -65,7 +61,7 @@ export default async function FinancePage({ searchParams }: { searchParams: Prom
                         <div className="flex justify-between py-1.5">
                           <dt className="text-muted">{t('amountRange')}</dt>
                           <dd className="tabular">
-                            {p.minAmountMinor ? formatMoney(p.minAmountMinor) : '—'} – {p.maxAmountMinor ? formatMoney(p.maxAmountMinor) : '—'}
+                            {p.minAmountMinor ? fmt.money(p.minAmountMinor) : '—'} – {p.maxAmountMinor ? fmt.money(p.maxAmountMinor) : '—'}
                           </dd>
                         </div>
                       )}

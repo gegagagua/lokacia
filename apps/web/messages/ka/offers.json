@@ -143,5 +143,12 @@
     "messageTitle": "შეტყობინება: {name}",
     "messageLabel": "შეტყობინების ტექსტი",
     "messageSubmit": "შეტყობინების გაგზავნა"
+  },
+  "status": {
+    "pending": "ლოდინში",
+    "countered": "კონტრ-შეთავაზება",
+    "accepted": "მიღებული",
+    "rejected": "უარყოფილი",
+    "withdrawn": "გაუქმებული"
   }
 }

@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Search, Users } from 'lucide-react';
@@ -17,7 +17,7 @@ type Props = { searchParams: Promise<{ district?: string; q?: string }> };
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const { district, q } = await searchParams;
   const t = await getTranslations('profiles');
-  return { ...pageMetadata({ title: t('brokersTitle'), description: t('brokersMetaDescription'), path: '/brokers' }), ...(district || q ? { robots: { index: false, follow: true } } : {}) };
+  return { ...(await pageMetadata({ title: t('brokersTitle'), description: t('brokersMetaDescription'), path: '/brokers' })), ...(district || q ? { robots: { index: false, follow: true } } : {}) };
 }
 
 export default async function BrokersPage({ searchParams }: Props) {

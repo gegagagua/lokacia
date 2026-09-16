@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { crmContacts, crmViewings, eq } from '@lokacia/db';
+import { and, crmContacts, crmViewings, eq } from '@lokacia/db';
 import { createApp } from './helpers';
 import { crmLogin, PHONES, sys } from './crm-helpers';
 import { optimizeRoute, pathKm } from '../src/modules/crm/calendar/route';
@@ -24,7 +24,8 @@ describe('CRM calendar (C4): viewings, Google sync mock, route optimization, ICS
 
   it('creates a viewing synced to the calendar adapter and logs activity', async () => {
     const agent = await crmLogin(ctx.app, PHONES.agent);
-    const [contact] = await sys(ctx.db, (tx) => tx.select().from(crmContacts).where(eq(crmContacts.orgId, agent.orgId)).limit(1));
+    // agents may only link contacts assigned to them
+    const [contact] = await sys(ctx.db, (tx) => tx.select().from(crmContacts).where(and(eq(crmContacts.orgId, agent.orgId), eq(crmContacts.ownerAgentId, agent.user.id))).limit(1));
     const res = await agent.post('/v1/crm/viewings').send({ contactId: contact!.id, startsAt: '2026-10-01T10:00:00+04:00', durationMin: 30, address: 'ვაჟა-ფშაველას 10', lat: 41.72, lng: 44.75, title: 'ჩვენება ტესტ' });
     expect(res.status).toBe(201);
     expect(res.body.googleEventId).toBe(`gcal-mock-${res.body.id}`);

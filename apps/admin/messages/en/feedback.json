@@ -1,22 +1,22 @@
 {
-  "title": "",
-  "subtitle": "",
+  "title": "Feedback",
+  "subtitle": "User messages from the feedback form",
   "tabs": {
-    "new": "",
-    "seen": "",
-    "done": "",
-    "all": ""
+    "new": "New",
+    "seen": "Seen",
+    "done": "Done",
+    "all": "All"
   },
   "status": {
-    "new": "",
-    "seen": "",
-    "done": ""
+    "new": "New",
+    "seen": "Seen",
+    "done": "Done"
   },
-  "changeStatus": "",
-  "updated": "",
-  "rating": "",
-  "user": "",
-  "guest": "",
-  "emptyTitle": "",
-  "emptyText": ""
+  "changeStatus": "Change status",
+  "updated": "Status changed",
+  "rating": "Rating: {rating} out of 5",
+  "user": "User",
+  "guest": "Guest",
+  "emptyTitle": "No messages",
+  "emptyText": "No feedback found with this status."
 }

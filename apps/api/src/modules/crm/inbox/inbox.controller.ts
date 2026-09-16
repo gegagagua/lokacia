@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'node:crypto';
 import { Controller, Get, Headers, HttpCode, Inject, Param, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { z } from 'zod';
@@ -14,7 +15,10 @@ import { InboxService } from './inbox.service';
 @Controller('v1/crm/inbox')
 @Crm()
 export class CrmInboxController {
-  constructor(private readonly svc: InboxService) {}
+  constructor(
+    private readonly svc: InboxService,
+    @Inject(ENV) private readonly env: Env,
+  ) {}
 
   @Get()
   list(@Ctx() ctx: CrmCtx, @Query('q') q?: string, @Query('channel') channel?: string) {
@@ -49,6 +53,8 @@ export class CrmInboxController {
   @Post('simulate')
   @ApiZodBody(inboxSimulateSchema)
   simulate(@Ctx() ctx: CrmCtx, @ZBody(inboxSimulateSchema) body: z.infer<typeof inboxSimulateSchema>) {
+    // forging inbound messages (auto-created contacts, notifications) is a dev/demo tool only
+    if (this.env.NODE_ENV === 'production') throw problems.notFound('მარშრუტი');
     return this.svc.inbound(ctx.orgId, body.channel, body);
   }
 }
@@ -70,7 +76,9 @@ export class CrmInboxWebhooksController {
   webhook(@Param('channel') channel: string, @Headers('x-lk-webhook') secret: string | undefined, @ZBody(inboxWebhookSchema) body: z.infer<typeof inboxWebhookSchema>) {
     if (!['whatsapp', 'viber', 'telegram'].includes(channel)) throw problems.notFound('არხი');
     const expected = this.env.NODE_ENV === 'production' ? this.env.PAYMENTS_WEBHOOK_SECRET : 'dev';
-    if (secret !== expected) throw problems.forbidden('webhook secret');
+    const got = Buffer.from(secret ?? '');
+    const want = Buffer.from(expected ?? '');
+    if (!want.length || got.length !== want.length || !timingSafeEqual(got, want)) throw problems.forbidden('webhook secret');
     return this.svc.inbound(body.orgId, channel as 'whatsapp' | 'viber' | 'telegram', body);
   }
 }

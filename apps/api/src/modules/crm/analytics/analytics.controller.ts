@@ -13,6 +13,7 @@ export class AnalyticsController {
   constructor(private readonly analytics: AnalyticsService) {}
 
   @Get('kpi')
+  @Crm('analytics.view')
   kpi(@Ctx() ctx: CrmCtx, @ZQuery(kpiQuerySchema) q: z.infer<typeof kpiQuerySchema>) {
     return this.analytics.kpi(ctx, q);
   }

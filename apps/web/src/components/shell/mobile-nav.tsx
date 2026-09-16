@@ -1,9 +1,10 @@
 'use client';
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import { Menu } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Button, Drawer, IconButton } from '@lokacia/ui';
+import { LanguageLinks } from './language-switcher';
 
 export function MobileNav({ items, loggedIn }: { items: { href: string; label: string }[]; loggedIn: boolean }) {
   const t = useTranslations('common.nav');
@@ -38,6 +39,7 @@ export function MobileNav({ items, loggedIn }: { items: { href: string; label: s
             <Link href="/account/listings/new">{t('publish')}</Link>
           </Button>
         </nav>
+        <LanguageLinks className="mt-6" />
       </Drawer>
     </div>
   );

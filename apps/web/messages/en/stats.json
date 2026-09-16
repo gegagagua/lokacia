@@ -1,68 +1,68 @@
 {
-  "title": "",
-  "back": "",
+  "title": "Listing statistics",
+  "back": "My listings",
   "period": {
-    "label": "",
-    "d7": "",
-    "d30": "",
-    "d90": ""
+    "label": "Period",
+    "d7": "7 days",
+    "d30": "30 days",
+    "d90": "90 days"
   },
   "tiles": {
-    "views": "",
-    "reveals": "",
-    "saves": "",
-    "revealRate": "",
-    "offers": "",
-    "viewings": "",
-    "delta": "",
-    "deltaNew": "",
-    "noData": ""
+    "views": "Views",
+    "reveals": "Calls (phone number reveals)",
+    "saves": "Saves",
+    "revealRate": "Call conversion",
+    "offers": "Offers",
+    "viewings": "Viewings",
+    "delta": "{sign}{pct}% vs previous period",
+    "deltaNew": "0 in previous period",
+    "noData": "—"
   },
   "charts": {
-    "title": "",
-    "views": "",
-    "reveals": "",
-    "saves": "",
-    "tableCaption": "",
-    "day": "",
-    "value": "",
-    "empty": ""
+    "title": "Daily trends",
+    "views": "Views",
+    "reveals": "Calls",
+    "saves": "Saves",
+    "tableCaption": "{metric} by day",
+    "day": "Day",
+    "value": "Count",
+    "empty": "No activity recorded in this period"
   },
   "district": {
-    "title": "",
-    "subtitle": "",
-    "unknownDistrict": "",
-    "you": "",
-    "avg": "",
-    "none": ""
+    "title": "Comparison with district average",
+    "subtitle": "{district}: {count} active listings with the same deal type",
+    "unknownDistrict": "District",
+    "you": "Yours",
+    "avg": "Average",
+    "none": "Not enough listings in the district for a comparison"
   },
   "price": {
-    "title": "",
-    "perM2": "",
-    "avgM2": "",
-    "recommended": "",
-    "none": "",
-    "change": ""
+    "title": "Price recommendation",
+    "perM2": "Your price per m²",
+    "avgM2": "District average per m²",
+    "recommended": "Recommended price",
+    "none": "Price comparison is only available for rental listings when there is enough data for the district.",
+    "change": "Change price"
   },
   "passport": {
-    "title": "",
-    "filled": "",
-    "fill": ""
+    "title": "Technical passport",
+    "filled": "{pct}% complete",
+    "fill": "Fill in passport"
   },
   "advice": {
-    "title": "",
-    "empty": "",
-    "high": "",
-    "medium": "",
-    "low": "",
-    "explain": "",
-    "explaining": "",
-    "explainAi": "",
-    "explainRules": "",
-    "explainError": ""
+    "title": "Why your space may not be renting",
+    "empty": "No recommendations — your listing is in good shape.",
+    "high": "Important",
+    "medium": "Medium",
+    "low": "Tip",
+    "explain": "Explain",
+    "explaining": "Preparing explanation…",
+    "explainAi": "AI explanation",
+    "explainRules": "Rule-based explanation",
+    "explainError": "Couldn't prepare the explanation"
   },
   "listing": {
-    "open": "",
-    "edit": ""
+    "open": "View listing",
+    "edit": "Edit"
   }
 }

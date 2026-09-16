@@ -3,15 +3,17 @@ import * as React from 'react';
 import useSWR from 'swr';
 import { useTranslations } from 'next-intl';
 import { Check } from 'lucide-react';
-import { formatMoney, formatNumber, type PlanDto, type ReportPreview } from '@lokacia/contracts';
+import type { PlanDto, ReportPreview } from '@lokacia/contracts';
 import { Card, cn, Field, Select, Skeleton } from '@lokacia/ui';
 import { fetcher } from '@/lib/api-client';
 import { CheckoutButton } from '@/components/billing/checkout-button';
+import { useFormat } from '@/i18n/use-format';
 
 type Opt = { value: string; label: string };
 
 export function ReportBuilder({ loggedIn, cities, districts, types, products, promoActive }: { loggedIn: boolean; cities: Opt[]; districts: { id: string; city: string; name: string }[]; types: Opt[]; products: PlanDto[]; promoActive: boolean }) {
   const t = useTranslations('billing.reports');
+  const fmt = useFormat();
   const [city, setCity] = React.useState(cities[0]?.value ?? 'tbilisi');
   const inCity = districts.filter((d) => d.city === city);
   const [districtId, setDistrictId] = React.useState(inCity[0]?.id ?? '');
@@ -54,19 +56,19 @@ export function ReportBuilder({ loggedIn, cities, districts, types, products, pr
             <dl className="mt-3 grid grid-cols-2 gap-3">
               <div className="rounded-card border border-border p-3">
                 <dt className="text-small text-muted">{t('activeCount')}</dt>
-                <dd className="compact text-h2 font-semibold tabular">{formatNumber(preview.activeCount)}</dd>
+                <dd className="compact text-h2 font-semibold tabular">{fmt.number(preview.activeCount)}</dd>
               </div>
               <div className="rounded-card border border-border p-3">
                 <dt className="text-small text-muted">{t('avgPrice')}</dt>
-                <dd className="compact text-h2 font-semibold tabular">{preview.avgPriceM2Minor ? formatMoney(preview.avgPriceM2Minor) : '—'}</dd>
+                <dd className="compact text-h2 font-semibold tabular">{preview.avgPriceM2Minor ? fmt.money(preview.avgPriceM2Minor) : '—'}</dd>
               </div>
               <div className="rounded-card border border-border p-3">
                 <dt className="text-small text-muted">{t('competitors')}</dt>
-                <dd className="compact text-h2 font-semibold tabular">{formatNumber(preview.competitorsCount)}</dd>
+                <dd className="compact text-h2 font-semibold tabular">{fmt.number(preview.competitorsCount)}</dd>
               </div>
               <div className="rounded-card border border-border p-3">
                 <dt className="text-small text-muted">{t('sample')}</dt>
-                <dd className="compact text-h2 font-semibold tabular">{formatNumber(preview.sampleSize)}</dd>
+                <dd className="compact text-h2 font-semibold tabular">{fmt.number(preview.sampleSize)}</dd>
               </div>
             </dl>
           )}
@@ -80,10 +82,10 @@ export function ReportBuilder({ loggedIn, cities, districts, types, products, pr
               <div className="compact text-h2 font-semibold tabular">
                 {promoActive ? (
                   <>
-                    <span className="text-body text-muted line-through">{formatMoney(p.priceMinor)}</span> 0 ₾
+                    <span className="text-body text-muted line-through">{fmt.money(p.priceMinor)}</span> 0 ₾
                   </>
                 ) : (
-                  formatMoney(p.priceMinor)
+                  fmt.money(p.priceMinor)
                 )}
               </div>
             </div>

@@ -103,5 +103,29 @@
     "label": "შეტყობინება",
     "send": "შეტყობინების გაგზავნა"
   },
-  "rentAmount": "იჯარა"
+  "rentAmount": "იჯარა",
+  "labels": {
+    "rentStatus": {
+      "open": "გადასახდელი",
+      "paid": "გადახდილი",
+      "overdue": "ვადაგადაცილებული"
+    },
+    "maintenanceStatus": {
+      "open": "ახალი",
+      "in_progress": "მუშავდება",
+      "resolved": "მოგვარებული"
+    },
+    "maintenancePriority": {
+      "low": "დაბალი",
+      "normal": "ჩვეულებრივი",
+      "urgent": "სასწრაფო"
+    },
+    "utilityKind": {
+      "electricity": "ელექტროენერგია",
+      "water": "წყალი",
+      "gas": "გაზი",
+      "cleaning": "დასუფთავება",
+      "internet": "ინტერნეტი"
+    }
+  }
 }

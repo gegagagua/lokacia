@@ -1,8 +1,12 @@
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { getSession } from '@/lib/session';
 import { AccountNav } from '@/components/account/account-nav';
 
-export const metadata: Metadata = { title: { default: 'ჩემი კაბინეტი', template: '%s · ჩემი კაბინეტი · lokacia.ge' }, robots: { index: false, follow: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('meta.titles');
+  return { title: { default: t('account'), template: t('accountTemplate', { page: '%s' }) }, robots: { index: false, follow: false } };
+}
 
 export default async function AccountLayout({ children }: { children: React.ReactNode }) {
   const user = await getSession();

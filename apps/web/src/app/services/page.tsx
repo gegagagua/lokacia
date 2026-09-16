@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import { getTranslations } from 'next-intl/server';
 import { Hammer, Package, PenTool, Scale, Search, Signpost, Sparkles } from 'lucide-react';
 import { Button, EmptyState, Input, Select } from '@lokacia/ui';
@@ -8,6 +8,7 @@ import { Breadcrumbs, pageMetadata } from '@/components/portal/seo';
 import { ProviderCard } from '@/components/portal/services/provider-card';
 import { ProvidersLoadMore } from '@/components/portal/services/providers-load-more';
 import { CITY_NAMES_KA } from '@/lib/site';
+import { getFormat } from '@/i18n/server';
 
 type SP = Promise<Record<string, string | string[] | undefined>>;
 const CAT_ICONS: Record<string, typeof Hammer> = { fitout: Hammer, design: PenTool, signage: Signpost, equipment: Package, legal: Scale, cleaning: Sparkles };
@@ -23,6 +24,9 @@ export async function generateMetadata({ searchParams }: { searchParams: SP }): 
 export default async function ServicesPage({ searchParams }: { searchParams: SP }) {
   const sp = await searchParams;
   const t = await getTranslations('services.hub');
+  const tc = await getTranslations('services.categories');
+  const f = await getFormat();
+  const catName = (c: { slug: string; nameKa: string }) => (tc.has(c.slug) ? tc(c.slug) : c.nameKa);
   const val = (k: string) => (typeof sp[k] === 'string' ? (sp[k] as string).trim() : '');
   const qs = new URLSearchParams();
   for (const k of ['category', 'city', 'q']) if (val(k)) qs.set(k, val(k));
@@ -65,7 +69,7 @@ export default async function ServicesPage({ searchParams }: { searchParams: SP 
                       className={`flex h-full flex-col gap-2 rounded-card border p-4 transition-colors duration-150 ${on ? 'border-primary bg-primary/10' : 'border-border bg-surface hover:border-border-strong'}`}
                     >
                       <Icon className="size-5 text-primary" strokeWidth={1.5} aria-hidden />
-                      <span className="font-medium leading-snug">{c.nameKa}</span>
+                      <span className="font-medium leading-snug">{catName(c)}</span>
                       <span className="text-small text-muted tabular">{t('count', { count: c.count })}</span>
                     </Link>
                   </li>
@@ -85,7 +89,7 @@ export default async function ServicesPage({ searchParams }: { searchParams: SP 
           </label>
           <label className="flex w-48 flex-col gap-1.5 text-small font-medium">
             {t('city')}
-            <Select name="city" defaultValue={val('city')} placeholder={t('anyCity')} options={Object.entries(CITY_NAMES_KA).map(([value, label]) => ({ value, label }))} />
+            <Select name="city" defaultValue={val('city')} placeholder={t('anyCity')} options={Object.keys(CITY_NAMES_KA).map((value) => ({ value, label: f.city(value) }))} />
           </label>
           <Button type="submit" icon={<Search className="size-4" strokeWidth={1.5} aria-hidden />}>
             {t('apply')}

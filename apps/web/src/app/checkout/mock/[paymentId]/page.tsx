@@ -2,21 +2,28 @@ import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { Lock } from 'lucide-react';
-import { formatMoney, INVOICE_PURPOSE_LABELS_KA, type PaymentSummary } from '@lokacia/contracts';
+import type { PaymentSummary } from '@lokacia/contracts';
+import { getAppLocale, getFormat } from '@/i18n/server';
+import { localizePath } from '@/i18n/locale';
 import { Badge, Card, Logo } from '@lokacia/ui';
 import { api, ApiError } from '@/lib/api-server';
 import { MockPayActions } from './mock-pay-actions';
 
-export const metadata: Metadata = { title: 'სატესტო გადახდა', robots: { index: false, follow: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('meta.titles');
+  return { title: t('testPayment'), robots: { index: false, follow: false } };
+}
 
 export default async function MockCheckoutPage({ params }: { params: Promise<{ paymentId: string }> }) {
   const { paymentId } = await params;
   const t = await getTranslations('billing.mock');
+  const tp = await getTranslations('billing.purposes');
+  const fmt = await getFormat();
   let payment: PaymentSummary;
   try {
     payment = await api<PaymentSummary>(`/v1/billing/payments/${paymentId}`);
   } catch (e) {
-    if (e instanceof ApiError && e.status === 401) redirect(`/login?next=/checkout/mock/${paymentId}`);
+    if (e instanceof ApiError && e.status === 401) redirect(localizePath(`/login?next=/checkout/mock/${paymentId}`, await getAppLocale()));
     if (e instanceof ApiError && (e.status === 404 || e.status === 403)) notFound();
     throw e;
   }
@@ -42,7 +49,7 @@ export default async function MockCheckoutPage({ params }: { params: Promise<{ p
             </div>
             <div className="flex justify-between border-b border-border py-2">
               <dt className="text-muted">{t('purpose')}</dt>
-              <dd>{INVOICE_PURPOSE_LABELS_KA[payment.invoice.purpose] ?? payment.description}</dd>
+              <dd>{tp.has(payment.invoice.purpose) ? tp(payment.invoice.purpose) : payment.description}</dd>
             </div>
           </dl>
           <ul className="mt-2 flex flex-col text-small">
@@ -52,13 +59,13 @@ export default async function MockCheckoutPage({ params }: { params: Promise<{ p
                   {l.name}
                   {l.qty > 1 ? ` × ${l.qty}` : ''}
                 </span>
-                <span className="whitespace-nowrap tabular">{formatMoney(l.amountMinor)}</span>
+                <span className="whitespace-nowrap tabular">{fmt.money(l.amountMinor)}</span>
               </li>
             ))}
           </ul>
           <div className="mt-3 flex items-baseline justify-between border-t border-border-strong pt-3">
             <span className="font-medium">{t('total')}</span>
-            <span className="compact text-h2 font-semibold tabular">{formatMoney(payment.amountMinor)}</span>
+            <span className="compact text-h2 font-semibold tabular">{fmt.money(payment.amountMinor)}</span>
           </div>
 
           <fieldset disabled className="mt-5 grid grid-cols-2 gap-3 opacity-70" aria-describedby="demo-card-hint">
@@ -85,7 +92,7 @@ export default async function MockCheckoutPage({ params }: { params: Promise<{ p
               {t('alreadyPaid')}
             </p>
           ) : (
-            <MockPayActions paymentId={payment.id} amount={formatMoney(payment.amountMinor)} />
+            <MockPayActions paymentId={payment.id} amount={fmt.money(payment.amountMinor)} />
           )}
         </Card>
       </div>

@@ -1,10 +1,11 @@
 'use client';
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import useSWR from 'swr';
 import { useTranslations } from 'next-intl';
 import { Check, FileText } from 'lucide-react';
-import { ESCROW_STATUS_LABELS_KA, formatDateKa, formatDateTimeKa, formatMoney, type CheckoutResponse, type EscrowDto } from '@lokacia/contracts';
+import type { CheckoutResponse, EscrowDto } from '@lokacia/contracts';
+import { useFormat } from '@/i18n/use-format';
 import { Badge, Button, Card, cn, Dialog, Field, Textarea, useToast, type BadgeTone } from '@lokacia/ui';
 import { apiFetch, ClientApiError, fetcher } from '@/lib/api-client';
 import { followCheckout } from '@/components/billing/checkout';
@@ -28,6 +29,9 @@ export function EscrowList() {
 
 function EscrowCard({ escrow: e, onChange }: { escrow: EscrowDto; onChange: () => void }) {
   const t = useTranslations('billing.escrow');
+  const f = useFormat();
+  const tl = useTranslations('account.billingLabels.escrowStatus');
+  const statusLabel = (s: string) => (tl.has(s) ? tl(s) : s);
   const toast = useToast();
   const [busy, setBusy] = React.useState<string | null>(null);
   const [dispute, setDispute] = React.useState(false);
@@ -62,12 +66,12 @@ function EscrowCard({ escrow: e, onChange }: { escrow: EscrowDto; onChange: () =
             {e.listing.title}
           </Link>
           <div className="text-small text-muted">
-            {e.myRole === 'tenant' ? t('youTenant', { owner: e.owner.name ?? '—' }) : e.myRole === 'owner' ? t('youOwner', { tenant: e.tenant.name ?? '—' }) : t('admin')} · {formatDateKa(e.createdAt)}
+            {e.myRole === 'tenant' ? t('youTenant', { owner: e.owner.name ?? '—' }) : e.myRole === 'owner' ? t('youOwner', { tenant: e.tenant.name ?? '—' }) : t('admin')} · {f.date(e.createdAt)}
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className="compact text-h3 font-semibold tabular">{formatMoney(e.amountMinor)}</span>
-          <Badge tone={TONE[e.status] ?? 'neutral'}>{ESCROW_STATUS_LABELS_KA[e.status]}</Badge>
+          <span className="compact text-h3 font-semibold tabular">{f.money(e.amountMinor)}</span>
+          <Badge tone={TONE[e.status] ?? 'neutral'}>{statusLabel(e.status)}</Badge>
         </div>
       </div>
 
@@ -86,11 +90,11 @@ function EscrowCard({ escrow: e, onChange }: { escrow: EscrowDto; onChange: () =
       <dl className="mt-3 grid gap-x-6 text-small sm:grid-cols-2">
         <div className="flex justify-between border-b border-border py-1.5">
           <dt className="text-muted">{t('tenantSigned')}</dt>
-          <dd className="tabular">{e.tenantSignedAt ? formatDateTimeKa(e.tenantSignedAt) : t('notYet')}</dd>
+          <dd className="tabular">{e.tenantSignedAt ? f.dateTime(e.tenantSignedAt) : t('notYet')}</dd>
         </div>
         <div className="flex justify-between border-b border-border py-1.5">
           <dt className="text-muted">{t('ownerSigned')}</dt>
-          <dd className="tabular">{e.ownerSignedAt ? formatDateTimeKa(e.ownerSignedAt) : t('notYet')}</dd>
+          <dd className="tabular">{e.ownerSignedAt ? f.dateTime(e.ownerSignedAt) : t('notYet')}</dd>
         </div>
       </dl>
       {e.disputeReason && <p className="mt-2 text-small text-danger">{t('disputeReason', { reason: e.disputeReason })}</p>}
@@ -100,7 +104,7 @@ function EscrowCard({ escrow: e, onChange }: { escrow: EscrowDto; onChange: () =
           <ul className="mt-1 flex flex-col gap-1">
             {e.history.map((h, i) => (
               <li key={i} className="tabular">
-                {formatDateTimeKa(h.at)} — {ESCROW_STATUS_LABELS_KA[h.from as keyof typeof ESCROW_STATUS_LABELS_KA] ?? h.from} → {ESCROW_STATUS_LABELS_KA[h.to as keyof typeof ESCROW_STATUS_LABELS_KA] ?? h.to}
+                {f.dateTime(h.at)} — {statusLabel(h.from)} → {statusLabel(h.to)}
               </li>
             ))}
           </ul>

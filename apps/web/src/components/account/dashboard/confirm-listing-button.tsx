@@ -1,11 +1,13 @@
 'use client';
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Check } from 'lucide-react';
 import { Button, useToast } from '@lokacia/ui';
 import { apiFetch, ClientApiError } from '@/lib/api-client';
 
 export function ConfirmListingButton({ listingId, label, doneLabel }: { listingId: string; label: string; doneLabel: string }) {
+  const t = useTranslations('account.dashboard');
   const [state, setState] = React.useState<'idle' | 'busy' | 'done'>('idle');
   const toast = useToast();
   const router = useRouter();
@@ -28,7 +30,7 @@ export function ConfirmListingButton({ listingId, label, doneLabel }: { listingI
           router.refresh();
         } catch (e) {
           setState('idle');
-          toast({ title: e instanceof ClientApiError ? e.message : 'შეცდომა', tone: 'danger' });
+          toast({ title: e instanceof ClientApiError ? e.message : t('error'), tone: 'danger' });
         }
       }}
     >

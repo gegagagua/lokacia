@@ -1,10 +1,11 @@
 'use client';
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import useSWR from 'swr';
 import { useTranslations } from 'next-intl';
 import { CalendarPlus, CheckCircle2, MapPin, Video } from 'lucide-react';
-import { formatMoney, type ViewingDto } from '@lokacia/contracts';
+import type { ViewingDto } from '@lokacia/contracts';
+import { useFormat } from '@/i18n/use-format';
 import { Button, Calendar, Field, Input, Skeleton, Textarea, useToast, cn } from '@lokacia/ui';
 import { apiFetch, ClientApiError, fetcher } from '@/lib/api-client';
 import { TenantProfileSummary, type BusinessTypeOption, type TenantProfileValue } from '../offers/tenant-profile';
@@ -14,6 +15,7 @@ type Slot = { id: string; kind: 'viewing' | 'short_term'; startsAt: string; ends
 
 export function BookingForm({ listing, profile, userName, businessTypes }: { listing: { id: string; slug: string; dealType: string; priceHourMinor: number | null; priceDayMinor: number | null }; profile: TenantProfileValue | null; userName: string | null; businessTypes: BusinessTypeOption[] }) {
   const t = useTranslations('viewings.book');
+  const f = useFormat();
   const toast = useToast();
   const kind = listing.dealType === 'short_term' ? 'short_term' : 'viewing';
   const { data: slots, isLoading, mutate } = useSWR<Slot[]>(`/listings/${listing.id}/slots?kind=${kind}`, fetcher);
@@ -65,8 +67,8 @@ export function BookingForm({ listing, profile, userName, businessTypes }: { lis
           <CheckCircle2 className="size-6 text-success" strokeWidth={1.5} aria-hidden />
           <h2 className="text-h3 font-semibold">{done.status === 'requested' ? t('doneRequested') : done.kind === 'short_term' ? t('doneShortTerm') : t('done')}</h2>
         </div>
-        <p className="text-[17px] tabular">{tbDateTimeKa(done.startsAt)}–{tbTime(done.endsAt)}</p>
-        {done.priceMinor != null && <p>{t('price')}: <span className="font-semibold tabular">{formatMoney(done.priceMinor)}</span></p>}
+        <p className="text-[17px] tabular">{tbDateTimeKa(done.startsAt, f.locale)}–{tbTime(done.endsAt)}</p>
+        {done.priceMinor != null && <p>{t('price')}: <span className="font-semibold tabular">{f.money(done.priceMinor)}</span></p>}
         {done.status === 'requested' && <p className="text-muted">{t('requestedHint')}</p>}
         {done.videoUrl && (
           <p>
@@ -123,7 +125,7 @@ export function BookingForm({ listing, profile, userName, businessTypes }: { lis
         <h2 id="slots-h" className="mb-3 text-h3 font-semibold">{kind === 'short_term' ? t('pickPeriod') : t('pickTime')}</h2>
         {kind === 'short_term' && (listing.priceHourMinor || listing.priceDayMinor) && (
           <p className="mb-3 text-small text-muted tabular">
-            {[listing.priceHourMinor ? `${formatMoney(listing.priceHourMinor)} / ${t('hour')}` : null, listing.priceDayMinor ? `${formatMoney(listing.priceDayMinor)} / ${t('day')}` : null].filter(Boolean).join(' · ')}
+            {[listing.priceHourMinor ? `${f.money(listing.priceHourMinor)} / ${t('hour')}` : null, listing.priceDayMinor ? `${f.money(listing.priceDayMinor)} / ${t('day')}` : null].filter(Boolean).join(' · ')}
           </p>
         )}
         {isLoading ? (
@@ -147,7 +149,7 @@ export function BookingForm({ listing, profile, userName, businessTypes }: { lis
               minDate={new Date()}
             />
             <div className="min-w-0">
-              <div className="mb-2 font-medium">{dayKey ? dayHeadingKa(dayKey) : ''}</div>
+              <div className="mb-2 font-medium">{dayKey ? dayHeadingKa(dayKey, f.locale) : ''}</div>
               {daySlots.length === 0 ? (
                 <p className="text-small text-muted">{t('dayEmpty')}</p>
               ) : (
@@ -162,7 +164,7 @@ export function BookingForm({ listing, profile, userName, businessTypes }: { lis
                         className={cn('h-10 rounded-button border px-3 text-[15px] tabular transition-colors', slotId === s.id ? 'border-primary bg-primary text-primary-contrast' : 'border-border-strong bg-surface hover:bg-surface-2')}
                       >
                         {tbTime(s.startsAt)}–{tbTime(s.endsAt)}
-                        {s.priceMinor != null && <span className={slotId === s.id ? '' : 'text-muted'}> · {formatMoney(s.priceMinor)}</span>}
+                        {s.priceMinor != null && <span className={slotId === s.id ? '' : 'text-muted'}> · {f.money(s.priceMinor)}</span>}
                       </button>
                     </li>
                   ))}
@@ -170,8 +172,8 @@ export function BookingForm({ listing, profile, userName, businessTypes }: { lis
               )}
               {selected && (
                 <p className="mt-4 rounded-card border border-border bg-surface-2 p-3 text-[15px]" aria-live="polite">
-                  {t('summary', { when: `${tbDateTimeKa(selected.startsAt)}–${tbTime(selected.endsAt)}` })}
-                  {selected.priceMinor != null && <span className="font-semibold tabular"> · {formatMoney(selected.priceMinor)}</span>}
+                  {t('summary', { when: `${tbDateTimeKa(selected.startsAt, f.locale)}–${tbTime(selected.endsAt)}` })}
+                  {selected.priceMinor != null && <span className="font-semibold tabular"> · {f.money(selected.priceMinor)}</span>}
                 </p>
               )}
             </div>

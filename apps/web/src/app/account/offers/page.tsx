@@ -4,7 +4,10 @@ import { requireSession } from '@/components/account/require-session';
 import { AccountPageHeader } from '@/components/account/page-header';
 import { OffersInbox } from '@/components/account/offers/offers-inbox';
 
-export const metadata: Metadata = { title: 'შეთავაზებები', robots: { index: false, follow: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('meta.titles');
+  return { title: t('offers'), robots: { index: false, follow: false } };
+}
 
 export default async function OffersPage() {
   await requireSession('/account/offers');

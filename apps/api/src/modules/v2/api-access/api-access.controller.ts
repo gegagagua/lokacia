@@ -4,7 +4,7 @@ import type { Response } from 'express';
 import { z } from 'zod';
 import { eq, sql, apiKeys } from '@lokacia/db';
 import { apiKeyCreateSchema } from '@lokacia/contracts';
-import { CurrentUser, Public, SkipAudit } from '../../../common/decorators';
+import { CurrentUser, NoImpersonation, Public, SkipAudit } from '../../../common/decorators';
 import { DbService } from '../../../common/db.service';
 import { problems } from '../../../common/problem';
 import type { AppRequest, AuthUser } from '../../../common/request';
@@ -33,12 +33,14 @@ export class ApiKeysController {
   }
 
   @Post()
+  @NoImpersonation()
   @ApiZodBody(apiKeyCreateSchema)
   create(@CurrentUser() user: AuthUser, @ZBody(apiKeyCreateSchema) body: z.infer<typeof apiKeyCreateSchema>) {
     return this.keys.create(user, body);
   }
 
   @Delete(':id')
+  @NoImpersonation()
   revoke(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     return this.keys.revoke(user, uuid.parse(id));
   }

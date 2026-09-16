@@ -1,10 +1,12 @@
 import { getTranslations } from 'next-intl/server';
 import { AlertTriangle, Package } from 'lucide-react';
-import { formatDateKa, formatMoney, type ListingDetail } from '@lokacia/contracts';
+import type { ListingDetail } from '@lokacia/contracts';
+import { getFormat } from '@/i18n/server';
 
 /** P11: transfer equipment with separate space vs equipment prices. */
 export async function EquipmentTable({ listing: l }: { listing: ListingDetail }) {
   const t = await getTranslations('listing.equipment');
+  const { money: formatMoney } = await getFormat();
   const sum = l.equipment.reduce((s, e) => s + e.priceMinor * e.qty, 0);
   const equipmentMinor = l.equipmentPriceMinor ?? sum;
   return (
@@ -67,6 +69,7 @@ function monthsBetween(a: string, b: string | null) {
 /** P10: space history timeline with the frequent-closures warning. */
 export async function HistoryTimeline({ listing: l, typeNames }: { listing: ListingDetail; typeNames: Record<string, string> }) {
   const t = await getTranslations('listing.history');
+  const { date: formatDate } = await getFormat();
   return (
     <section aria-labelledby="history-title" className="flex flex-col gap-3">
       <div>
@@ -96,7 +99,7 @@ export async function HistoryTimeline({ listing: l, typeNames }: { listing: List
               <div className="text-small text-muted">
                 {h.businessType ? `${typeNames[h.businessType] ?? h.businessType} · ` : ''}
                 <span className="tabular">
-                  {formatDateKa(h.startedAt)} — {h.endedAt ? formatDateKa(h.endedAt) : t('present')}
+                  {formatDate(h.startedAt)} — {h.endedAt ? formatDate(h.endedAt) : t('present')}
                 </span>
               </div>
               {h.note && <p className="mt-1 text-small">{h.note}</p>}

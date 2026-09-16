@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import { useTranslations } from 'next-intl';
 import { Button } from '@lokacia/ui';
 import { apiFetch } from '@/lib/api-client';

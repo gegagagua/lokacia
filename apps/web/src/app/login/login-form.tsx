@@ -5,20 +5,22 @@ import useSWR from 'swr';
 import { normalizePhone } from '@lokacia/contracts';
 import { Button, Card, Field, Input } from '@lokacia/ui';
 import { apiFetch, ClientApiError, fetcher } from '@/lib/api-client';
+import { useLocalizedPath } from '@/i18n/link';
 
 const DEMO = [
-  ['+995500000003', 'მესაკუთრე'],
-  ['+995500000006', 'მოიჯარე (ბიზნესი)'],
-  ['+995500000004', 'აგენტურის მენეჯერი'],
-  ['+995500000005', 'ბროკერი'],
-  ['+995500000007', 'დეველოპერი'],
-  ['+995500000008', 'მომსახურების მიმწოდებელი'],
-  ['+995500000002', 'მოდერატორი'],
-  ['+995500000001', 'ადმინი'],
+  ['+995500000003', 'owner'],
+  ['+995500000006', 'tenant'],
+  ['+995500000004', 'agencyManager'],
+  ['+995500000005', 'broker'],
+  ['+995500000007', 'developer'],
+  ['+995500000008', 'provider'],
+  ['+995500000002', 'moderator'],
+  ['+995500000001', 'admin'],
 ] as const;
 
 export function LoginForm({ next }: { next: string }) {
   const t = useTranslations('auth');
+  const lp = useLocalizedPath();
   const { data: providers } = useSWR<{ google: boolean; otpDevCode: string | null }>('/auth/providers', fetcher);
   const [step, setStep] = React.useState<'phone' | 'code'>('phone');
   const [phone, setPhone] = React.useState('');
@@ -31,7 +33,7 @@ export function LoginForm({ next }: { next: string }) {
   const request = async (e?: React.FormEvent, overridePhone?: string) => {
     e?.preventDefault();
     const normalized = normalizePhone(overridePhone ?? phone);
-    if (!normalized) return setError('ტელეფონის ნომერი არასწორია');
+    if (!normalized) return setError(t('invalidPhone'));
     setBusy(true);
     setError(null);
     try {
@@ -40,7 +42,7 @@ export function LoginForm({ next }: { next: string }) {
       setStep('code');
       setTimeout(() => codeRef.current?.focus(), 50);
     } catch (err) {
-      setError(err instanceof ClientApiError ? err.message : 'შეცდომა');
+      setError(err instanceof ClientApiError ? err.message : t('error'));
     } finally {
       setBusy(false);
     }
@@ -52,9 +54,9 @@ export function LoginForm({ next }: { next: string }) {
     setError(null);
     try {
       await apiFetch('/auth/otp/verify', { method: 'POST', body: { phone, code, name: name || undefined } });
-      window.location.href = next;
+      window.location.href = lp(next);
     } catch (err) {
-      setError(err instanceof ClientApiError ? err.message : 'შეცდომა');
+      setError(err instanceof ClientApiError ? err.message : t('error'));
       setBusy(false);
     }
   };
@@ -117,7 +119,7 @@ export function LoginForm({ next }: { next: string }) {
                     void request(undefined, p).then(() => setCode(providers.otpDevCode ?? ''));
                   }}
                 >
-                  <span>{label}</span>
+                  <span>{t(`demoRoles.${label}`)}</span>
                   <span className="tabular text-muted">{p}</span>
                 </button>
               </li>

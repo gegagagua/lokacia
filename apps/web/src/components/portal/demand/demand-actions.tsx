@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import useSWR from 'swr';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';

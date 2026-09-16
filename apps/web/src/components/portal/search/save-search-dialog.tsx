@@ -1,12 +1,15 @@
 'use client';
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/i18n/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { BellPlus } from 'lucide-react';
-import { ALERT_CHANNELS, ALERT_CHANNEL_LABELS_KA, describeFilters, type AlertChannel, type SearchFilters } from '@lokacia/contracts';
+import { ALERT_CHANNELS, type AlertChannel, type SearchFilters } from '@lokacia/contracts';
 import { Button, Checkbox, Dialog, Field, Input, useToast } from '@lokacia/ui';
 import { apiFetch, ClientApiError } from '@/lib/api-client';
+import { useLocalizedPath } from '@/i18n/link';
+import { useFormat } from '@/i18n/use-format';
+import { describeFiltersFor } from './chips';
 
 /** "ძებნის შენახვა" (P7): name + channels → POST /saved-searches. Guests are sent to login. */
 export function SaveSearchButton({
@@ -27,7 +30,12 @@ export function SaveSearchButton({
   className?: string;
 }) {
   const t = useTranslations('search.save');
+  const ts = useTranslations('search');
+  const fmt = useFormat();
+  const lp = useLocalizedPath();
   const router = useRouter();
+  const describe = (f: Partial<SearchFilters>, names?: { typeNames: Record<string, string>; districtNames: Record<string, string> }) =>
+    describeFiltersFor(f, { ...names, t: (k, v) => ts(k as never, v as never), fmt });
   const toast = useToast();
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState('');
@@ -37,10 +45,10 @@ export function SaveSearchButton({
 
   const onOpen = () => {
     if (!loggedIn) {
-      router.push(`/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+      router.push(lp(`/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`));
       return;
     }
-    setName(describeFilters(filters, { businessType: (s) => typeNames[s], district: (s) => districtNames[s] }).slice(0, 120));
+    setName(describe(filters, { typeNames, districtNames }).slice(0, 120));
     setError(null);
     setOpen(true);
   };
@@ -54,11 +62,11 @@ export function SaveSearchButton({
     setBusy(true);
     try {
       const { bbox: _bbox, sort: _sort, ...query } = filters;
-      await apiFetch('/saved-searches', { method: 'POST', body: { name: name.trim() || describeFilters(query), query, channels } });
+      await apiFetch('/saved-searches', { method: 'POST', body: { name: name.trim() || describe(query), query, channels } });
       setOpen(false);
       toast({ title: t('saved'), description: t('savedHint'), tone: 'success' });
     } catch (err) {
-      if (err instanceof ClientApiError && err.status === 401) router.push(`/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+      if (err instanceof ClientApiError && err.status === 401) router.push(lp(`/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`));
       else setError(err instanceof ClientApiError ? (err.problem?.detail ?? err.problem?.title ?? t('failed')) : t('failed'));
     } finally {
       setBusy(false);
@@ -95,7 +103,7 @@ export function SaveSearchButton({
             {ALERT_CHANNELS.map((c) => (
               <Checkbox
                 key={c}
-                label={ALERT_CHANNEL_LABELS_KA[c]}
+                label={ts(`channel.${c}`)}
                 checked={channels.includes(c)}
                 onCheckedChange={(v) => setChannels((s) => (v ? [...s, c] : s.filter((x) => x !== c)))}
               />

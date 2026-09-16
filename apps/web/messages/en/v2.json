@@ -1,78 +1,83 @@
 {
-  "title": "",
+  "title": "Location analytics",
   "traffic": {
-    "title": "",
-    "subtitle": "",
-    "weekday": "",
+    "title": "Foot traffic",
+    "subtitle": "People per hour near the space, by day of the week.",
+    "weekday": "Day of the week",
     "days": {
-      "0": "",
-      "1": "",
-      "2": "",
-      "3": "",
-      "4": "",
-      "5": "",
-      "6": ""
+      "0": "Sun",
+      "1": "Mon",
+      "2": "Tue",
+      "3": "Wed",
+      "4": "Thu",
+      "5": "Fri",
+      "6": "Sat"
     },
-    "dayTotal": "",
-    "peak": "",
-    "perHour": "",
-    "sourceSamples": "",
-    "sourceProvider": "",
-    "chartLabel": "",
-    "people": "",
-    "hour": ""
+    "dayTotal": "Per day",
+    "peak": "Peak",
+    "perHour": "Per hour",
+    "sourceSamples": "Measurement data",
+    "sourceProvider": "Partner model",
+    "chartLabel": "Foot traffic by hour — {day}",
+    "people": "People",
+    "hour": "Hour"
   },
   "score": {
-    "title": "",
-    "strong": "",
-    "medium": "",
-    "weak": "",
-    "weight": ""
+    "title": "Location score",
+    "strong": "Strong",
+    "medium": "Medium",
+    "weak": "Weak",
+    "weight": "Weight {pct}%"
   },
   "tour": {
-    "title": "",
-    "viewerLabel": "",
-    "loading": "",
-    "failed": "",
-    "usdz": "",
-    "hidden": "",
-    "download": "",
-    "hide3d": "",
-    "show3d": "",
-    "hint": "",
-    "plan": "",
-    "planHint": ""
+    "title": "3D tour and floor plan",
+    "viewerLabel": "3D model of the space — rotate with your mouse or finger",
+    "loading": "Loading 3D model…",
+    "failed": "Couldn't display the 3D model on this device.",
+    "usdz": "This format opens on iOS devices.",
+    "hidden": "The 3D model is hidden.",
+    "download": "Download {format} file",
+    "hide3d": "Hide model",
+    "show3d": "Show model",
+    "hint": "Rotate and zoom the model.",
+    "plan": "Floor plan from scan",
+    "planHint": "The floor plan was generated automatically from the scan."
   },
   "finance": {
-    "title": "",
-    "subtitle": "",
-    "apply": ""
+    "title": "Financing for this space",
+    "subtitle": "Fit-out loans, leasing and insurance from partners.",
+    "apply": "Apply",
+    "kinds": {
+      "fitout_loan": "Fit-out loan",
+      "leasing": "Leasing",
+      "insurance": "Insurance"
+    }
   },
   "scanUpload": {
-    "label": "",
-    "hint": "",
-    "badFormat": "",
-    "done": "",
-    "error": "",
-    "uploading": ""
+    "label": "Upload 3D scan",
+    "hint": "Upload a LiDAR scan or 3D model — the floor plan will be created automatically.",
+    "badFormat": "File format not supported",
+    "done": "Scan uploaded, floor plan is being processed",
+    "error": "Couldn't upload the scan",
+    "uploading": "Uploading… {pct}%"
   },
   "feedback": {
-    "button": "",
-    "title": "",
-    "description": "",
-    "rating": "",
-    "message": "",
-    "send": "",
-    "thanks": "",
-    "error": ""
+    "button": "Feedback",
+    "title": "Feedback",
+    "description": "What do you like, and what could be improved? We read every message.",
+    "rating": "Rating",
+    "message": "Message",
+    "send": "Send feedback",
+    "thanks": "Thank you! Your message has been received.",
+    "error": "Couldn't send. Please try again."
   },
   "impersonation": {
-    "text": "",
-    "stop": ""
+    "text": "You are in {name}'s account (admin mode)",
+    "stop": "Exit admin mode"
   },
   "escrow": {
-    "start": "",
-    "created": "",
-    "error": ""
+    "start": "Contract and deposit",
+    "created": "Contract created — please sign it",
+    "error": "Couldn't create the deposit"
   }
 }

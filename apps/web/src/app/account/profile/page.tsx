@@ -7,7 +7,10 @@ import { requireSession } from '@/components/account/require-session';
 import { AccountPageHeader } from '@/components/account/page-header';
 import { ProfileTabs, type ProfileSettings } from '@/components/account/profile/profile-tabs';
 
-export const metadata: Metadata = { title: 'პროფილი' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('meta.titles');
+  return { title: t('profile') };
+}
 
 export default async function ProfilePage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const user = await requireSession('/account/profile');

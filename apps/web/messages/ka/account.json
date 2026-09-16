@@ -58,7 +58,8 @@
     "tenantProfileMissing": "შეავსეთ მოიჯარის პროფილი — მესაკუთრეები უფრო სწრაფად პასუხობენ, როცა იციან, ვის აქირავებენ.",
     "tenantProfileAction": "პროფილის შევსება",
     "statsAction": "სტატისტიკა",
-    "myListings": "ჩემი განცხადებები"
+    "myListings": "ჩემი განცხადებები",
+    "error": "შეცდომა"
   },
   "profile": {
     "title": "პროფილი",
@@ -194,5 +195,49 @@
     "removed": "წევრი წაიშალა",
     "managerOnly": "გუნდის მართვა ხელმისაწვდომია მხოლოდ მენეჯერისთვის.",
     "error": "ქმედება ვერ შესრულდა"
+  },
+  "billingLabels": {
+    "invoicePurpose": {
+      "subscription": "გამოწერა",
+      "vip": "VIP განცხადება",
+      "report": "ლოკაციის რეპორტი",
+      "transfer_listing": "ბიზნესის გადაცემის განცხადება",
+      "service_commission": "მომსახურების კომისია",
+      "rent": "იჯარის გადახდა",
+      "api": "ანალიტიკის API",
+      "escrow": "დეპოზიტი (ესქროუ)"
+    },
+    "invoiceStatus": {
+      "open": "გადასახდელი",
+      "paid": "გადახდილი",
+      "void": "გაუქმებული",
+      "failed": "ვერ შესრულდა"
+    },
+    "subscriptionStatus": {
+      "pending": "მოლოდინში",
+      "active": "აქტიური",
+      "past_due": "ვადაგადაცილებული",
+      "grace": "საშეღავათო პერიოდი",
+      "cancelled": "გაუქმებული",
+      "expired": "ვადაგასული"
+    },
+    "financeKind": {
+      "fitout_loan": "მოწყობის სესხი",
+      "leasing": "ლიზინგი",
+      "insurance": "დაზღვევა"
+    },
+    "financeStatus": {
+      "submitted": "გაგზავნის მოლოდინში",
+      "sent": "პარტნიორთან განხილვაში",
+      "approved": "დამტკიცებული",
+      "rejected": "უარყოფილი"
+    },
+    "escrowStatus": {
+      "pending": "ხელმოწერა და ჩარიცხვა",
+      "funded": "დეპოზიტი ჩარიცხულია",
+      "released": "გადაცემულია მესაკუთრეს",
+      "refunded": "დაბრუნდა მოიჯარეს",
+      "disputed": "დავა"
+    }
   }
 }

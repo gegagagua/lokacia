@@ -2,15 +2,19 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { DEAL_TYPES, DEAL_TYPE_LABELS_KA, type DemandDto } from '@lokacia/contracts';
+import { DEAL_TYPES, type DemandDto } from '@lokacia/contracts';
 import { Button, Checkbox, Field, Input, Select, Textarea } from '@lokacia/ui';
 import { apiFetch, ClientApiError } from '@/lib/api-client';
+import { useLocalizedPath } from '@/i18n/link';
+import { useFormat } from '@/i18n/use-format';
 
 type Group = { city: string; name: string; districts: { id: string; name: string }[] };
 
 export function DemandForm({ types, groups, defaultPhone }: { types: { value: string; label: string }[]; groups: Group[]; defaultPhone: string }) {
   const t = useTranslations('demand.form');
   const router = useRouter();
+  const lp = useLocalizedPath();
+  const f = useFormat();
   const [v, setV] = React.useState({ businessType: '', dealType: 'rent', title: '', description: '', areaMin: '', areaMax: '', budget: '', contactPhone: defaultPhone, expiresInDays: '30' });
   const [districtIds, setDistrictIds] = React.useState<string[]>([]);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
@@ -40,7 +44,7 @@ export function DemandForm({ types, groups, defaultPhone }: { types: { value: st
           expiresInDays: Number(v.expiresInDays),
         },
       });
-      router.push(`/demand/${res.id}`);
+      router.push(lp(`/demand/${res.id}`));
     } catch (err) {
       const p = err instanceof ClientApiError ? err.problem : null;
       if (p?.errors?.length) setErrors(Object.fromEntries(p.errors.map((x) => [x.path.split('.')[0]!, x.message])));
@@ -56,7 +60,7 @@ export function DemandForm({ types, groups, defaultPhone }: { types: { value: st
           <Select value={v.businessType} onChange={set('businessType')} placeholder={t('choose')} options={types} required />
         </Field>
         <Field label={t('dealType')} error={errors.dealType}>
-          <Select value={v.dealType} onChange={set('dealType')} options={DEAL_TYPES.map((d) => ({ value: d, label: DEAL_TYPE_LABELS_KA[d] }))} />
+          <Select value={v.dealType} onChange={set('dealType')} options={DEAL_TYPES.map((d) => ({ value: d, label: f.dealType(d) }))} />
         </Field>
       </div>
       <Field label={t('titleLabel')} required error={errors.title}>
@@ -67,10 +71,10 @@ export function DemandForm({ types, groups, defaultPhone }: { types: { value: st
       </Field>
       <div className="grid gap-4 sm:grid-cols-3">
         <Field label={t('areaMin')} error={errors.areaMin}>
-          <Input type="number" inputMode="numeric" min={1} value={v.areaMin} onChange={set('areaMin')} suffix="მ²" />
+          <Input type="number" inputMode="numeric" min={1} value={v.areaMin} onChange={set('areaMin')} suffix={f.areaUnit} />
         </Field>
         <Field label={t('areaMax')} error={errors.areaMax}>
-          <Input type="number" inputMode="numeric" min={1} value={v.areaMax} onChange={set('areaMax')} suffix="მ²" />
+          <Input type="number" inputMode="numeric" min={1} value={v.areaMax} onChange={set('areaMax')} suffix={f.areaUnit} />
         </Field>
         <Field label={t('budget')} hint={t('budgetHint')} error={errors.budgetMinor}>
           <Input type="number" inputMode="numeric" min={0} value={v.budget} onChange={set('budget')} suffix="₾" />

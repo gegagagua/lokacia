@@ -41,7 +41,7 @@ import { FeedbackModule } from './modules/feedback/feedback.module';
       pinoHttp: {
         level: process.env.NODE_ENV === 'test' ? 'silent' : (process.env.LOG_LEVEL ?? 'info'),
         genReqId: (req) => (req.headers['x-request-id'] as string) ?? randomUUID(),
-        redact: ['req.headers.cookie', 'req.headers.authorization', 'res.headers["set-cookie"]'],
+        redact: ['req.headers.cookie', 'req.headers.authorization', 'req.headers["x-api-key"]', 'req.headers["x-signature"]', 'res.headers["set-cookie"]'],
         transport: process.env.NODE_ENV === 'development' ? { target: 'pino-pretty', options: { singleLine: true, ignore: 'pid,hostname,req.headers,res.headers' } } : undefined,
         autoLogging: { ignore: (req) => req.url?.startsWith('/v1/media/placeholder') ?? false },
       },

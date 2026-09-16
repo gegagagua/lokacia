@@ -13,7 +13,11 @@
   "memberSince": "lokacia.ge-ზე {date}-დან",
   "reviewsCount": "{n} შეფასება",
   "noRating": "შეფასება ჯერ არ არის",
-  "stats": { "active": "აქტიური", "closed": "დახურული გარიგებები", "districts": "რაიონები" },
+  "stats": {
+    "active": "აქტიური",
+    "closed": "დახურული გარიგებები",
+    "districts": "რაიონები"
+  },
   "listings": "აქტიური განცხადებები",
   "noListings": "აქტიური განცხადება ჯერ არ არის",
   "reviews": "შეფასებები",
@@ -24,8 +28,15 @@
   "website": "ვებსაიტი",
   "address": "მისამართი",
   "verified": "ვერიფიცირებული",
-  "roles": { "manager": "მენეჯერი", "agent": "აგენტი", "assistant": "ასისტენტი" },
-  "orgType": { "agency": "აგენტურა", "developer": "დეველოპერი" },
+  "roles": {
+    "manager": "მენეჯერი",
+    "agent": "აგენტი",
+    "assistant": "ასისტენტი"
+  },
+  "orgType": {
+    "agency": "აგენტურა",
+    "developer": "დეველოპერი"
+  },
   "phone": {
     "reveal": "ნომრის ჩვენება",
     "call": "დარეკვა",
@@ -46,5 +57,7 @@
     "login": "შეფასებისთვის შედით სისტემაში"
   },
   "completion": "დასრულება: {date}",
-  "breadcrumbHome": "მთავარი"
+  "breadcrumbHome": "მთავარი",
+  "brokerNotFound": "ბროკერი ვერ მოიძებნა",
+  "orgNotFound": "ორგანიზაცია ვერ მოიძებნა"
 }
