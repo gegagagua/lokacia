@@ -152,7 +152,7 @@ Feature references: `P#` = portal feature, `C#` = CRM feature, `V#` = v2.0 featu
 
 ## Phase 15 — Beta & launch readiness
 - [ ] Production Dockerfiles, deploy pipeline (staging + prod), migrations on deploy, zero-downtime
-- [ ] Seed/demo mode for beta (50 brokers, 300+ spaces import tooling)
+- [x] Seed/demo mode for beta (50 brokers, 300+ spaces import tooling)
 - [x] Feedback widget, analytics events (privacy-friendly)
 - [x] Full regression e2e suite; accessibility audit (axe) on all public pages
 - [x] Launch checklist in `docs/LAUNCH.md`

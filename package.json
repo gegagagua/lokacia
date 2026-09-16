@@ -20,13 +20,14 @@
     "check:i18n": "node scripts/i18n-check.mjs",
     "test:scripts": "node --test scripts/*.test.mjs",
     "format": "prettier --write .",
-    "load:seed": "node -e \"if(!process.env.SEED_DATABASE_URL){console.error('load:seed: set SEED_DATABASE_URL to a dedicated load-test database (never the shared lokacia DB) — see docs/OPERATIONS.md');process.exit(1)}\" && DATABASE_URL=$SEED_DATABASE_URL pnpm --filter @lokacia/db migrate && DATABASE_URL=$SEED_DATABASE_URL SEED_LISTINGS=${SEED_LISTINGS:-50000} pnpm --filter @lokacia/db seed",
+    "load:seed": "node -e \"if(!process.env.SEED_DATABASE_URL){console.error('load:seed: set SEED_DATABASE_URL to a dedicated load-test database (never the shared lokacia DB) \u2014 see docs/OPERATIONS.md');process.exit(1)}\" && DATABASE_URL=$SEED_DATABASE_URL pnpm --filter @lokacia/db migrate && DATABASE_URL=$SEED_DATABASE_URL SEED_LISTINGS=${SEED_LISTINGS:-50000} pnpm --filter @lokacia/db seed",
     "load:search": "k6 run infra/k6/search.js",
     "load:listing": "k6 run infra/k6/listing.js",
     "load:modules": "node infra/load/new-modules.mjs",
     "storybook": "pnpm --filter @lokacia/ui storybook",
     "build-storybook": "pnpm --filter @lokacia/ui build-storybook",
-    "test:a11y": "pnpm --filter @lokacia/ui build-storybook && pnpm --filter @lokacia/ui test:a11y"
+    "test:a11y": "pnpm --filter @lokacia/ui build-storybook && pnpm --filter @lokacia/ui test:a11y",
+    "demo:beta": "node -e \"if(!process.env.SEED_DATABASE_URL){console.error('demo:beta: set SEED_DATABASE_URL to a dedicated beta/demo database');process.exit(1)}\" && DATABASE_URL=$SEED_DATABASE_URL pnpm --filter @lokacia/db migrate && DATABASE_URL=$SEED_DATABASE_URL SEED_BROKERS=${SEED_BROKERS:-50} SEED_LISTINGS=${SEED_LISTINGS:-400} pnpm --filter @lokacia/db seed"
   },
   "devDependencies": {
     "prettier": "^3.6.2",

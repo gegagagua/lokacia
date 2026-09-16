@@ -257,7 +257,7 @@ export async function seed() {
       { orgId: orgs[0]!.id, invitedPhone: '+995599112233', role: 'agent' },
     );
     agents.push({ userId: agencyManager.id, orgId: orgs[0]!.id }, { userId: demoAgent.id, orgId: orgs[0]!.id }, { userId: agency2Manager.id, orgId: orgs[1]!.id });
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < Number(process.env.SEED_BROKERS ?? 9); i++) {
       const org = orgs[i % 3]!;
       const name = personName();
       const u = mkUser({ role: 'broker', phone: fakePhone(i + 300), name, slug: `${slugify(name)}-${i}`, bio: 'კომერციული ფართების ბროკერი.' });
