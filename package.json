@@ -1,0 +1,25 @@
+{
+  "name": "lokacia",
+  "private": true,
+  "packageManager": "pnpm@10.34.5",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test --concurrency=1",
+    "test:e2e": "pnpm --filter @lokacia/e2e test",
+    "db:generate": "pnpm --filter @lokacia/db generate",
+    "db:migrate": "pnpm --filter @lokacia/db migrate",
+    "db:seed": "pnpm --filter @lokacia/db seed",
+    "db:reset": "pnpm --filter @lokacia/db reset",
+    "check:ka": "node scripts/check-ka.mjs",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "turbo": "^2.10.13",
+    "typescript": "6.0.3"
+  }
+}

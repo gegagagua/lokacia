@@ -1,0 +1,11 @@
+packages:
+  - apps/*
+  - packages/*
+  - e2e
+onlyBuiltDependencies:
+  - sharp
+  - esbuild
+  - "@swc/core"
+  - "@nestjs/core"
+  - msgpackr-extract
+  - unrs-resolver

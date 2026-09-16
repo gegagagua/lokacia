@@ -1,0 +1,16 @@
+{
+  "extends": "@lokacia/config/tsconfig/library.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist"
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "src/seed",
+    "src/migrate.ts",
+    "src/reset.ts",
+    "src/**/*.test.ts"
+  ]
+}

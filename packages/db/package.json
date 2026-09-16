@@ -1,0 +1,44 @@
+{
+  "name": "@lokacia/db",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./schema": {
+      "types": "./dist/schema/index.d.ts",
+      "default": "./dist/schema/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vitest run --passWithNoTests",
+    "generate": "drizzle-kit generate && node scripts/fix-migrations.mjs",
+    "migrate": "tsx src/migrate.ts",
+    "seed": "tsx src/seed/index.ts",
+    "reset": "tsx src/reset.ts && tsx src/migrate.ts && tsx src/seed/index.ts"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.2",
+    "postgres": "^3.4.9",
+    "uuid": "^14.0.2",
+    "@lokacia/contracts": "workspace:*"
+  },
+  "devDependencies": {
+    "@lokacia/config": "workspace:*",
+    "@types/node": "^24.0.0",
+    "dotenv": "^17.2.3",
+    "drizzle-kit": "^0.31.10",
+    "eslint": "^9.39.5",
+    "tsx": "^4.20.6",
+    "typescript": "6.0.3",
+    "vitest": "^5.0.1"
+  }
+}
