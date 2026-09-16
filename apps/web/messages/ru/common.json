@@ -1,0 +1,64 @@
+{
+  "nav": {
+    "search": "",
+    "map": "",
+    "demand": "",
+    "services": "",
+    "developers": "",
+    "pricing": "",
+    "publish": "",
+    "login": "",
+    "account": "",
+    "favorites": "",
+    "logout": "",
+    "crm": "",
+    "admin": "",
+    "menu": "",
+    "notifications": ""
+  },
+  "theme": {
+    "toggle": "",
+    "light": "",
+    "dark": "",
+    "system": ""
+  },
+  "language": {
+    "label": "",
+    "ka": "",
+    "en": "",
+    "ru": "",
+    "soon": ""
+  },
+  "footer": {
+    "tagline": "",
+    "product": "",
+    "company": "",
+    "about": "",
+    "terms": "",
+    "privacy": "",
+    "pricing": "",
+    "brokers": "",
+    "reports": "",
+    "api": "",
+    "rights": ""
+  },
+  "actions": {
+    "save": "",
+    "cancel": "",
+    "close": "",
+    "back": "",
+    "next": "",
+    "delete": "",
+    "edit": "",
+    "retry": "",
+    "loadMore": "",
+    "showAll": ""
+  },
+  "states": {
+    "loading": "",
+    "error": "",
+    "empty": "",
+    "notFound": "",
+    "notFoundHint": ""
+  }
+}

@@ -20,9 +20,9 @@ const bool = z.preprocess((v) => v === 'true' || v === '1' || v === true, z.bool
 export const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().default(4000),
-  APP_URL: z.string().url().default('http://localhost:3000'),
-  CRM_URL: z.string().url().default('http://localhost:3001'),
-  ADMIN_URL: z.string().url().default('http://localhost:3002'),
+  APP_URL: z.string().url().default('http://localhost:3100'),
+  CRM_URL: z.string().url().default('http://localhost:3101'),
+  ADMIN_URL: z.string().url().default('http://localhost:3102'),
   API_URL: z.string().url().default('http://localhost:4000'),
   DATABASE_URL: z.string().default('postgres://lokacia:lokacia@localhost:5432/lokacia'),
   REDIS_URL: z.string().default('redis://localhost:6379'),

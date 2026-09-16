@@ -1,0 +1,129 @@
+/* Tailwind v4 preset: import after `@import "tailwindcss";` in each app. */
+@import "maplibre-gl/dist/maplibre-gl.css";
+@import "./src/map/map.css";
+@import './tokens.css';
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-text: var(--text);
+  --color-muted: var(--text-muted);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-contrast: var(--primary-contrast);
+  --color-accent: var(--accent);
+  --color-accent-contrast: var(--accent-contrast);
+  --color-link: var(--link);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-focus: var(--focus);
+  --color-plaster: var(--c-plaster);
+  --color-basalt: var(--c-basalt);
+  --color-stone: var(--c-stone);
+  --color-sulfur: var(--c-sulfur);
+  --color-blueprint: var(--c-blueprint);
+  --color-mtatsminda: var(--c-mtatsminda);
+
+  --radius-button: var(--radius-button);
+  --radius-card: var(--radius-card);
+  --radius-modal: var(--radius-modal);
+  --radius-photo: var(--radius-photo);
+
+  --font-sans: var(--font-georgian), 'Noto Sans Georgian', system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* BRAND.md type scale (size / line-height) */
+  --text-display: 56px;
+  --text-display--line-height: 60px;
+  --text-h1: 40px;
+  --text-h1--line-height: 48px;
+  --text-h2: 28px;
+  --text-h2--line-height: 36px;
+  --text-h3: 20px;
+  --text-h3--line-height: 28px;
+  --text-body: 16px;
+  --text-body--line-height: 1.6;
+  --text-small: 13px;
+  --text-small--line-height: 20px;
+
+  --container-page: 1200px;
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+@layer base {
+  html {
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  h1, h2, h3, .font-compact {
+    font-stretch: 75%;
+    font-variation-settings: 'wdth' 75;
+    letter-spacing: 0;
+  }
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--accent) 40%, transparent);
+  }
+  a {
+    color: inherit;
+  }
+  table, .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+@utility compact {
+  font-stretch: 75%;
+  font-variation-settings: 'wdth' 75;
+}
+@utility container-page {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: 16px;
+  @media (width >= 768px) {
+    padding-inline: 24px;
+  }
+}
+@utility drawing-grid {
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--border) 45%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--border) 45%, transparent) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes pin-drop {
+  0% { transform: translateY(-28px); opacity: 0; }
+  60% { transform: translateY(2px); opacity: 1; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+.animate-pin-drop {
+  animation: pin-drop 420ms var(--ease-out) both;
+}

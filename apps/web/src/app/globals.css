@@ -1,0 +1,15 @@
+@import 'tailwindcss';
+@import '@lokacia/ui/theme.css';
+
+@source '../../../../packages/ui/src';
+
+@layer base {
+  .prose-ka h1 { font-size: 28px; line-height: 36px; font-weight: 600; margin: 0 0 12px; }
+  .prose-ka h2 { font-size: 20px; line-height: 28px; font-weight: 600; margin: 24px 0 8px; }
+  .prose-ka p { margin: 8px 0; }
+  .prose-ka ul { list-style: none; padding: 0; margin: 12px 0; }
+  .prose-ka li { padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .prose-ka blockquote { border-left: 3px solid var(--accent); padding: 4px 12px; color: var(--text-muted); margin: 16px 0; }
+  .prose-ka a { color: var(--link); text-decoration: underline; text-underline-offset: 3px; }
+  .prose-ka input[type='checkbox'] { accent-color: var(--primary); margin-right: 8px; }
+}

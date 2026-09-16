@@ -17,3 +17,4 @@ One line per decision (date — decision — why).
 - 2026-09-16 — Passport filter keys are camelCase passport fields; booleans must be true, numbers are minimums.
 - 2026-09-16 — Frontends call the API through a same-origin rewrite `/api/v1/* → API_URL/v1/*`; access (15 min) and refresh (rotating, 30 d) tokens are httpOnly cookies — SSR pages can forward cookies, no tokens in JS.
 - 2026-09-16 — Dev OTP: mock SMS adapter logs the code; in non-production `OTP_DEV_CODE` (default `123456`) is accepted for any phone — makes the demo testable without SMS.
+- 2026-09-16 — Dev ports web 3100 / crm 3101 / admin 3102 / api 4000 — 3000/3001 are used by other local projects on the dev machine.

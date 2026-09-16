@@ -1,0 +1,10 @@
+{
+  "name": "lokacia.ge — კომერციული ფართები",
+  "short_name": "lokacia",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#EDF0EB",
+  "theme_color": "#1E4A42",
+  "lang": "ka",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

@@ -1,0 +1,35 @@
+.lk-pin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 13px 13px 13px 2px;
+  background: var(--c-mtatsminda);
+  color: #f7f9f5;
+  font: 600 12px/1 var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  border: 2px solid #f7f9f5;
+  cursor: pointer;
+  white-space: nowrap;
+  transform-origin: bottom left;
+}
+.lk-pin[data-vip='true'] {
+  background: var(--c-sulfur);
+  color: var(--c-basalt);
+}
+.lk-pin[data-selected='true'] {
+  background: var(--c-basalt);
+  color: var(--c-sulfur);
+  z-index: 2;
+}
+.lk-pin:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.lk-map .maplibregl-ctrl-group {
+  border-radius: 6px;
+  box-shadow: none;
+  border: 1px solid var(--border);
+}
