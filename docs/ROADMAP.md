@@ -7,15 +7,15 @@ Feature references: `P#` = portal feature, `C#` = CRM feature, `V#` = v2.0 featu
 # PART A — v1.0
 
 ## Phase 0 — Repository bootstrap
-- [ ] pnpm + Turborepo monorepo with the layout from ARCHITECTURE.md; TS strict; shared eslint/prettier/tsconfig in `packages/config`
-- [ ] `infra/docker-compose.yml`: postgis 16, redis 7, meilisearch, minio, imgproxy, mailpit; healthchecks
-- [ ] `apps/api` NestJS skeleton: config module (Zod-validated env), health endpoint, problem+json errors, OpenAPI at `/v1/docs`, pino logging
+- [x] pnpm + Turborepo monorepo with the layout from ARCHITECTURE.md; TS strict; shared eslint/prettier/tsconfig in `packages/config`
+- [x] `infra/docker-compose.yml`: postgis 16, redis 7, meilisearch, minio, imgproxy, mailpit; healthchecks
+- [x] `apps/api` NestJS skeleton: config module (Zod-validated env), health endpoint, problem+json errors, OpenAPI at `/v1/docs`, pino logging
 - [ ] `apps/web`, `apps/crm`, `apps/admin` Next.js skeletons with next-intl (`ka` default, `en`/`ru` placeholders)
-- [ ] `packages/db` Drizzle setup, migration + seed scripts
+- [x] `packages/db` Drizzle setup, migration + seed scripts
 - [ ] Vitest, Supertest (Testcontainers or compose DB), Playwright configured; one passing test each
-- [ ] `pnpm check:ka` script (Georgian script validator for `messages/ka.json`)
-- [ ] GitHub Actions: install, lint, typecheck, test, build; e2e on main
-- [ ] `docs/DECISIONS.md`, `docs/CHANGELOG.md`, `docs/HUMAN_TODO.md` created
+- [x] `pnpm check:ka` script (Georgian script validator for `messages/ka.json`)
+- [x] GitHub Actions: install, lint, typecheck, test, build; e2e on main
+- [x] `docs/DECISIONS.md`, `docs/CHANGELOG.md`, `docs/HUMAN_TODO.md` created
 **Done when:** `docker compose up -d && pnpm dev` runs all apps; CI green.
 
 ## Phase 1 — Design system & brand
