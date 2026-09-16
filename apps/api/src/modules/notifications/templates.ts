@@ -33,3 +33,8 @@ export const TEMPLATES: Record<string, { title: (v: TemplateVars) => string; bod
   escrow_update: { title: () => 'დეპოზიტის სტატუსი', body: (v) => `${v.status}` },
   generic: { title: (v) => String(v.title ?? 'lokacia.ge'), body: (v) => String(v.body ?? '') },
 };
+
+/** Modules add their own templates at import time instead of editing this file. */
+export function registerTemplates(extra: typeof TEMPLATES) {
+  Object.assign(TEMPLATES, extra);
+}
