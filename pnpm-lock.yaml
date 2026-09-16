@@ -60,6 +60,9 @@ importers:
       '@lokacia/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@next/env':
+        specifier: ^16.3.5
+        version: 16.3.5
       '@tailwindcss/postcss':
         specifier: ^4.3.3
         version: 4.3.3
@@ -257,6 +260,9 @@ importers:
       '@lokacia/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@next/env':
+        specifier: ^16.3.5
+        version: 16.3.5
       '@tailwindcss/postcss':
         specifier: ^4.3.3
         version: 4.3.3
@@ -330,6 +336,9 @@ importers:
       '@lokacia/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@next/env':
+        specifier: ^16.3.5
+        version: 16.3.5
       '@tailwindcss/postcss':
         specifier: ^4.3.3
         version: 4.3.3

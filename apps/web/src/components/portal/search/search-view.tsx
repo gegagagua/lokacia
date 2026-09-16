@@ -284,7 +284,7 @@ export function SearchView({
         <div className={cn('transition-opacity duration-150', loading && 'opacity-60')} aria-busy={loading}>
           <ul className={cn('grid gap-4', view === 'split' ? 'grid-cols-1 xl:grid-cols-2' : 'sm:grid-cols-2')}>
             {result.items.map((l, i) => (
-              <li key={l.id} id={`card-${l.id}`} className={cn('flex scroll-mt-24 rounded-card', selected === l.id && 'outline-2 outline-offset-2 outline-accent')} onMouseEnter={() => view === 'split' && setSelected(l.id)}>
+              <li key={l.id} id={`card-${l.id}`} className={cn('flex min-w-0 scroll-mt-24 rounded-card', selected === l.id && 'outline-2 outline-offset-2 outline-accent')} onMouseEnter={() => view === 'split' && setSelected(l.id)}>
                 <ListingCardLink listing={l} typeNames={typeNames} priority={i < 2} className="w-full" />
               </li>
             ))}
@@ -332,7 +332,7 @@ export function SearchView({
   return (
     <FavoritesProvider loggedIn={loggedIn}>
       <div className={cn('mx-auto w-full px-4 py-6 md:px-6', view === 'list' ? 'max-w-[1200px]' : 'max-w-[1600px]')}>
-        <div className="flex flex-col gap-4">
+        <div className="flex min-w-0 flex-col gap-4">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <h1 className="text-h2 font-semibold md:text-h1">{t('heading')}</h1>

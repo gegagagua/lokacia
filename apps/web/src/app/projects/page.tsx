@@ -43,7 +43,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
         </nav>
       )}
       {items.length ? (
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 [&>li]:min-w-0">
           {items.map((p, i) => (
             <li key={p.id}>
               <ProjectCard project={p} priority={i < 3} />

@@ -48,7 +48,7 @@ export function Breadcrumbs({ items, className }: { items: Crumb[]; className?: 
 /** Standard page metadata: canonical + OpenGraph + Twitter. */
 export function pageMetadata(input: { title: string; description: string; path: string; image?: string; noindex?: boolean; type?: 'website' | 'article' }): Metadata {
   const url = absUrl(input.path);
-  const images = input.image ? [{ url: absUrl(input.image), width: 1200, height: 630, alt: input.title }] : undefined;
+  const images = [{ url: absUrl(input.image ?? '/opengraph-image'), width: 1200, height: 630, alt: input.title }];
   return {
     title: input.title,
     description: input.description,

@@ -35,7 +35,7 @@ export type ListingCardProps = {
 export function ListingCard({ listing: l, href, businessTypeName, onFavorite, favorite, layout = 'grid', className, priority, LinkComponent = 'a' }: ListingCardProps) {
   const Link = LinkComponent;
   return (
-    <article className={cn('group relative flex overflow-hidden rounded-card border border-border bg-surface transition-colors duration-150 hover:border-border-strong', layout === 'grid' ? 'flex-col' : 'flex-col sm:flex-row', className)}>
+    <article className={cn('group relative flex w-full min-w-0 overflow-hidden rounded-card border border-border bg-surface transition-colors duration-150 hover:border-border-strong', layout === 'grid' ? 'flex-col' : 'flex-col sm:flex-row', className)}>
       <div className={cn('relative grid shrink-0 grid-cols-2 border-b border-border sm:border-b-0', layout === 'row' ? 'sm:w-[420px] sm:border-r' : '')}>
         <div className="drawing-grid bg-bg p-2">
           <SpacePlan compact areaM2={l.areaM2} widthM={l.passport.widthM} depthM={l.passport.depthM} />

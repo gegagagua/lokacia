@@ -15,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: t('metaTitle'),
     description: t('metaDescription'),
     alternates: { canonical: '/api-access' },
-    openGraph: { title: `${t('metaTitle')} · ${SITE_NAME}`, description: t('metaDescription'), url: absUrl('/api-access'), type: 'website' },
+    openGraph: { images: ['/opengraph-image'],  title: `${t('metaTitle')} · ${SITE_NAME}`, description: t('metaDescription'), url: absUrl('/api-access'), type: 'website' },
     twitter: { card: 'summary', title: t('metaTitle'), description: t('metaDescription') },
   };
 }

@@ -1,7 +1,7 @@
 /** RFC 5545 calendar file (viewing invitations, P15). */
 export function buildIcs(ev: { uid: string; start: Date; end: Date; title: string; description?: string; location?: string; url?: string }): string {
   const fmt = (d: Date) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
-  const esc = (s: string) => s.replace(/\\/g, '\\\\').replace(/;/g, '\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+  const esc = (s: string) => s.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',

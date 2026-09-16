@@ -225,7 +225,7 @@ export async function seed() {
       users.push(row);
       return row;
     };
-    const admin = mkUser({ role: 'admin', phone: DEMO_PHONES.admin, name: 'ადმინი ლოკაციაზე', email: 'admin@lokacia.ge' });
+    mkUser({ role: 'admin', phone: DEMO_PHONES.admin, name: 'ადმინი ლოკაციაზე', email: 'admin@lokacia.ge' });
     const moderator = mkUser({ role: 'moderator', phone: DEMO_PHONES.moderator, name: 'ნინო მოდერატორი' });
     const demoOwner = mkUser({ role: 'user', phone: DEMO_PHONES.owner, name: 'გიორგი ბერიძე', email: 'owner@example.ge' });
     const demoTenant = mkUser({ role: 'user', phone: DEMO_PHONES.tenant, name: 'მარიამ ლომიძე', email: 'tenant@example.ge' });

@@ -46,7 +46,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className="flex min-h-dvh flex-col bg-bg text-text" suppressHydrationWarning>
+      <body className="flex min-h-dvh flex-col overflow-x-clip bg-bg text-text" suppressHydrationWarning>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <ToastProvider>
             <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:rounded-button focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-contrast">

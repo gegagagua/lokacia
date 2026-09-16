@@ -40,9 +40,9 @@ export function ListingCardLink({
 export function ListingGrid({ listings, typeNames, priorityCount = 0, cols = 3 }: { listings: Card[]; typeNames: Record<string, string>; priorityCount?: number; cols?: 2 | 3 | 4 }) {
   const grid = cols === 4 ? 'sm:grid-cols-2 lg:grid-cols-4' : cols === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-2 lg:grid-cols-3';
   return (
-    <ul className={`grid gap-4 ${grid}`}>
+    <ul className={`grid grid-cols-1 gap-4 ${grid}`}>
       {listings.map((l, i) => (
-        <li key={l.id} className="flex">
+        <li key={l.id} className="flex min-w-0">
           <ListingCardLink listing={l} typeNames={typeNames} priority={i < priorityCount} className="w-full" />
         </li>
       ))}

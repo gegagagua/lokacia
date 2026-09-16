@@ -35,7 +35,7 @@ function interior(seed: string) {
   const bh = H - by - 260 - r() * 60;
   const L = `stroke="${C.basalt}" stroke-width="3" stroke-linecap="square"`;
   let b = grid(W, H, 53);
-  b += `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" fill="${C.paper}" ${L.replace(' fill=\"none\"', '')}/>`;
+  b += `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" fill="${C.paper}" ${L}/>`;
   b += `<path d="M0 0 L${bx} ${by} M${W} 0 L${bx + bw} ${by} M0 ${H} L${bx} ${by + bh} M${W} ${H} L${bx + bw} ${by + bh}" ${L}/>`;
   const windows = 1 + Math.floor(r() * 3);
   const ww = (bw - 80 * (windows + 1)) / windows;
@@ -60,7 +60,7 @@ function interior(seed: string) {
   // counter or desk
   if (r() > 0.4) {
     const cx = bx + bw * (0.1 + r() * 0.3);
-    b += `<path d="M${cx} ${by + bh + 40} h${bw * 0.35} v90 h-${bw * 0.35} z" fill="${C.plaster}" ${L.replace(' fill=\"none\"', '')}/>`;
+    b += `<path d="M${cx} ${by + bh + 40} h${bw * 0.35} v90 h-${bw * 0.35} z" fill="${C.plaster}" ${L}/>`;
   }
   b += `<text x="40" y="${H - 40}" font-family="monospace" font-size="26" fill="${C.stone}">LK · ${seed.slice(0, 8).toUpperCase()}</text>`;
   return svg(W, H, b, 'ინტერიერი');
@@ -77,7 +77,7 @@ function facade(seed: string) {
   const fw = W - 440;
   const fh = (H - 220) / (floors + 0.6);
   const top = H - 120 - fh * floors;
-  b += `<rect x="${fx}" y="${top}" width="${fw}" height="${fh * floors}" fill="${C.paper}" ${L.replace(' fill=\"none\"', '')}/>`;
+  b += `<rect x="${fx}" y="${top}" width="${fw}" height="${fh * floors}" fill="${C.paper}" ${L}/>`;
   const cols = 4 + Math.floor(r() * 3);
   for (let f = 1; f < floors; f++) {
     for (let c = 0; c < cols; c++) {

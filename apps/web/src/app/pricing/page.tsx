@@ -17,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title,
     description,
     alternates: { canonical: '/pricing' },
-    openGraph: { title: `${title} · ${SITE_NAME}`, description, url: absUrl('/pricing'), type: 'website' },
+    openGraph: { images: ['/opengraph-image'],  title: `${title} · ${SITE_NAME}`, description, url: absUrl('/pricing'), type: 'website' },
     twitter: { card: 'summary', title, description },
   };
 }
