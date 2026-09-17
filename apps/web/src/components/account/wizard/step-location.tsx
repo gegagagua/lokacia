@@ -6,6 +6,7 @@ import { Crosshair, Layers, MapPin, MousePointerClick, Navigation, Ruler } from 
 import { Field, Input, Skeleton, cn } from '@lokacia/ui';
 import { InfoTile, StepSection } from './parts';
 import type { WizardForm } from './types';
+import { withBase } from '@/lib/base-path';
 
 const MapView = dynamic(() => import('@lokacia/ui/map').then((m) => m.MapView), { ssr: false, loading: () => <Skeleton className="h-full w-full rounded-none" /> });
 
@@ -21,7 +22,7 @@ export function StepLocation({ form, set, errors }: { form: WizardForm; set: (p:
       set({ lat, lng });
       setLookup(true);
       try {
-        const r = await fetch(`/api/v1/geo/insights?lat=${lat}&lng=${lng}&radiusM=100`);
+        const r = await fetch(withBase(`/api/v1/geo/insights?lat=${lat}&lng=${lng}&radiusM=100`));
         const j = (await r.json()) as { district?: { id: string; name: string } | null };
         set({ districtId: j.district?.id ?? null, districtName: j.district?.name ?? null });
       } catch {

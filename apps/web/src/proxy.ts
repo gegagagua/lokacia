@@ -17,7 +17,7 @@ function persistLocale(res: NextResponse, locale: Locale, current: string | unde
  *    rendering so server components see the user.
  */
 export async function proxy(req: NextRequest) {
-  const { pathname, search } = req.nextUrl;
+  const { pathname } = req.nextUrl;
   const { locale: prefix, path } = splitLocalePath(pathname);
   const cookieLocale = req.cookies.get(LOCALE_COOKIE)?.value;
   const isRead = req.method === 'GET' || req.method === 'HEAD';
@@ -61,7 +61,10 @@ export async function proxy(req: NextRequest) {
     }
   }
 
-  const res = prefix ? NextResponse.rewrite(new URL(`${path}${search}`, req.url), { request: { headers } }) : NextResponse.next({ request: { headers } });
+  // nextUrl.clone() keeps the configured basePath, so the rewrite stays inside a sub-path deployment
+  const target = req.nextUrl.clone();
+  target.pathname = path;
+  const res = prefix ? NextResponse.rewrite(target, { request: { headers } }) : NextResponse.next({ request: { headers } });
   for (const sc of setCookies) res.headers.append('set-cookie', sc);
   return prefix ? persistLocale(res, locale, cookieLocale) : res;
 }

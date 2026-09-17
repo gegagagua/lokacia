@@ -6,6 +6,7 @@ import type { EscrowDto } from '@lokacia/contracts';
 import { Button, useToast } from '@lokacia/ui';
 import { apiFetch, ClientApiError } from '@/lib/api-client';
 import { useLocalizedPath } from '@/i18n/link';
+import { withBase } from '@/lib/base-path';
 
 /** V3: creates a deposit escrow + digital contract for an accepted offer. For the offers page (stream B). */
 export function EscrowStartButton({ offerId, onCreated }: { offerId: string; onCreated?: (e: EscrowDto) => void }) {
@@ -25,7 +26,7 @@ export function EscrowStartButton({ offerId, onCreated }: { offerId: string; onC
           const e = await apiFetch<EscrowDto>('/escrow', { method: 'POST', body: { offerId } });
           toast({ title: t('created'), tone: 'success' });
           if (onCreated) onCreated(e);
-          else window.location.href = lp('/account/billing#escrow');
+          else window.location.href = withBase(lp('/account/billing#escrow'));
         } catch (err) {
           toast({ title: t('error'), description: err instanceof ClientApiError ? err.message : undefined, tone: 'danger' });
         } finally {

@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { AlertCircle, Lock } from 'lucide-react';
 import { Button } from '@lokacia/ui';
 import { apiFetch, ClientApiError } from '@/lib/api-client';
+import { withBase } from '@/lib/base-path';
 
 export function MockPayActions({ paymentId, amount }: { paymentId: string; amount: string }) {
   const t = useTranslations('billing.mock');
@@ -14,7 +15,7 @@ export function MockPayActions({ paymentId, amount }: { paymentId: string; amoun
     setError(null);
     try {
       const r = await apiFetch<{ status: string; redirectUrl: string }>(`/billing/payments/${paymentId}/mock-complete`, { method: 'POST', body: { outcome } });
-      window.location.href = r.redirectUrl;
+      window.location.href = withBase(r.redirectUrl);
     } catch (e) {
       setError(e instanceof ClientApiError ? e.message : t('error'));
       setBusy(null);

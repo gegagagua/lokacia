@@ -14,6 +14,7 @@ import { AccountPageHeader } from '../page-header';
 import { ListingStatusBadge } from '../status-badges';
 import { SlotsManager } from './slots-manager';
 import { AccountEmpty, IconTile, Segmented, Thumb } from '../ui';
+import { withBase } from '@/lib/base-path';
 
 export type MyListing = ListingCard & { rejectReason: string | null; vipUntil: string | null; stats30d: { views: number; reveals: number; saves: number } };
 
@@ -140,7 +141,7 @@ function ListingRow({ listing: l, onChanged }: { listing: MyListing; onChanged: 
     } catch (e) {
       if (e instanceof ClientApiError && e.problem?.type?.endsWith('passport-incomplete')) {
         toast({ title: t('toast.passport'), description: e.problem.errors?.map((x) => x.path.replace('passport.', '')).join(', '), tone: 'danger' });
-        window.setTimeout(() => (window.location.href = lp(`/account/listings/${l.id}/edit?step=passport`)), 1500);
+        window.setTimeout(() => (window.location.href = withBase(lp(`/account/listings/${l.id}/edit?step=passport`))), 1500);
       } else toast({ title: e instanceof ClientApiError ? e.message : t('toast.error'), tone: 'danger' });
     } finally {
       setBusy(null);

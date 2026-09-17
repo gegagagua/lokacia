@@ -7,6 +7,7 @@ import { KeyRound, Smartphone } from 'lucide-react';
 import { Button, Card, Field, Input } from '@lokacia/ui';
 import { apiFetch, ClientApiError, fetcher } from '@/lib/api-client';
 import { useLocalizedPath } from '@/i18n/link';
+import { withBase } from '@/lib/base-path';
 
 const DEMO = [
   ['+995500000003', 'owner'],
@@ -55,7 +56,7 @@ export function LoginForm({ next }: { next: string }) {
     setError(null);
     try {
       await apiFetch('/auth/otp/verify', { method: 'POST', body: { phone, code, name: name || undefined } });
-      window.location.href = lp(next);
+      window.location.href = withBase(lp(next));
     } catch (err) {
       setError(err instanceof ClientApiError ? err.message : t('error'));
       setBusy(false);
@@ -79,7 +80,7 @@ export function LoginForm({ next }: { next: string }) {
           </Button>
           {providers?.google && (
             <Button asChild variant="secondary" size="lg">
-              <a href="/api/v1/auth/google">{t('google')}</a>
+              <a href={withBase('/api/v1/auth/google')}>{t('google')}</a>
             </Button>
           )}
         </form>

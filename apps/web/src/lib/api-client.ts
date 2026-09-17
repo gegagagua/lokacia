@@ -1,5 +1,6 @@
 'use client';
 import type { Problem } from '@lokacia/contracts';
+import { withBase } from '@/lib/base-path';
 
 const ERROR_WORD: Record<string, string> = { ka: 'შეცდომა', en: 'Error', ru: 'Ошибка' };
 
@@ -14,7 +15,7 @@ export class ClientApiError extends Error {
 
 let refreshing: Promise<boolean> | null = null;
 async function refresh() {
-  refreshing ??= fetch('/api/v1/auth/refresh', { method: 'POST', credentials: 'include' })
+  refreshing ??= fetch(withBase('/api/v1/auth/refresh'), { method: 'POST', credentials: 'include' })
     .then((r) => r.ok)
     .finally(() => setTimeout(() => (refreshing = null), 0));
   return refreshing;
@@ -22,7 +23,7 @@ async function refresh() {
 
 /** Browser API call through the same-origin `/api/v1` rewrite. Retries once after refreshing the session on 401. */
 export async function apiFetch<T>(path: string, init: { method?: string; body?: unknown; orgId?: string | null; headers?: Record<string, string>; raw?: boolean } = {}): Promise<T> {
-  const url = path.startsWith('/api/') ? path : `/api/v1${path.startsWith('/') ? path : `/${path}`}`;
+  const url = withBase(path.startsWith('/api/') || path.startsWith(withBase('/api/')) ? path : `/api/v1${path.startsWith('/') ? path : `/${path}`}`);
   const doFetch = () =>
     fetch(url, {
       method: init.method ?? 'GET',
@@ -60,13 +61,13 @@ export async function uploadFile(file: File, opts: { kind: 'photo' | 'video' | '
   });
   await new Promise<void>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open('PUT', created.uploadUrl);
+    xhr.open('PUT', withBase(created.uploadUrl));
     xhr.setRequestHeader('content-type', file.type || 'application/octet-stream');
     xhr.upload.onprogress = (e) => e.lengthComputable && opts.onProgress?.(Math.round((e.loaded / e.total) * 100));
     xhr.onload = () => (xhr.status < 300 ? resolve() : reject(new Error(`upload ${xhr.status}`)));
     xhr.onerror = () => reject(new Error('upload failed'));
     xhr.send(file);
   });
-  if (!created.uploadUrl.startsWith('/api/')) await apiFetch(`/media/${created.id}/complete`, { method: 'POST' });
+  if (!withBase(created.uploadUrl).startsWith(withBase('/api/'))) await apiFetch(`/media/${created.id}/complete`, { method: 'POST' });
   return created.id;
 }

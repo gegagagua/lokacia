@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { BasePathInterceptor } from './common/base-path.interceptor';
 import { LoggerModule } from 'nestjs-pino';
 import { randomUUID } from 'node:crypto';
 import { AuditInterceptor } from './common/audit.interceptor';
@@ -80,6 +81,7 @@ import { FeedbackModule } from './modules/feedback/feedback.module';
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_FILTER, useClass: ProblemFilter },
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: BasePathInterceptor },
   ],
 })
 export class AppModule {}

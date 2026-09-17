@@ -68,7 +68,7 @@ export function MapView(props: MapViewProps) {
       if (cancelled || !el.current) return;
       lib.current = ml;
       // MapLibre v6 module worker must be served from public/ (see scripts/copy-maplibre-worker.mjs).
-      if (!ml.getWorkerUrl?.()?.includes('/maplibre/')) ml.setWorkerUrl(`${window.location.origin}/maplibre/maplibre-gl-worker.mjs`);
+      if (!ml.getWorkerUrl?.()?.includes('/maplibre/')) ml.setWorkerUrl(`${window.location.origin}${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/maplibre/maplibre-gl-worker.mjs`);
       const m = new ml.Map({ container: el.current, style: mapStyle({ dark: isDark(), maptilerKey }), center: center ?? TBILISI_CENTER, zoom, attributionControl: { compact: true }, cooperativeGestures: false });
       m.addControl(new ml.NavigationControl({ showCompass: false }), 'top-right');
       const dark = isDark();

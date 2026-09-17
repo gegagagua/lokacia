@@ -8,6 +8,7 @@ import type { InvoiceDto } from '@lokacia/contracts';
 import { Button, cn, Skeleton } from '@lokacia/ui';
 import { fetcher } from '@/lib/api-client';
 import { useFormat } from '@/i18n/use-format';
+import { withBase } from '@/lib/base-path';
 
 const RETURN_BY_PURPOSE: Record<string, string> = { vip: '/account/listings', report: '/reports', rent: '/account/property', escrow: '/account/billing', api: '/api-access' };
 
@@ -73,7 +74,7 @@ export function ResultView({ invoiceId, failedHint, back }: { invoiceId: string 
         <div className="mt-7 flex flex-col gap-2.5">
           {state === 'failed' && data?.lastPaymentId && (
             <Button asChild size="lg">
-              <a href={`/checkout/mock/${data.lastPaymentId}`}>
+              <a href={withBase(`/checkout/mock/${data.lastPaymentId}`)}>
                 <RotateCcw className="size-4" strokeWidth={2} aria-hidden />
                 {t('retry')}
               </a>
@@ -87,7 +88,7 @@ export function ResultView({ invoiceId, failedHint, back }: { invoiceId: string 
           </Button>
           {state === 'paid' && data && (
             <Button asChild variant="secondary">
-              <a href={`/api/v1/billing/invoices/${data.id}/pdf`}>
+              <a href={withBase(`/api/v1/billing/invoices/${data.id}/pdf`)}>
                 <Download className="size-4" strokeWidth={2} aria-hidden />
                 {t('receipt')}
               </a>

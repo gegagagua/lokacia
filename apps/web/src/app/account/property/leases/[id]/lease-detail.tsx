@@ -9,6 +9,7 @@ import { useFormat } from '@/i18n/use-format';
 import { Avatar, Badge, Button, cn, EmptyState, Field, Input, Select, Skeleton, Switch, Tabs, Textarea, useToast, type BadgeTone } from '@lokacia/ui';
 import { apiFetch, ClientApiError, fetcher, uploadFile } from '@/lib/api-client';
 import { followCheckout } from '@/components/billing/checkout';
+import { withBase } from '@/lib/base-path';
 
 const RENT_TONE: Record<string, BadgeTone> = { paid: 'success', open: 'neutral', overdue: 'danger' };
 const MAINT_TONE: Record<string, BadgeTone> = { open: 'neutral', in_progress: 'link', resolved: 'success' };
@@ -171,13 +172,13 @@ function RentTab({ lease, onChange }: { lease: LeaseDetailDto; onChange: () => v
           {owner && (
             <div className="flex flex-wrap gap-2">
               <Button asChild size="sm" variant="secondary">
-                <a href={`/api/v1/property/leases/${lease.id}/export?format=csv`}>
+                <a href={withBase(`/api/v1/property/leases/${lease.id}/export?format=csv`)}>
                   <Download className="size-4" strokeWidth={2} aria-hidden />
                   CSV
                 </a>
               </Button>
               <Button asChild size="sm" variant="secondary">
-                <a href={`/api/v1/property/leases/${lease.id}/export?format=xlsx`}>
+                <a href={withBase(`/api/v1/property/leases/${lease.id}/export?format=xlsx`)}>
                   <FileSpreadsheet className="size-4" strokeWidth={2} aria-hidden />
                   XLSX
                 </a>
@@ -229,7 +230,7 @@ function RentTab({ lease, onChange }: { lease: LeaseDetailDto; onChange: () => v
                   <div className="shrink-0">
                     {inv.status === 'paid' ? (
                       <Button asChild size="sm" variant="ghost">
-                        <a href={`/api/v1/property/rent-invoices/${inv.id}/receipt.pdf`}>
+                        <a href={withBase(`/api/v1/property/rent-invoices/${inv.id}/receipt.pdf`)}>
                           <Download className="size-4" strokeWidth={2} aria-hidden />
                           {t('receipt')}
                         </a>

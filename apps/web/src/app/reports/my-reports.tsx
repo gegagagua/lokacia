@@ -6,6 +6,7 @@ import type { ReportPurchaseDto } from '@lokacia/contracts';
 import { Badge, Button } from '@lokacia/ui';
 import { fetcher } from '@/lib/api-client';
 import { useFormat } from '@/i18n/use-format';
+import { withBase } from '@/lib/base-path';
 
 export function MyReports({ compact }: { compact?: boolean }) {
   const t = useTranslations('billing.reports');
@@ -34,7 +35,7 @@ export function MyReports({ compact }: { compact?: boolean }) {
               </div>
               {r.status === 'ready' ? (
                 <Button asChild size="sm" variant="secondary">
-                  <a href={`/api/v1/billing/reports/${r.id}/pdf`}>
+                  <a href={withBase(`/api/v1/billing/reports/${r.id}/pdf`)}>
                     <Download className="size-4" strokeWidth={2} aria-hidden />
                     {t('download')}
                   </a>

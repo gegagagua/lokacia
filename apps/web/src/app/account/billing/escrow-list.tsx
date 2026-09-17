@@ -9,6 +9,7 @@ import { useFormat } from '@/i18n/use-format';
 import { Badge, Button, cn, Dialog, Field, Skeleton, Textarea, useToast, type BadgeTone } from '@lokacia/ui';
 import { apiFetch, ClientApiError, fetcher } from '@/lib/api-client';
 import { followCheckout } from '@/components/billing/checkout';
+import { withBase } from '@/lib/base-path';
 
 const TONE: Record<string, BadgeTone> = { pending: 'neutral', funded: 'link', released: 'success', refunded: 'outline', disputed: 'danger' };
 const STEPS = ['signed', 'funded', 'closed'] as const;
@@ -138,7 +139,7 @@ function EscrowCard({ escrow: e, onChange }: { escrow: EscrowDto; onChange: () =
 
         <div className="mt-5 flex flex-wrap gap-2 border-t border-border pt-4">
           <Button asChild size="sm" variant="secondary">
-            <a href={`/api/v1/escrow/${e.id}/contract.pdf`}>
+            <a href={withBase(`/api/v1/escrow/${e.id}/contract.pdf`)}>
               <FileText className="size-4" strokeWidth={2} aria-hidden />
               {t('contract')}
             </a>

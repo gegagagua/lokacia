@@ -11,6 +11,7 @@ import { apiFetch, ClientApiError, fetcher } from '@/lib/api-client';
 import { MyReports } from '@/app/reports/my-reports';
 import { PartnerLogo } from '@/components/billing/partner-logo';
 import { EscrowList } from './escrow-list';
+import { withBase } from '@/lib/base-path';
 
 const SUB_TONE: Record<string, BadgeTone> = { active: 'success', pending: 'neutral', past_due: 'danger', grace: 'accent', cancelled: 'outline', expired: 'outline' };
 const INV_TONE: Record<string, BadgeTone> = { paid: 'success', open: 'neutral', failed: 'danger', void: 'outline' };
@@ -322,11 +323,11 @@ function InvoiceActions({ inv }: { inv: InvoiceDto }) {
     <div className="flex justify-end gap-1.5">
       {(inv.status === 'open' || inv.status === 'failed') && inv.lastPaymentId && (
         <Button asChild size="sm">
-          <a href={`/checkout/mock/${inv.lastPaymentId}`}>{t('pay')}</a>
+          <a href={withBase(`/checkout/mock/${inv.lastPaymentId}`)}>{t('pay')}</a>
         </Button>
       )}
       <Button asChild size="sm" variant="secondary" className="px-2.5">
-        <a href={`/api/v1/billing/invoices/${inv.id}/pdf`} aria-label={t('pdfFor', { number: inv.number })} title={t('pdfFor', { number: inv.number })}>
+        <a href={withBase(`/api/v1/billing/invoices/${inv.id}/pdf`)} aria-label={t('pdfFor', { number: inv.number })} title={t('pdfFor', { number: inv.number })}>
           <Download className="size-4" strokeWidth={2} aria-hidden />
           <span className="text-[13px]">PDF</span>
         </a>

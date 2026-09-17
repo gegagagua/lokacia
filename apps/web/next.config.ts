@@ -7,6 +7,8 @@ loadEnvConfig(path.resolve(process.cwd(), '../..'));
 import createNextIntlPlugin from 'next-intl/plugin';
 
 const API_URL = process.env.API_URL ?? 'http://localhost:4000';
+/** Sub-path hosting (e.g. /lokacia); unset at a domain root. Must be set for both `next build` and `next start`. */
+const BASE_PATH = (process.env.NEXT_BASE_PATH ?? '').replace(/\/$/, '');
 
 const securityHeaders = [
   { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
@@ -33,11 +35,13 @@ const securityHeaders = [
 ];
 
 const config: NextConfig = {
+  basePath: BASE_PATH || undefined,
+  env: { NEXT_PUBLIC_BASE_PATH: BASE_PATH },
   reactStrictMode: true,
   poweredByHeader: false,
   transpilePackages: ['@lokacia/ui', '@lokacia/contracts'],
   typedRoutes: false,
-  images: { dangerouslyAllowSVG: true, contentDispositionType: 'inline', localPatterns: [{ pathname: '/api/v1/media/**' }] },
+  images: { dangerouslyAllowSVG: true, contentDispositionType: 'inline', localPatterns: [{ pathname: `${BASE_PATH}/api/v1/media/**` }] },
   async rewrites() {
     return [{ source: '/api/v1/:path*', destination: `${API_URL}/v1/:path*` }];
   },

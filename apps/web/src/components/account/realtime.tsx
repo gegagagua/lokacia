@@ -1,6 +1,7 @@
 'use client';
 import * as React from 'react';
 import type { Socket } from 'socket.io-client';
+import { withBase } from '@/lib/base-path';
 
 type Listener = (payload: unknown) => void;
 
@@ -27,13 +28,13 @@ async function ensureSocket() {
   if (socket) return socket;
   connecting ??= import('socket.io-client')
     .then(({ io }) => {
-      const s = io(`${realtimeUrl()}/v1/ws`, { transports: ['websocket'], withCredentials: true, reconnectionDelayMax: 15_000 });
+      const s = io(`${realtimeUrl()}/v1/ws`, { path: withBase('/socket.io'), transports: ['websocket'], withCredentials: true, reconnectionDelayMax: 15_000 });
       s.on('ready', () => setConnected(true));
       s.on('disconnect', () => setConnected(false));
       s.on('connect_error', () => setConnected(false));
       s.on('unauthorized', async () => {
         // access cookie may have expired: refresh the session, then reconnect once
-        const ok = await fetch('/api/v1/auth/refresh', { method: 'POST', credentials: 'include' }).then((r) => r.ok).catch(() => false);
+        const ok = await fetch(withBase('/api/v1/auth/refresh'), { method: 'POST', credentials: 'include' }).then((r) => r.ok).catch(() => false);
         if (ok) setTimeout(() => s.connect(), 300);
       });
       s.onAny((event: string, payload: unknown) => listeners.get(event)?.forEach((fn) => fn(payload)));

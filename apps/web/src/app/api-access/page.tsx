@@ -12,6 +12,7 @@ import { absUrl } from '@/lib/site';
 import { CodeBlock, IconTile, SectionHeading } from '@/components/billing/page-parts';
 import { KeyManager } from './key-manager';
 import { PlanBuyButton } from '../pricing/plan-buy-button';
+import { withBase } from '@/lib/base-path';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('developers');
@@ -103,7 +104,7 @@ export default async function ApiAccessPage() {
                   <ArrowRight className="size-4" strokeWidth={2} aria-hidden />
                 </Link>
               )}
-              <a href="/api/v1/docs" target="_blank" rel="noopener" className="inline-flex h-13 items-center gap-2 rounded-button bg-white/8 px-6 text-[16px] font-semibold text-[#edf3f0] ring-1 ring-white/15 transition-all hover:bg-white/12 focus-visible:shadow-ring focus-visible:outline-none">
+              <a href={withBase('/api/v1/docs')} target="_blank" rel="noopener" className="inline-flex h-13 items-center gap-2 rounded-button bg-white/8 px-6 text-[16px] font-semibold text-[#edf3f0] ring-1 ring-white/15 transition-all hover:bg-white/12 focus-visible:shadow-ring focus-visible:outline-none">
                 <BookOpen className="size-4" strokeWidth={2} aria-hidden />
                 {t('openapi')}
               </a>
@@ -265,7 +266,7 @@ export default async function ApiAccessPage() {
           {!session && (
             <div className="mt-6 flex justify-center">
               <Button asChild variant="link">
-                <a href="/api/v1/docs" target="_blank" rel="noopener">
+                <a href={withBase('/api/v1/docs')} target="_blank" rel="noopener">
                   {t('openapi')} →
                 </a>
               </Button>

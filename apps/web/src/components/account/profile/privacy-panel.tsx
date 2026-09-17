@@ -6,6 +6,7 @@ import { Button, Dialog, Field, Input, Switch, useToast } from '@lokacia/ui';
 import { SettingsRow } from '../ui';
 import { apiFetch, ClientApiError } from '@/lib/api-client';
 import { useLocalizedPath } from '@/i18n/link';
+import { withBase } from '@/lib/base-path';
 
 const KINDS = ['terms', 'marketing', 'analytics'] as const;
 
@@ -32,14 +33,14 @@ export function PrivacyPanel({ consents }: { consents: { kind: string; granted: 
   const logoutAll = async () => {
     setBusy('logout');
     await apiFetch('/auth/logout-all', { method: 'POST' }).catch(() => undefined);
-    window.location.href = lp('/login');
+    window.location.href = withBase(lp('/login'));
   };
   const deleteAccount = async () => {
     setBusy('delete');
     try {
       await apiFetch('/users/me', { method: 'DELETE' });
       await apiFetch('/auth/logout', { method: 'POST' }).catch(() => undefined);
-      window.location.href = lp('/');
+      window.location.href = withBase(lp('/'));
     } catch (e) {
       setBusy(null);
       toast({ title: e instanceof ClientApiError ? e.message : t('saveError'), tone: 'danger' });
@@ -60,7 +61,7 @@ export function PrivacyPanel({ consents }: { consents: { kind: string; granted: 
         </SettingsRow>
         <SettingsRow label={t('exportTitle')} description={t('exportBody')}>
           <Button asChild variant="secondary">
-            <a href="/api/v1/users/me/export" download>
+            <a href={withBase('/api/v1/users/me/export')} download>
               <Download className="size-4" strokeWidth={2} aria-hidden />
               {t('exportAction')}
             </a>

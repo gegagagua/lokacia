@@ -24,6 +24,8 @@ export const envSchema = z.object({
   CRM_URL: z.string().url().default('http://localhost:3101'),
   ADMIN_URL: z.string().url().default('http://localhost:3102'),
   API_URL: z.string().url().default('http://localhost:4000'),
+  /** Sub-path the web app is served under (e.g. /lokacia); prefixes `/api/v1/...` URLs in responses. Empty at a domain root. */
+  PUBLIC_BASE_PATH: z.string().default(''),
   DATABASE_URL: z.string().default('postgres://lokacia:lokacia@localhost:5432/lokacia'),
   REDIS_URL: z.string().default('redis://localhost:6379'),
   QUEUE_DRIVER: z.enum(['bullmq', 'inline']).default('bullmq'),

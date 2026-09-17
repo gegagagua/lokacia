@@ -11,6 +11,7 @@ import { AnalyticsBeacon } from '@/components/v2/analytics-beacon';
 import { ImpersonationBanner } from '@/components/v2/impersonation-banner';
 import { HTML_LANG } from '@/i18n/locale';
 import { getAppLocale, getRequestPathname, localeSeo } from '@/i18n/server';
+import { withBase } from '@/lib/base-path';
 import { absUrl, SITE_NAME, SITE_URL } from '@/lib/site';
 import './globals.css';
 
@@ -52,7 +53,7 @@ export async function generateMetadata(): Promise<Metadata> {
     twitter: { card: 'summary_large_image', title: SITE_NAME, description: t('description') },
     robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large' } },
     formatDetection: { telephone: false },
-    manifest: '/manifest.webmanifest',
+    manifest: withBase('/manifest.webmanifest'),
   };
 }
 

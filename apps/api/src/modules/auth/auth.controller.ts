@@ -115,6 +115,6 @@ export class AuthController {
     if (!state || state !== req.cookies?.lk_oauth_state) throw problems.unauthorized();
     const t = await this.auth.googleCallback(code, { ip, userAgent: req.headers['user-agent'] });
     this.tokens.setAuthCookies(res, t.access, t.refresh);
-    res.redirect('/account');
+    res.redirect(`${this.env.PUBLIC_BASE_PATH.replace(/\/$/, '')}/account`);
   }
 }

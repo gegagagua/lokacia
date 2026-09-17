@@ -36,7 +36,8 @@ export function configureApp(app: INestApplication, env: Env) {
   app.use(jsonOnlyMutations);
   // MOBILE_WEB_URL: Expo web preview of apps/mobile (native apps send no Origin); dev falls back to :8190.
   const mobileWeb = env.MOBILE_WEB_URL || (env.NODE_ENV !== 'production' ? 'http://localhost:8190' : '');
-  app.enableCors({ origin: [env.APP_URL, env.CRM_URL, env.ADMIN_URL, ...(mobileWeb ? [mobileWeb] : [])], credentials: true });
+  // CORS compares bare origins; APP_URL may carry a sub-path (https://digitalfix.cloud/lokacia)
+  app.enableCors({ origin: [env.APP_URL, env.CRM_URL, env.ADMIN_URL, ...(mobileWeb ? [mobileWeb] : [])].map((u) => new URL(u).origin), credentials: true });
   app.enableShutdownHooks();
   const http = app.getHttpAdapter().getInstance() as { set?: (k: string, v: unknown) => void };
   http.set?.('trust proxy', 1);

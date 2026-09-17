@@ -4,15 +4,18 @@ import { Check, ChevronDown, Globe } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { cn, Popover } from '@lokacia/ui';
 import { LOCALE_COOKIE, LOCALES, switchLocaleHref, toLocale, type Locale } from '@/i18n/locale';
+import { stripBase, withBase } from '@/lib/base-path';
 
 /** Language names are always shown in their own language. */
 const NATIVE_NAMES: Record<Locale, string> = { ka: 'ქართული', en: 'English', ru: 'Русский' };
+
+const currentLocation = () => ({ pathname: stripBase(window.location.pathname), search: window.location.search, hash: window.location.hash });
 
 function useSwitch() {
   return React.useCallback((target: Locale) => {
     document.cookie = `${LOCALE_COOKIE}=${target}; path=/; max-age=31536000; samesite=lax`;
     // full navigation: <html lang>, metadata and all server-rendered text change with the locale
-    window.location.assign(switchLocaleHref(window.location, target));
+    window.location.assign(withBase(switchLocaleHref(currentLocation(), target)));
   }, []);
 }
 
@@ -20,7 +23,8 @@ function useSwitch() {
 function useHrefs() {
   const [hrefs, setHrefs] = React.useState<Record<Locale, string>>({ ka: '/', en: '/en', ru: '/ru' });
   React.useEffect(() => {
-    setHrefs({ ka: switchLocaleHref(window.location, 'ka'), en: switchLocaleHref(window.location, 'en'), ru: switchLocaleHref(window.location, 'ru') });
+    const loc = currentLocation();
+    setHrefs({ ka: withBase(switchLocaleHref(loc, 'ka')), en: withBase(switchLocaleHref(loc, 'en')), ru: withBase(switchLocaleHref(loc, 'ru')) });
   }, []);
   return hrefs;
 }

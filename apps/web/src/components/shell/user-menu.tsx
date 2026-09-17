@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import type { SessionUser } from '@lokacia/contracts';
 import { Avatar, Popover } from '@lokacia/ui';
 import { apiFetch } from '@/lib/api-client';
+import { withBase } from '@/lib/base-path';
 
 export function UserMenu({ user }: { user: SessionUser }) {
   const t = useTranslations('common.nav');
@@ -53,7 +54,7 @@ export function UserMenu({ user }: { user: SessionUser }) {
         className="w-full rounded-[6px] border-t border-border px-3 py-2 text-left text-[15px] text-danger hover:bg-surface-2"
         onClick={async () => {
           await apiFetch('/auth/logout', { method: 'POST' }).catch(() => undefined);
-          window.location.href = '/';
+          window.location.href = withBase('/');
         }}
       >
         {t('logout')}

@@ -1,4 +1,4 @@
-import { Controller, Delete, Get, Header, HttpCode, Param, Patch, Post, Put, Query, Req, Res } from '@nestjs/common';
+import { Controller, Delete, Get, HttpCode, Param, Patch, Post, Put, Query, Req, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { z } from 'zod';
