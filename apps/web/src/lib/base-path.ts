@@ -9,6 +9,8 @@ export const BASE_PATH = (process.env.NEXT_PUBLIC_BASE_PATH ?? '').replace(/\/$/
 export function withBase(url: string): string {
   if (!BASE_PATH || !url.startsWith('/') || url.startsWith('//')) return url;
   if (url === BASE_PATH || url.startsWith(`${BASE_PATH}/`) || url.startsWith(`${BASE_PATH}?`)) return url;
+  // the base root has no trailing slash (`/lokacia/` 308-redirects, and a rewrite to it would lose the locale)
+  if (url === '/' || url.startsWith('/?') || url.startsWith('/#')) return `${BASE_PATH}${url.slice(1)}`;
   return `${BASE_PATH}${url}`;
 }
 
