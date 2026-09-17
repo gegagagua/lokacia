@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import { withBase } from '@/lib/base-path';
 import { isLocale, LOCALE_COOKIE, LOCALE_HEADER, PATHNAME_HEADER, localizePath, splitLocalePath, type Locale } from '@/i18n/locale';
 
 const API_URL = process.env.API_URL ?? 'http://localhost:4000';
@@ -17,7 +18,7 @@ function persistLocale(res: NextResponse, locale: Locale, current: string | unde
  *    rendering so server components see the user.
  */
 export async function proxy(req: NextRequest) {
-  const { pathname } = req.nextUrl;
+  const { pathname, search } = req.nextUrl;
   const { locale: prefix, path } = splitLocalePath(pathname);
   const cookieLocale = req.cookies.get(LOCALE_COOKIE)?.value;
   const isRead = req.method === 'GET' || req.method === 'HEAD';
@@ -61,10 +62,9 @@ export async function proxy(req: NextRequest) {
     }
   }
 
-  // nextUrl.clone() keeps the configured basePath, so the rewrite stays inside a sub-path deployment
-  const target = req.nextUrl.clone();
-  target.pathname = path;
-  const res = prefix ? NextResponse.rewrite(target, { request: { headers } }) : NextResponse.next({ request: { headers } });
+  // Built from req.url (not nextUrl, whose protocol follows X-Forwarded-Proto behind nginx and would make Next proxy the
+  // rewrite externally); `withBase` keeps it inside a sub-path deployment.
+  const res = prefix ? NextResponse.rewrite(new URL(withBase(`${path}${search}`), req.url), { request: { headers } }) : NextResponse.next({ request: { headers } });
   for (const sc of setCookies) res.headers.append('set-cookie', sc);
   return prefix ? persistLocale(res, locale, cookieLocale) : res;
 }
