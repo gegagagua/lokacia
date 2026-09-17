@@ -3,7 +3,7 @@ dist
 .next
 .turbo
 coverage
-storage/
+/storage/
 .env
 .env.local
 *.log
@@ -13,5 +13,5 @@ test-results
 storybook-static
 tsconfig.tsbuildinfo
 next-env.d.ts
-storage-test/
+/storage-test/
 apps/*/public/maplibre/
