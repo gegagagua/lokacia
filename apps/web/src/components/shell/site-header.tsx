@@ -6,6 +6,7 @@ import { getSession } from '@/lib/session';
 import { ThemeToggle } from './theme-toggle';
 import { UserMenu } from './user-menu';
 import { MobileNav } from './mobile-nav';
+import { HeaderNav } from './header-nav';
 import { NotificationsBell } from './notifications-bell';
 import { LanguageSwitcher } from './language-switcher';
 
@@ -27,13 +28,7 @@ export async function SiteHeader() {
           <Logo size={30} className="hidden sm:inline-flex" />
           <Logo size={24} showGeorgian={false} className="sm:hidden" />
         </Link>
-        <nav aria-label={a('mainNav')} className="ml-6 hidden items-center gap-1 rounded-full bg-surface-2/80 p-1 xl:flex">
-          {nav.map((n) => (
-            <Link key={n.href} href={n.href} className="whitespace-nowrap rounded-full px-4 py-2 text-[14.5px] font-medium text-muted transition-all hover:bg-surface hover:text-text hover:shadow-xs">
-              {n.label}
-            </Link>
-          ))}
-        </nav>
+        <HeaderNav items={nav} label={a('mainNav')} />
         <div className="ml-auto flex min-w-0 items-center gap-1.5">
           <div className="hidden sm:block">
             <LanguageSwitcher />

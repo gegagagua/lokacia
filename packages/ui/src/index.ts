@@ -14,3 +14,4 @@ export * from './components/chat-thread';
 export * from './components/kanban';
 export * from './brand/svg';
 export * from './lib/theme';
+export * from './components/locale-menu';

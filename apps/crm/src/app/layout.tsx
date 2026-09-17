@@ -16,13 +16,15 @@ const font = localFont({
     { path: '../../../../packages/ui/fonts/firago-ka-600.woff2', weight: '600', style: 'normal' },
     { path: '../../../../packages/ui/fonts/firago-ka-700.woff2', weight: '700', style: 'normal' },
   ],
-  fallback: ['Noto Sans Georgian', 'system-ui', 'sans-serif'],
+  // No metric fallback here: it would inject Arial before the Cyrillic family in the stack (see theme.css --font-sans).
+  adjustFontFallback: false,
 });
 /** Cyrillic subset: separate family so ka/en pages never download it. */
 const fontCyr = localFont({
   variable: '--font-brand-cyr',
   display: 'swap',
   preload: false,
+  adjustFontFallback: false,
   src: [
     { path: '../../../../packages/ui/fonts/firago-cyr-400.woff2', weight: '400', style: 'normal' },
     { path: '../../../../packages/ui/fonts/firago-cyr-700.woff2', weight: '700', style: 'normal' },

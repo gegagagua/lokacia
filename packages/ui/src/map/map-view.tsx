@@ -107,6 +107,9 @@ export function MapView(props: MapViewProps) {
         cb.current.onMapClick?.({ lat: e.lngLat.lat, lng: e.lngLat.lng });
       });
       map.current = m;
+      const ro = new ResizeObserver(() => m.resize());
+      ro.observe(el.current);
+      m.once('remove', () => ro.disconnect());
       (el.current as HTMLDivElement & { __lkMap?: MlMap }).__lkMap = m;
     });
     return () => {
@@ -205,6 +208,17 @@ export function MapView(props: MapViewProps) {
     if (m.getSource('polys')) (m.getSource('polys') as GeoJSONSource).setData(polygons);
     else {
       m.addSource('polys', { type: 'geojson', data: polygons, generateId: true });
+      // Frame the city: fit to the district polygons instead of relying on an averaged centre/zoom.
+      const bounds = new lib.current!.LngLatBounds();
+      const walk = (c: unknown): void => {
+        if (Array.isArray(c) && typeof c[0] === 'number') bounds.extend(c as [number, number]);
+        else if (Array.isArray(c)) c.forEach(walk);
+      };
+      polygons.features.forEach((f) => walk((f.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon | null)?.coordinates));
+      if (!bounds.isEmpty()) {
+        m.resize();
+        m.fitBounds(bounds, { padding: 24, duration: 0 });
+      }
       m.addLayer(
         { id: 'polys-fill', type: 'fill', source: 'polys', paint: { 'fill-color': valueProperty ? ['interpolate', ['linear'], ['coalesce', ['get', valueProperty], lo], lo, '#EDF0EB', (lo + hi) / 2, '#8FB8A8', hi, '#1E4A42'] : '#1E4A42', 'fill-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 0.85, 0.62] } },
         'clusters',

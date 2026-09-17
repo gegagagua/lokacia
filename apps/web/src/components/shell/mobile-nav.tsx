@@ -1,4 +1,6 @@
 'use client';
+import { usePathname } from 'next/navigation';
+import { isActivePath } from './header-nav';
 import * as React from 'react';
 import Link from '@/i18n/link';
 import { Menu } from 'lucide-react';
@@ -7,6 +9,7 @@ import { Button, Drawer, IconButton } from '@lokacia/ui';
 import { LanguageLinks } from './language-switcher';
 
 export function MobileNav({ items, loggedIn }: { items: { href: string; label: string }[]; loggedIn: boolean }) {
+  const pathname = usePathname() ?? '/';
   const t = useTranslations('common.nav');
   const [open, setOpen] = React.useState(false);
   return (
@@ -23,7 +26,7 @@ export function MobileNav({ items, loggedIn }: { items: { href: string; label: s
       >
         <nav className="flex flex-col" onClick={() => setOpen(false)}>
           {items.map((n) => (
-            <Link key={n.href} href={n.href} className="border-b border-border py-3 text-[17px]">
+            <Link key={n.href} href={n.href} aria-current={isActivePath(pathname, n.href) ? 'page' : undefined} className="border-b border-border py-3 text-[17px] aria-[current=page]:font-semibold aria-[current=page]:text-primary">
               {n.label}
             </Link>
           ))}
